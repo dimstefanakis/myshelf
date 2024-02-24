@@ -54,31 +54,25 @@ export default function ChronologyScreen() {
                 id: "5"
             },
             {
-                book: "Ranni",
+                book: "This is a book",
                 created_at: "2010",
                 status: "",
                 id: "5"
             },
             {
-                book: "Ranni",
+                book: "This might be a book",
                 created_at: "2019",
                 status: "",
                 id: "5"
             },
 
             {
-                book: "Ranni",
-                created_at: "2017",
+                book: "This could be a book",
+                created_at: "2018",
                 status: "",
                 id: "5"
             },
 
-            {
-                book: "Ranni",
-                created_at: "2020",
-                status: "",
-                id: "5"
-            },
         ])
     }, [])
     return (
@@ -91,17 +85,35 @@ export default function ChronologyScreen() {
             }}>
                 <View style={styles.line} />
                 {decades.map((decade, index) =>
-                    <View key={decade.start} style={{flexDirection: 'column', height: 175, alignSelf: "center", width: "20%"}}>
+                    <View key={decade.start} style={{flexDirection: 'column', alignSelf: "center", width: "20%"}}>
                         <View>
                             <Text style={styles.decadeText}>{decade.representation}</Text>
                             <View style={styles.line} />
                         </View>
                         {books.
                             filter(book => parseInt(book.created_at) >= decade.start && parseInt(book.created_at) <= decade.end)
-                            .map((book,idx) => <Text key={idx} style={{position: "absolute", top: calculateOffset(book.created_at), left: 100, width: 150 }}>{book.book} + {book.created_at}</Text>)}
+                            .map((book,idx) => <BookChronologyEntry index={idx} book={book}/>)}
                     </View>
                 )}
             </ScrollView>
+        </View>
+    )
+}
+type BookChronologyEntryProps = {
+    index: number;
+    book: Book;
+}
+function BookChronologyEntry(props: BookChronologyEntryProps) {
+    return (
+        <View style={{
+            position: "absolute",
+            top: calculateOffset(props.book.created_at),
+            left: 85,
+            width: 150,
+            borderBottomWidth: 1,
+            borderColor: 'white'
+        }}>
+            <Text key={props.index} >{props.book.book}</Text>
         </View>
     )
 }
@@ -129,7 +141,7 @@ const styles = StyleSheet.create({
     },
     line: { 
         width: 2,
-        height: 150,
+        height: 200,
         alignSelf: 'center',
         backgroundColor: 'white'
     }
