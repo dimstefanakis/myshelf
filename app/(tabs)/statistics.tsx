@@ -1,14 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 // import EditScreenInfo from '@/components/topNavBar';
-import { Text, View } from '@/components/Themed';
+import { Text, View } from "@/components/Themed";
 
 export default function TabTwoScreen() {
   return (
-    <View >
-      <Text >Statistics</Text>
+    <View>
+      <Text>Statistics</Text>
     </View>
   );
 }
-
-
