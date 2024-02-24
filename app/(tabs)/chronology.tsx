@@ -16,6 +16,10 @@ type Book = {
     status: string    
 }
 
+function yearLastDigit(year: string): number {
+    return year.length === 4 ? parseInt(year.charAt(3)): 0
+}
+
 function generateDecades(numberOfDecades: number): Decade[] {
     let decades: Decade[] = [];
     let currentYear = new Date().getFullYear()
@@ -30,10 +34,12 @@ function generateDecades(numberOfDecades: number): Decade[] {
     }
     return decades
 }
+
 function calculateOffset(creationYear: string): string | number {
     const lastDigit = parseInt(creationYear.charAt(3))
     return lastDigit !== 0 ? `-${lastDigit * 10 - 1}%`: 2
 }
+
 export default function ChronologyScreen() {
     const numberOfDecades = 11
     const [decades, setDecades] = useState<Decade[]>([])
@@ -68,7 +74,7 @@ export default function ChronologyScreen() {
 
             {
                 book: "This could be a book",
-                created_at: "2018",
+                created_at: "2015",
                 status: "",
                 id: "5"
             },
@@ -108,12 +114,14 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
         <View style={{
             position: "absolute",
             top: calculateOffset(props.book.created_at),
-            left: 85,
-            width: 150,
+            left: yearLastDigit(props.book.created_at) == 0 ? 78: 42,
+            width: 150,  
             borderBottomWidth: 1,
             borderColor: 'white'
         }}>
-            <Text key={props.index} >{props.book.book}</Text>
+            <Text style={{ 
+                textAlign: 'right'
+            }}key={props.index} >{props.book.book}</Text>
         </View>
     )
 }
