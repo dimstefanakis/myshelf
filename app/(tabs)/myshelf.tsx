@@ -5,8 +5,8 @@ import { Text, View } from '@/components/Themed';
 
 export default function TabTwoScreen() {
   return (
-    <View >
-      <Text >MyShelf</Text>
+    <View style={{height:"100%",backgroundColor:"white",display:"flex",alignContent:"center",width:"100%"}} >
+      <Text style={{color:"black"}} >MyShelf</Text>
     </View>
   );
 }
