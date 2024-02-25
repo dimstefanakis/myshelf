@@ -1,62 +1,17 @@
 import { useState, useEffect } from "react";
+import { useRouter, useFocusEffect } from "expo-router";
 import { Image } from "expo-image";
 import { useDebounceValue } from "usehooks-ts";
 import {
   StyleSheet,
   TextInput,
+  TouchableNativeFeedback,
   NativeSyntheticEvent,
   TextInputChangeEventData,
 } from "react-native";
 
 import { Text, View } from "@/components/Themed";
-
-type Book = {
-  id: string;
-  etag: string;
-  volumeInfo: VolumeInfo;
-  searchInfo: SearchInfo;
-};
-
-type SearchInfo = {
-  textSnippet: string;
-};
-
-type VolumeInfo = {
-  title: string;
-  subtitle: string;
-  authors: string[];
-  publisher: string;
-  publishedDate: string;
-  description: string;
-  industryIdentifiers: {
-    type: string;
-    identifier: string;
-  }[];
-  readingModes: {
-    text: boolean;
-    image: boolean;
-  };
-  pageCount: number;
-  printType: string;
-  categories: string[];
-  averageRating: number;
-  ratingsCount: number;
-  maturityRating: string;
-  allowAnonLogging: boolean;
-  contentVersion: string;
-  panelizationSummary: {
-    containsEpubBubbles: boolean;
-    containsImageBubbles: boolean;
-  };
-  imageLinks: {
-    smallThumbnail: string;
-    thumbnail: string;
-  };
-  language: string;
-  previewLink: string;
-  infoLink: string;
-  canonicalVolumeLink: string;
-};
+import type { Book } from "@/constants/BookTypes";
 
 export default function Search() {
   const [search, setSearch] = useDebounceValue("", 500);
@@ -118,40 +73,47 @@ export default function Search() {
 }
 
 function SearchResult({ book }: { book: Book }) {
+  const router = useRouter();
   const blurhash =
     "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
 
+  function handlePress() {
+    router.push(`/book/${book.id}`);
+  }
+
   return (
-    <View
-      style={{
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: 10,
-      }}
-    >
-      <Image
-        source={{ uri: book.volumeInfo.imageLinks?.thumbnail }}
-        style={{ width: 50, height: 50, borderRadius: 10 }}
-        placeholder={blurhash}
-        transition={1000}
-      />
+    <TouchableNativeFeedback onPress={handlePress}>
       <View
         style={{
           flex: 1,
-          flexDirection: "column",
+          flexDirection: "row",
+          alignItems: "center",
           justifyContent: "space-between",
-          marginLeft: 10,
+          padding: 10,
         }}
       >
-        <Text style={{ fontSize: 16, fontWeight: "bold" }}>
-          {book.volumeInfo.title}
-        </Text>
-        <Text style={{ fontSize: 12, color: "gray" }}>
-          {book.volumeInfo.authors?.join(", ")}
-        </Text>
+        <Image
+          source={{ uri: book.volumeInfo.imageLinks?.thumbnail }}
+          style={{ width: 50, height: 50, borderRadius: 10 }}
+          placeholder={blurhash}
+          transition={1000}
+        />
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "column",
+            justifyContent: "space-between",
+            marginLeft: 10,
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+            {book.volumeInfo.title}
+          </Text>
+          <Text style={{ fontSize: 12, color: "gray" }}>
+            {book.volumeInfo.authors?.join(", ")}
+          </Text>
+        </View>
       </View>
-    </View>
+    </TouchableNativeFeedback>
   );
 }
