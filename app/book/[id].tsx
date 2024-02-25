@@ -81,6 +81,7 @@ export default function BookModalScreen() {
             isbn_10: isbn10,
             isbn_13: isbn13,
             cover_url: book?.volumeInfo.imageLinks?.thumbnail,
+            google_api_data: book,
           },
         ])
         .select("*")
