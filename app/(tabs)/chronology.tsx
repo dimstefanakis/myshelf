@@ -1,14 +1,13 @@
 import { View, Text } from "@/components/Themed";
-import { EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, TouchableHighlight } from "react-native";
-import { Icon, Input } from "react-native-elements";
+import { DimensionValue, Dimensions, ScrollView, StyleSheet } from "react-native";
 
 type Decade = {
     start: number;
     end: number;
     representation: string
 }
+
 type Book = {
     book: string,
     created_at: string,
@@ -35,9 +34,9 @@ function generateDecades(numberOfDecades: number): Decade[] {
     return decades
 }
 
-function calculateOffset(creationYear: string): string | number {
+function calculateOffset(creationYear: string): DimensionValue {
     const lastDigit = parseInt(creationYear.charAt(3))
-    return lastDigit !== 0 ? `-${lastDigit * 10 - 1}%`: 2
+    return lastDigit !== 0 ? `${1 - lastDigit * 10}%`: 2
 }
 
 export default function ChronologyScreen() {
@@ -90,7 +89,7 @@ export default function ChronologyScreen() {
                 width: Dimensions.get('window').width,
             }}>
                 <View style={styles.line} />
-                {decades.map((decade, index) =>
+                {decades.map(decade =>
                     <View key={decade.start} style={{flexDirection: 'column', alignSelf: "center", width: "20%"}}>
                         <View>
                             <Text style={styles.decadeText}>{decade.representation}</Text>
@@ -98,7 +97,7 @@ export default function ChronologyScreen() {
                         </View>
                         {books.
                             filter(book => parseInt(book.created_at) >= decade.start && parseInt(book.created_at) <= decade.end)
-                            .map((book,idx) => <BookChronologyEntry index={idx} book={book}/>)}
+                                .map((book,idx) => <BookChronologyEntry key={idx} index={idx} book={book}/>)}
                     </View>
                 )}
             </ScrollView>
@@ -109,7 +108,9 @@ type BookChronologyEntryProps = {
     index: number;
     book: Book;
 }
+
 function BookChronologyEntry(props: BookChronologyEntryProps) {
+
     return (
         <View style={{
             position: "absolute",
