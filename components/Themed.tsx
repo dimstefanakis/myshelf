@@ -3,7 +3,11 @@
  * https://docs.expo.io/guides/color-schemes/
  */
 
-import { Text as DefaultText, View as DefaultView } from "react-native";
+import {
+  Text as DefaultText,
+  View as DefaultView,
+  TextInput as DefaultTextInput,
+} from "react-native";
 
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "./useColorScheme";
@@ -13,6 +17,7 @@ import {
   PressableProps,
   StyleProp,
   ViewStyle,
+  TextInputProps,
 } from "react-native";
 
 type ThemeProps = {
@@ -22,10 +27,11 @@ type ThemeProps = {
 
 export type TextProps = ThemeProps & DefaultText["props"];
 export type ViewProps = ThemeProps & DefaultView["props"];
-type ButtonProps = ThemeProps &
+export type ButtonProps = ThemeProps &
   PressableProps & {
     style?: StyleProp<ViewStyle>;
   };
+export type InputProps = ThemeProps & TextInputProps;
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
@@ -81,6 +87,21 @@ export function Button(props: ButtonProps) {
   );
 }
 
+export function TextInput(props: InputProps) {
+  const { style, lightColor, darkColor, ...otherProps } = props;
+  const backgroundColor = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    "input",
+  );
+
+  return (
+    <DefaultTextInput
+      style={[{ backgroundColor }, styles.input, style]}
+      {...otherProps}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   button: {
     alignItems: "center",
@@ -97,5 +118,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     letterSpacing: 0.25,
     color: "white",
+  },
+  input: {
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 6,
+    padding: 10,
+    width: "100%",
   },
 });
