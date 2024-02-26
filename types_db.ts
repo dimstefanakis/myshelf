@@ -38,19 +38,28 @@ export interface Database {
         Row: {
           cover_url: string | null
           created_at: string
+          google_api_data: Json | null
           id: string
+          isbn_10: string | null
+          isbn_13: string | null
           title: string | null
         }
         Insert: {
           cover_url?: string | null
           created_at?: string
+          google_api_data?: Json | null
           id?: string
+          isbn_10?: string | null
+          isbn_13?: string | null
           title?: string | null
         }
         Update: {
           cover_url?: string | null
           created_at?: string
+          google_api_data?: Json | null
           id?: string
+          isbn_10?: string | null
+          isbn_13?: string | null
           title?: string | null
         }
         Relationships: []
