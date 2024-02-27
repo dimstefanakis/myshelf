@@ -1,27 +1,55 @@
 import React from "react";
 import { Text, View, Image } from "react-native";
-import { StyleSheet } from "react-native";
-
+import { StyleSheet, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
 const data = [
-  { title: "Journal", image: require("../assets/images/placeholderimagelibrbary.jpg") },
-  { title: "Habit Logbook", image: require("../assets/images/placeholderimagelibrbary.jpg") },
-  { title: "Map", image: require("../assets/images/placeholderimagelibrbary.jpg") },
-  { title: "Chronology", image: require("../assets/images/placeholderimagelibrbary.jpg") },
-  { title: "Goal Tracker", image: require("../assets/images/placeholderimagelibrbary.jpg") },
-  { title: "Community", image: require("../assets/images/placeholderimagelibrbary.jpg") }
+  {
+    title: "Journal",
+    image: require("../assets/images/placeholderimagelibrbary.jpg"),
+  },
+  {
+    title: "Habit Logbook",
+    image: require("../assets/images/placeholderimagelibrbary.jpg"),
+  },
+  {
+    title: "Map",
+    image: require("../assets/images/placeholderimagelibrbary.jpg"),
+  },
+  {
+    title: "Chronology",
+    image: require("../assets/images/placeholderimagelibrbary.jpg"),
+  },
+  {
+    title: "Goal Tracker",
+    image: require("../assets/images/placeholderimagelibrbary.jpg"),
+  },
+  {
+    title: "Community",
+    image: require("../assets/images/placeholderimagelibrbary.jpg"),
+  },
 ];
 
 function HomepageContainers() {
-  return (
+    const navigation = useRouter();
+    return (
     <View style={styles.container}>
       {data.map((item, index) => (
         <View key={index} style={styles.item}>
-          <View style={styles.textcontainer}>
-            <Text style={styles.text}>{item.title}</Text>
-          </View>
-          <View style={styles.imagecontainer}>
-            <Image source={item.image} style={styles.image} />
-          </View>
+          <TouchableOpacity
+            // onPress={
+            //   () =>
+            //     navigation.navigate(
+            //        "pages/"+item.title.toLowerCase()
+            //     )
+            // }
+          >
+            <View style={styles.textcontainer}>
+              <Text style={styles.text}>{item.title}</Text>
+            </View>
+            <View style={styles.imagecontainer}>
+              <Image source={item.image} style={styles.image} />
+            </View>
+          </TouchableOpacity>
         </View>
       ))}
     </View>
