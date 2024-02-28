@@ -63,16 +63,15 @@ export default function BookModalScreen() {
       .from("books")
       .select("*")
       .eq("isbn_10", isbn10 || "")
-      .eq("isbn_13", isbn13 || "")
-      .single();
+      .eq("isbn_13", isbn13 || "");
 
     if (existingBookError) {
-      console.error(existingBookError);
+      console.log("error", existingBookError);
       setAddingBook(false);
       return;
     }
 
-    if (!existingBook) {
+    if (existingBook.length == 0) {
       const { data: newBook, error: newBookError } = await supabase
         .from("books")
         .insert([
@@ -88,22 +87,21 @@ export default function BookModalScreen() {
         .single();
 
       if (newBookError) {
-        console.error(newBookError);
         setAddingBook(false);
         return;
       } else {
-        await supabase.from("user_books").insert([
+        await supabase.from("users_books").insert([
           {
-            user_id: session.user.id,
-            book_id: newBook?.id,
+            user: session.user.id,
+            book: newBook?.id,
           },
         ]);
       }
     } else {
-      await supabase.from("user_books").insert([
+      await supabase.from("users_books").insert([
         {
-          user_id: session.user.id,
-          book_id: existingBook.id,
+          user: session.user.id,
+          book: existingBook[0].id,
         },
       ]);
     }
