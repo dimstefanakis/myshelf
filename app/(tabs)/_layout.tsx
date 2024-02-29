@@ -40,7 +40,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => null,
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
@@ -61,14 +61,22 @@ export default function TabLayout() {
         name="search"
         options={{
           title: "Search",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => null,
         }}
       />
       <Tabs.Screen
         name="myshelf"
         options={{
           title: "MyShelf",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarIcon: ({ color }) => null,
+        }}
+      />
+      <Tabs.Screen
+        name="chronology"
+        options={{
+          title: "Chronology",
+          tabBarIcon: ({ color }) => null,
+          // tabBarButton: () => null,
         }}
       />
       <Tabs.Screen
@@ -76,6 +84,7 @@ export default function TabLayout() {
         options={{
           title: "Statistics",
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarButton: () => null,
         }}
       />
       <Tabs.Screen
@@ -83,6 +92,7 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          tabBarButton: () => null,
         }}
       />
     </Tabs>
