@@ -9,7 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { ThemeContextProvider, useTheme } from "@/components/ThemeContext";
 import { useColorScheme } from "@/components/useColorScheme";
 
 export {
@@ -46,15 +46,15 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+      <RootLayoutNav />
+  );
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
@@ -64,8 +64,12 @@ function RootLayoutNav() {
             name="book/[id]"
             options={{ presentation: "modal", headerShown: false }}
           />
+          {/* <Stack.Screen
+            name="journalLanding"
+            options={{ headerShown: false }}
+          /> */}
         </Stack>
-      </ThemeProvider>
-    </SafeAreaView>
+    </ThemeProvider>
+    // </ThemeContextProvider>
   );
 }
