@@ -6,6 +6,8 @@ import { Button, Input } from "react-native-elements";
 import { color } from "react-native-elements/dist/helpers";
 
 
+const TOTAL_TITLE_CHARS_TO_SHOW=20
+
 type Decade = {
   start: number;
   end: number;
@@ -90,7 +92,7 @@ export default function ChronologyScreen() {
       },
 
       {
-        book: "This could be a book",
+        book: "This could bea book..",
         created_at: "2015",
         status: "",
         id: "5"
@@ -102,16 +104,55 @@ export default function ChronologyScreen() {
         id: "5"
       },
       {
-        book: "The frenzied flame the sequel",
-        created_at: "2015",
+        book: "The frenzied flame",
+        created_at: "2016",
         status: "",
         id: "5"
       },
 
+
+      {
+        book: "The frenzied flame 2",
+        created_at: "2012",
+        status: "",
+        id: "5"
+      },
+      {
+        book: "The frenzied flame 2",
+        created_at: "2014",
+        status: "",
+        id: "5"
+      },
+      {
+        book: "The frenzied flame 2",
+        created_at: "2017",
+        status: "",
+        id: "5"
+      },
+
+      {
+        book: "The frenzied flame 3",
+        created_at: "2017",
+        status: "",
+        id: "5"
+      },
+
+      {
+        book: "The frenzied flame 3",
+        created_at: "2018",
+        status: "",
+        id: "5"
+      },
+
+      {
+        book: "The frenzied flame 3",
+        created_at: "2019",
+        status: "",
+        id: "5"
+      },
     ])
   }, [])
 
-  // War crimes start
   function renderBookEntries(decade: Decade): React.JSX.Element[] {
     let decadeBooks = books.filter(book => parseInt(book.created_at) >= decade.start && parseInt(book.created_at) <= decade.end)
     let result: React.JSX.Element[] = []
@@ -125,8 +166,7 @@ export default function ChronologyScreen() {
     }
     return result
   }
-  // War crimes end
-
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -150,13 +190,10 @@ export default function ChronologyScreen() {
         {decades.map(decade =>
           <View key={decade.start} style={{ flexDirection: 'column', alignSelf: "center", width: "20%", backgroundColor: "white" }}>
             <View style={{ backgroundColor: 'white' }}>
-              <Text style={styles.decadeText}>{decade.representation}</Text>
+              <Text style={styles.decadeText}> {decade.representation}</Text>
               <View style={styles.line} />
             </View>
             { renderBookEntries(decade) }
-            {/* {books
-              .filter(book => parseInt(book.created_at) >= decade.start && parseInt(book.created_at) <= decade.end)
-              .map((book, index, arr) => <BookChronologyEntry left={false} index={index} book={book}/>)} */}
           </View>
         )}
       </ScrollView>
@@ -169,7 +206,6 @@ type BookChronologyEntryProps = {
   left: boolean;
 }
 function BookChronologyEntry(props: BookChronologyEntryProps) {
-  console.log(props.book.book, props.left)
   return (
     <View style={{
       zIndex: -1,
@@ -177,6 +213,7 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
       top: calculateOffset(props.book.created_at),
       left: props.left ? null: yearLastDigit(props.book.created_at) == 0 ? "85%" : "50%",
       right: props.left ? yearLastDigit(props.book.created_at) ? "50%": "80%" : null,
+      marginLeft: 1,
       width: 185,
       borderBottomWidth: 1,
       borderColor: '#3EB489',
@@ -185,7 +222,7 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
       <Text style={{
         color: 'black',
         textAlign: 'center'
-      }} key={props.index} >{props.book.book} ({props.book.created_at})</Text>
+      }} key={props.index} >{props.book.book.length > TOTAL_TITLE_CHARS_TO_SHOW ? props.book.book.slice(0, TOTAL_TITLE_CHARS_TO_SHOW) + "..": props.book.book} ({props.book.created_at})</Text>
     </View>
   )
 }
