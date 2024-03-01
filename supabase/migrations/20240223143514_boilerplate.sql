@@ -104,6 +104,11 @@ end;
 $function$
 ;
 
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
+
+
 grant delete on table "public"."books" to "anon";
 
 grant insert on table "public"."books" to "anon";
@@ -313,5 +318,3 @@ grant trigger on table "public"."users_books" to "service_role";
 grant truncate on table "public"."users_books" to "service_role";
 
 grant update on table "public"."users_books" to "service_role";
-
-
