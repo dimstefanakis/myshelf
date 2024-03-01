@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
-  TouchableHighlight,
 } from "react-native";
 
 

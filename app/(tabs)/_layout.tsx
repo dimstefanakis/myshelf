@@ -61,14 +61,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="chronology"
-        options={{
-          title: "Chronology",
-          tabBarIcon: ({ color }) => null,
-          tabBarButton: () => null,
-        }}
-      />
+
       <Tabs.Screen
         name="statistics"
         options={{
