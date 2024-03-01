@@ -7,7 +7,12 @@ import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import useUser from "@/hooks/useUser";
-import { Entypo, AntDesign, MaterialCommunityIcons, Ionicons  } from '@expo/vector-icons';
+import {
+  Entypo,
+  AntDesign,
+  MaterialCommunityIcons,
+  Ionicons,
+} from "@expo/vector-icons";
 
 export default function TabLayout() {
   const router = useRouter();
@@ -34,17 +39,16 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
-          <Entypo name="home" size={24} color={color} />
+            <Entypo name="home" size={24} color={color} />
           ),
         }}
-        
       />
       <Tabs.Screen
         name="search"
         options={{
           title: "Search",
           tabBarIcon: ({ color }) => (
-          <AntDesign name="search1" size={24} color="black" />
+            <AntDesign name="search1" size={24} color="black" />
           ),
         }}
       />
@@ -62,23 +66,27 @@ export default function TabLayout() {
         options={{
           title: "Chronology",
           tabBarIcon: ({ color }) => null,
-          // tabBarButton: () => null,
+          tabBarButton: () => null,
         }}
       />
       <Tabs.Screen
         name="statistics"
         options={{
           title: "Statistics",
-          tabBarIcon: ({ color }) => <Ionicons name="stats-chart-sharp" size={24} color="black" />
-        // tabBarButton: () => null,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="stats-chart-sharp" size={24} color="black" />
+          ),
+          // tabBarButton: () => null,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => <Ionicons name="person-circle" size={24} color="black" />
-        // tabBarButton: () => null,
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-circle" size={24} color="black" />
+          ),
+          // tabBarButton: () => null,
         }}
       />
     </Tabs>
