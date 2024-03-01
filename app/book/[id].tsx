@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams, useGlobalSearchParams, Link } from "expo-router";
 import { Image } from "expo-image";
@@ -94,6 +94,7 @@ export default function BookModalScreen() {
           {
             user: session.user.id,
             book: newBook?.id,
+            status: "future_reading",
           },
         ]);
       }
@@ -102,6 +103,7 @@ export default function BookModalScreen() {
         {
           user: session.user.id,
           book: existingBook[0].id,
+          status: "future_reading",
         },
       ]);
     }
@@ -152,7 +154,7 @@ export default function BookModalScreen() {
           />
         )}
         <Text style={{ color: "white", fontWeight: "700" }}>
-          Add to MyShelf
+          Add to future reading
         </Text>
       </Button>
       <StatusBar style="auto" />

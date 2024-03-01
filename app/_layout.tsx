@@ -56,13 +56,22 @@ function RootLayoutNav() {
     <SafeAreaView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false, title: "" }}
+          />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="signup" options={{ headerShown: false }} />
           <Stack.Screen
             name="book/[id]"
             options={{ presentation: "modal", headerShown: false }}
+          />
+          <Stack.Screen
+            name="bookList/[type]"
+            options={{
+              title: "Books",
+            }}
           />
         </Stack>
       </ThemeProvider>
