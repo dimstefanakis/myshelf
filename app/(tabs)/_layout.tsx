@@ -7,14 +7,7 @@ import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
 import useUser from "@/hooks/useUser";
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>["name"];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+import { Entypo, AntDesign, MaterialCommunityIcons, Ionicons  } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const router = useRouter();
@@ -40,35 +33,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => null,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? "light"].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          tabBarIcon: ({ color }) => (
+          <Entypo name="home" size={24} color={color} />
           ),
         }}
+        
       />
       <Tabs.Screen
         name="search"
         options={{
           title: "Search",
-          tabBarIcon: ({ color }) => null,
+          tabBarIcon: ({ color }) => (
+          <AntDesign name="search1" size={24} color="black" />
+          ),
         }}
       />
       <Tabs.Screen
         name="myshelf"
         options={{
           title: "MyShelf",
-          tabBarIcon: ({ color }) => null,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="bookshelf" size={24} color="black" />
+          ),
         }}
       />
       <Tabs.Screen
@@ -83,16 +69,16 @@ export default function TabLayout() {
         name="statistics"
         options={{
           title: "Statistics",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          tabBarButton: () => null,
+          tabBarIcon: ({ color }) => <Ionicons name="stats-chart-sharp" size={24} color="black" />
+        // tabBarButton: () => null,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          tabBarButton: () => null,
+          tabBarIcon: ({ color }) => <Ionicons name="person-circle" size={24} color="black" />
+        // tabBarButton: () => null,
         }}
       />
     </Tabs>
