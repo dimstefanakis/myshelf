@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { StyleSheet, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { supabase } from "@/utils/supabase";
 
@@ -74,10 +75,19 @@ export default function TabTwoScreen() {
 }
 
 function Gallery() {
+  const router = useRouter();
+
+  function onCurrentReadingPress() {
+    router.push("/bookList/future_reading");
+  }
+
   return (
     <View>
       <View style={styles.galleryItem}>
-        <Button style={styles.galleryItemButton}>
+        <Button
+          style={styles.galleryItemButton}
+          onPress={onCurrentReadingPress}
+        >
           <Text style={styles.galleryItemButtonText}>Current reading</Text>
         </Button>
         <View style={styles.placeholderBox}></View>
