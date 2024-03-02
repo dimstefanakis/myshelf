@@ -38,7 +38,7 @@ const shelves = [
   },
 ];
 
-export default function TabTwoScreen() {
+export default function MyShelfScreen() {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   return (
