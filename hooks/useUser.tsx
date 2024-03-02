@@ -4,7 +4,7 @@ import { supabase } from "../utils/supabase";
 import { useRouter } from "expo-router";
 import type { Database } from "@/types_db";
 
-type UserBook = Database["public"]["Tables"]["users_books"]["Row"] & {
+export type UserBook = Database["public"]["Tables"]["users_books"]["Row"] & {
   book: Database["public"]["Tables"]["books"]["Row"];
 };
 
