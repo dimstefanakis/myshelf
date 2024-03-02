@@ -1,9 +1,8 @@
 import React from "react";
 import { Text, View, Image, SafeAreaView } from "react-native";
 import { StyleSheet, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
 import TopNavBar from "@/components/topNavBar";
-import { registerRootComponent } from "expo";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 const data = [
   {
@@ -31,44 +30,44 @@ const data = [
     image: require("./../../assets/images/placeholder.jpg"),
   },
 ];
-
+export type RootStackParamList = {
+  Home: undefined;
+  Journal: undefined;
+  Chronology: undefined;
+  Search: undefined;
+};
 function HomepageContainers() {
-  const navigation = useRouter();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  const handlePress = (name: string) => {
+    switch (name) {
+      case "Journal":
+        navigation.navigate("Journal");
+        break;
+      case "Chronology":
+        navigation.navigate("Chronology");
+        break;
+    }
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={styles.container}>
-        <TopNavBar />
-        {data.map((item, index) => (
-          <View key={index} style={styles.item}>
-            <TouchableOpacity
-              // navigate to /components/JournalRoutes/index.tsx
-              onPress={() =>
-                item.title === "Journal"
-                  ? navigation.navigate("LandingPage/journalLanding")
-                  : item.title === "Habit Logbook"
-                    ? navigation.navigate("LandingPage/habitLogbook")
-                    : item.title === "Map"
-                      ? navigation.navigate("LandingPage/mapLanding")
-                      : item.title === "Chronology"
-                        ? navigation.navigate("LandingPage/chronology")
-                        : item.title === "Goal Tracker"
-                          ? navigation.navigate("LandingPage/goalTracker")
-                          : item.title === "Community"
-                            ? navigation.navigate("LandingPage/community")
-                            : null
-              }
-            >
-              <View style={styles.textcontainer}>
-                <Text style={styles.text}>{item.title}</Text>
-              </View>
-              <View style={styles.imagecontainer}>
-                <Image source={item.image} style={styles.image} />
-              </View>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
-    </SafeAreaView>
+    // <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <View style={styles.container}>
+      <TopNavBar />
+      {data.map((item, index) => (
+        <View key={index} style={styles.item}>
+          <TouchableOpacity onPress={() => handlePress(item.title)}>
+            <View style={styles.textcontainer}>
+              <Text style={styles.text}>{item.title}</Text>
+            </View>
+            <View style={styles.imagecontainer}>
+              <Image source={item.image} style={styles.image} />
+            </View>
+          </TouchableOpacity>
+        </View>
+      ))}
+    </View>
+    // </SafeAreaView>
   );
 }
 

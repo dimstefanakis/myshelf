@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 // import EditScreenInfo from '@/components/topNavBar';
 import { Text, View } from "@/components/Themed";
 
-export default function TabTwoScreen() {
+export default function ProfileScreen() {
   return (
     <View>
       <Text>Profile</Text>

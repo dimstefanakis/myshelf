@@ -1,18 +1,24 @@
 import React, { useEffect } from "react";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Link, Tabs, useRouter } from "expo-router";
-import { Pressable } from "react-native";
-
-import Colors from "@/constants/Colors";
-import { useColorScheme } from "@/components/useColorScheme";
-import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-import useUser from "@/hooks/useUser";
+import { useRouter } from "expo-router";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import {
   Entypo,
   AntDesign,
   MaterialCommunityIcons,
   Ionicons,
 } from "@expo/vector-icons";
+import Colors from "@/constants/Colors";
+import { useColorScheme } from "@/components/useColorScheme";
+import useUser from "@/hooks/useUser";
+import Search from "./search";
+import HomeStack from "../navigators/gridNavigator";
+import ChronologyScreen from "../gridNavigation/chronology";
+import StatisticsScreen from "./statistics";
+import ProfileScreen from "./profile";
+import MyShelfScreen from "./myshelf";
+
+const Tab = createBottomTabNavigator();
 
 export default function TabLayout() {
   const router = useRouter();
@@ -20,68 +26,78 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
-    if ((session && !session?.access_token) || (!loading && !session)) {
-      router.replace("/login");
+    if ((session && !session.access_token) || (!loading && !session)) {
+      router.push("/login");
     }
   }, [session, loading]);
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: false,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => (
-            <Entypo name="home" size={24} color={color} />
-          ),
+    <NavigationContainer independent>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          headerShown: false,
         }}
-      />
-      <Tabs.Screen
-        name="search"
-        options={{
-          title: "Search",
-          tabBarIcon: ({ color }) => (
-            <AntDesign name="search1" size={24} color="black" />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="myshelf"
-        options={{
-          title: "MyShelf",
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="bookshelf" size={24} color="black" />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="statistics"
-        options={{
-          title: "Statistics",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="stats-chart-sharp" size={24} color="black" />
-          ),
-          // tabBarButton: () => null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-circle" size={24} color="black" />
-          ),
-          // tabBarButton: () => null,
-        }}
-      />
-    </Tabs>
+      >
+        {/* Points to the grid navigator to enable nested routes */}
+        <Tab.Screen
+          name="HomeScreen"
+          component={HomeStack}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color }) => (
+              <Entypo name="home" size={24} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Search"
+          component={Search}
+          options={{
+            // tabBarButton:()=> null,
+            headerShown: false,
+            tabBarIcon: ({ color }) => (
+              <AntDesign name="search1" size={22} color={color} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="MyShelf"
+          component={MyShelfScreen}
+          options={{
+            title: "MyShelf",
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="bookshelf"
+                size={24}
+                color="black"
+              />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Statistics"
+          component={StatisticsScreen}
+          options={{
+            title: "Statistics",
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="stats-chart-sharp" size={24} color="black" />
+            ),
+            // tabBarButton: () => null,
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            title: "Profile",
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="person-circle" size={24} color="black" />
+            ),
+            // tabBarButton: () => null,
+          }}
+        />
+      </Tab.Navigator>
+    </NavigationContainer>
   );
 }

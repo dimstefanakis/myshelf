@@ -12,7 +12,7 @@ import {
 } from "react-native";
 
 
-const TOTAL_TITLE_CHARS_TO_SHOW=18
+const TOTAL_TITLE_CHARS_TO_SHOW = 18
 
 type Decade = {
   start: number;
@@ -28,7 +28,7 @@ type Book = {
 };
 
 function yearLastDigit(creationDate: string): number {
-  const year: string = creationDate.slice(0, 4) 
+  const year: string = creationDate.slice(0, 4)
   return year.slice(-1) !== '-' ? parseInt(year.charAt(3)) : 0;
 }
 
@@ -69,16 +69,16 @@ export default function ChronologyScreen() {
   };
 
   useEffect(() => {
-    setDecades(generateDecades(numberOfDecades)); 
+    setDecades(generateDecades(numberOfDecades));
     setUserBooks(user?.books ? user.books : [])
   }, [loading])
 
   function renderBookEntries(decade: Decade): React.JSX.Element[] {
-    let decadeBooks = userBooks.filter(item => parseInt(getBookCreationYear(item)) >= decade.start && parseInt(getBookCreationYear(item)) <= decade.end) 
+    let decadeBooks = userBooks.filter(item => parseInt(getBookCreationYear(item)) >= decade.start && parseInt(getBookCreationYear(item)) <= decade.end)
     let result: React.JSX.Element[] = []
     let booksToDisplay: UserBook[] = []
-    for (let i=0; i < decadeBooks.length; i++) {
-      let numberOfSameYearBooksRendered = booksToDisplay.filter(item => item.book.title !== decadeBooks[i].book.title && getBookCreationYear(item) === getBookCreationYear(decadeBooks[i])).length 
+    for (let i = 0; i < decadeBooks.length; i++) {
+      let numberOfSameYearBooksRendered = booksToDisplay.filter(item => item.book.title !== decadeBooks[i].book.title && getBookCreationYear(item) === getBookCreationYear(decadeBooks[i])).length
       if (numberOfSameYearBooksRendered < 2) {
         booksToDisplay.push(decadeBooks[i])
         result.push(<BookChronologyEntry left={numberOfSameYearBooksRendered === 1} book={booksToDisplay.slice(-1)[0]} index={booksToDisplay.length} key={booksToDisplay.length} />)
@@ -86,7 +86,7 @@ export default function ChronologyScreen() {
     }
     return result
   }
-  
+
   if (loading) {
     return (
       <View>
@@ -141,7 +141,7 @@ export default function ChronologyScreen() {
               <Text style={styles.decadeText}>{decade.representation}</Text>
               <View style={styles.line} />
             </View>
-            { renderBookEntries(decade) }
+            {renderBookEntries(decade)}
           </View>
         ))}
       </ScrollView>
@@ -159,8 +159,8 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
       zIndex: -1,
       position: "absolute",
       top: calculateOffset(getBookCreationYear(props.book)),
-      left: props.left ? null: yearLastDigit(getBookCreationYear(props.book)) == 0 ? "92%" : "50%",
-      right: props.left ? yearLastDigit(getBookCreationYear(props.book)) ? "52%": "80%" : null,
+      left: props.left ? null : yearLastDigit(getBookCreationYear(props.book)) == 0 ? "92%" : "50%",
+      right: props.left ? yearLastDigit(getBookCreationYear(props.book)) ? "52%" : "80%" : null,
       marginLeft: 1,
       width: 185,
       borderBottomWidth: 1,
@@ -170,7 +170,7 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
       <Text style={{
         color: 'black',
         textAlign: 'center'
-      }} key={props.index} >{props.book.book.title!.length > TOTAL_TITLE_CHARS_TO_SHOW ? props.book.book.title!.slice(0, TOTAL_TITLE_CHARS_TO_SHOW) + "..": props.book.book.title} ({getBookCreationYear(props.book)})</Text>
+      }} key={props.index} >{props.book.book.title!.length > TOTAL_TITLE_CHARS_TO_SHOW ? props.book.book.title!.slice(0, TOTAL_TITLE_CHARS_TO_SHOW) + ".." : props.book.book.title} ({getBookCreationYear(props.book)})</Text>
     </View>
   );
 }
