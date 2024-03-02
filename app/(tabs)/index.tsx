@@ -31,46 +31,43 @@ const data = [
   },
 ];
 export type RootStackParamList = {
-  Home: undefined; 
-  Journal: undefined; 
-  Chronology: undefined; 
+  Home: undefined;
+  Journal: undefined;
+  Chronology: undefined;
   Search: undefined;
-
 };
 function HomepageContainers() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-
-
   const handlePress = (name: string) => {
     switch (name) {
       case "Journal":
-        navigation.navigate('Journal');
+        navigation.navigate("Journal");
         break;
       case "Chronology":
-        navigation.navigate('Chronology');
+        navigation.navigate("Chronology");
         break;
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
-      <View style={styles.container}>
-        <TopNavBar />
-        {data.map((item, index) => (
-          <View key={index} style={styles.item}>
-            <TouchableOpacity onPress={() => handlePress(item.title)}>
-              <View style={styles.textcontainer}>
-                <Text style={styles.text}>{item.title}</Text>
-              </View>
-              <View style={styles.imagecontainer}>
-                <Image source={item.image} style={styles.image} />
-              </View>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
-    </SafeAreaView>
+    // <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <View style={styles.container}>
+      <TopNavBar />
+      {data.map((item, index) => (
+        <View key={index} style={styles.item}>
+          <TouchableOpacity onPress={() => handlePress(item.title)}>
+            <View style={styles.textcontainer}>
+              <Text style={styles.text}>{item.title}</Text>
+            </View>
+            <View style={styles.imagecontainer}>
+              <Image source={item.image} style={styles.image} />
+            </View>
+          </TouchableOpacity>
+        </View>
+      ))}
+    </View>
+    // </SafeAreaView>
   );
 }
 
