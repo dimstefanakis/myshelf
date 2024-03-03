@@ -13,9 +13,7 @@ const ModalContentScreen = () => {
 
   const user = useUser();
 
-  // Assuming useUser() correctly fetches and sets the user data, including their books
   useEffect(() => {
-    // Optionally, pre-select a book if necessary
     if (user?.user?.books?.length?user.user.books.length > 0 && !journalData.book : "") {
       setJournalData({ ...journalData, book: user?.user?.books[0].id? user.user.books[0].id : "" });
     }
@@ -44,7 +42,6 @@ const ModalContentScreen = () => {
 
   return (
     <View style={{ flex: 1, alignItems: "center" }}>
-      {/* Text Inputs for Title and Description */}
       <TextInput
         placeholder="Title"
         style={styles.input}
@@ -70,7 +67,6 @@ const ModalContentScreen = () => {
         style={styles.multilineInput}
         onChangeText={(text) => handleChange('description', text)}
       />
-      {/* Submit Button View */}
       <Text style={styles.submitButtonText} onPress={handleSubmit}>
         Submit
       </Text>

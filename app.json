@@ -34,6 +34,8 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "permissions": ["CAMERA", "CAMERA_ROLL", "AUDIO_RECORDING"]
+
   }
 }

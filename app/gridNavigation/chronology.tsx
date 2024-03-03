@@ -1,4 +1,5 @@
 import { View, Text } from "@/components/Themed";
+import useUser, { UserBook } from "@/hooks/useUser";
 import { EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
@@ -8,10 +9,10 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
-  TouchableHighlight,
 } from "react-native";
-import { Button, Input } from "react-native-elements";
-import { color } from "react-native-elements/dist/helpers";
+
+
+const TOTAL_TITLE_CHARS_TO_SHOW = 18
 
 type Decade = {
   start: number;
@@ -26,8 +27,9 @@ type Book = {
   status: string;
 };
 
-function yearLastDigit(year: string): number {
-  return year.length === 4 ? parseInt(year.charAt(3)) : 0;
+function yearLastDigit(creationDate: string): number {
+  const year: string = creationDate.slice(0, 4)
+  return year.slice(-1) !== '-' ? parseInt(year.charAt(3)) : 0;
 }
 
 function generateDecades(numberOfDecades: number): Decade[] {
@@ -45,6 +47,11 @@ function generateDecades(numberOfDecades: number): Decade[] {
   return decades;
 }
 
+function getBookCreationYear(book: UserBook): string {
+  return (book.book.google_api_data as any).volumeInfo.publishedDate.slice(0, 4)
+}
+
+
 function calculateOffset(creationYear: string): DimensionValue {
   const lastDigit = parseInt(creationYear.charAt(3));
   return lastDigit !== 0 ? `${1 - lastDigit * 10}%` : 2;
@@ -54,7 +61,8 @@ export default function ChronologyScreen() {
   const numberOfDecades = 4;
   const [decades, setDecades] = useState<Decade[]>([]);
   const [addText, setAddText] = useState<string>("");
-  const [books, setBooks] = useState<Book[]>([]);
+  const { user, session, loading } = useUser()
+  const [userBooks, setUserBooks] = useState<UserBook[]>([])
 
   const handleInputChange = (text: string) => {
     setAddText(text);
@@ -62,40 +70,31 @@ export default function ChronologyScreen() {
 
   useEffect(() => {
     setDecades(generateDecades(numberOfDecades));
-    setBooks([
-      {
-        book: "Lord of the rings",
-        created_at: "2022",
-        status: "",
-        id: "1",
-      },
-      {
-        book: "lord of the rings",
-        created_at: "2023",
-        status: "",
-        id: "5",
-      },
-      {
-        book: "This is a book",
-        created_at: "2010",
-        status: "",
-        id: "5",
-      },
-      {
-        book: "This might be a book",
-        created_at: "2019",
-        status: "",
-        id: "5",
-      },
+    setUserBooks(user?.books ? user.books : [])
+  }, [loading])
 
-      {
-        book: "This could be a book",
-        created_at: "2015",
-        status: "",
-        id: "5",
-      },
-    ]);
-  }, []);
+  function renderBookEntries(decade: Decade): React.JSX.Element[] {
+    let decadeBooks = userBooks.filter(item => parseInt(getBookCreationYear(item)) >= decade.start && parseInt(getBookCreationYear(item)) <= decade.end)
+    let result: React.JSX.Element[] = []
+    let booksToDisplay: UserBook[] = []
+    for (let i = 0; i < decadeBooks.length; i++) {
+      let numberOfSameYearBooksRendered = booksToDisplay.filter(item => item.book.title !== decadeBooks[i].book.title && getBookCreationYear(item) === getBookCreationYear(decadeBooks[i])).length
+      if (numberOfSameYearBooksRendered < 2) {
+        booksToDisplay.push(decadeBooks[i])
+        result.push(<BookChronologyEntry left={numberOfSameYearBooksRendered === 1} book={booksToDisplay.slice(-1)[0]} index={booksToDisplay.length} key={booksToDisplay.length} />)
+      }
+    }
+    return result
+  }
+
+  if (loading) {
+    return (
+      <View>
+        <Text> Loading... </Text>
+      </View>
+    )
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -142,15 +141,7 @@ export default function ChronologyScreen() {
               <Text style={styles.decadeText}>{decade.representation}</Text>
               <View style={styles.line} />
             </View>
-            {books
-              .filter(
-                (book) =>
-                  parseInt(book.created_at) >= decade.start &&
-                  parseInt(book.created_at) <= decade.end,
-              )
-              .map((book, idx) => (
-                <BookChronologyEntry key={idx} index={idx} book={book} />
-              ))}
+            {renderBookEntries(decade)}
           </View>
         ))}
       </ScrollView>
@@ -159,31 +150,27 @@ export default function ChronologyScreen() {
 }
 type BookChronologyEntryProps = {
   index: number;
-  book: Book;
-};
-
+  book: UserBook;
+  left: boolean;
+}
 function BookChronologyEntry(props: BookChronologyEntryProps) {
   return (
-    <View
-      style={{
-        position: "absolute",
-        top: calculateOffset(props.book.created_at),
-        left: yearLastDigit(props.book.created_at) == 0 ? 79 : 43,
-        width: 185,
-        borderBottomWidth: 1,
-        borderColor: "#3EB489",
-        backgroundColor: "white",
-      }}
-    >
-      <Text
-        style={{
-          color: "black",
-          textAlign: "center",
-        }}
-        key={props.index}
-      >
-        {props.book.book} ({props.book.created_at})
-      </Text>
+    <View style={{
+      zIndex: -1,
+      position: "absolute",
+      top: calculateOffset(getBookCreationYear(props.book)),
+      left: props.left ? null : yearLastDigit(getBookCreationYear(props.book)) == 0 ? "92%" : "50%",
+      right: props.left ? yearLastDigit(getBookCreationYear(props.book)) ? "52%" : "80%" : null,
+      marginLeft: 1,
+      width: 185,
+      borderBottomWidth: 1,
+      borderColor: '#3EB489',
+      backgroundColor: 'rgba(0, 0, 0, 0.0)'
+    }}>
+      <Text style={{
+        color: 'black',
+        textAlign: 'center'
+      }} key={props.index} >{props.book.book.title!.length > TOTAL_TITLE_CHARS_TO_SHOW ? props.book.book.title!.slice(0, TOTAL_TITLE_CHARS_TO_SHOW) + ".." : props.book.book.title} ({getBookCreationYear(props.book)})</Text>
     </View>
   );
 }
@@ -254,9 +241,9 @@ const styles = StyleSheet.create({
     paddingTop: 2,
     paddingBottom: 0,
     paddingHorizontal: 5,
-    borderColor: "black",
-    color: "black",
-    width: "90%",
+    borderColor: 'black',
+    color: 'black',
+    width: 75,
     height: 25,
     textAlign: "center",
     alignSelf: "center",

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, Modal, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { Text, View, Modal, TouchableOpacity, StyleSheet, ScrollView,Button } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 
@@ -15,6 +15,9 @@ interface JournalEntry {
 const JournalScreen = () => {
   const [data, setData] = useState<JournalEntry[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [photoUri, setPhotoUri] = useState("");
+
+
     const navigation = useRouter();
 
   const handleScroll = (event:any) => {
@@ -23,6 +26,7 @@ const JournalScreen = () => {
       setModalVisible(false);
     }
   };
+  
 
   const getData = async () => {
     let { data, error } = await supabase.from("journals").select("*");
@@ -34,7 +38,12 @@ const JournalScreen = () => {
     console.log(data);
   };
 
+ 
+
+
+
   useEffect(() => {
+  
     getData().then((response) => {
       console.log(response);
     });
@@ -42,6 +51,9 @@ const JournalScreen = () => {
 
   return (
     <View style={{ height: "100%", alignItems: "center" }}>
+      <TouchableOpacity onPress={()=>navigation.navigate('Camera')} >
+        <Text>Open Camera</Text>
+      </TouchableOpacity>
       <TouchableOpacity
         style={styles.createJournalButton}
         onPress={() => navigation.navigate('modalContent')} // Navigate to the modal screen
@@ -70,9 +82,10 @@ const JournalScreen = () => {
       ) : (
         <Text>No data</Text>
       )}
-      
+        
 
     </View>
+
   );
 };
 
