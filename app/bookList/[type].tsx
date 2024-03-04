@@ -1,18 +1,52 @@
+import { useState } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import { ScrollView, Dimensions } from "react-native";
+import Toast from "react-native-root-toast";
+import { supabase } from "@/utils/supabase";
 import { View, Text, Button } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 
 export default function App() {
   const router = useRouter();
   const { user } = useUser();
+  const [showToast, setShowToast] = useState(false);
   const localSearchParams = useLocalSearchParams();
   const type = localSearchParams.type;
   const height = Dimensions.get("window").height;
   const width = Dimensions.get("window").width;
   const bookImageWidth = width / 3 - 20;
   const bookImageHeight = bookImageWidth * 1.5;
+
+  async function onAddToCompletedPile(id: string) {
+    const { data, error } = await supabase
+      .from("users_books")
+      .update({ status: "completed" })
+      .eq("id", id);
+
+    if (error) {
+      let toast = Toast.show(
+        "There was an error adding to your completed pile",
+        {
+          duration: Toast.durations.SHORT,
+          position: Toast.positions.BOTTOM,
+          shadow: true,
+          animation: true,
+          hideOnPress: true,
+          delay: 0,
+        },
+      );
+    } else {
+      let toast = Toast.show("Successfully added to your completed pile", {
+        duration: Toast.durations.SHORT,
+        position: Toast.positions.BOTTOM,
+        shadow: true,
+        animation: true,
+        hideOnPress: true,
+        delay: 0,
+      });
+    }
+  }
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: "white" }}>
@@ -21,44 +55,80 @@ export default function App() {
           width: "100%",
           flexDirection: "row",
           flexWrap: "wrap",
-          justifyContent: "space-evenly",
+          justifyContent: "space-around",
           alignItems: "flex-start",
+          // alignContent: "flex-start",
           marginTop: 20,
         }}
       >
-        {user?.books.map((userBook) => {
-          return (
-            <View
-              key={userBook.id}
-              style={{
-                width: "30%",
-                alignItems: "center",
-                marginTop: 20,
-              }}
-            >
-              <Image
-                source={{ uri: userBook.book.cover_url || "" }}
-                style={{ width: bookImageWidth, height: bookImageHeight }}
-                contentFit="contain"
-              />
-              <Text
+        {user?.books
+          .filter((userBook) => {
+            if (type === "future_reading") {
+              return userBook.status === "future_reading";
+            } else if (type === "completed") {
+              return userBook.status === "completed";
+            } else if (type === "to_read") {
+              return userBook.status === "to_read";
+            }
+          })
+          .map((userBook) => {
+            return (
+              <View
+                key={userBook.id}
                 style={{
-                  textAlign: "center",
-                  fontSize: 10,
-                  marginTop: 10,
+                  width: "30%",
+                  alignItems: "center",
+                  marginTop: 20,
+                  // marginRight: "auto",
+                  // marginLeft: "auto",
                 }}
               >
-                {userBook.book.title}
-              </Text>
-              {/* <Button
+                <Image
+                  source={{ uri: userBook.book.cover_url || "" }}
+                  style={{ width: bookImageWidth, height: bookImageHeight }}
+                  contentFit="contain"
+                />
+                <Text
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                  style={{
+                    textAlign: "center",
+                    fontSize: 10,
+                    marginTop: 10,
+                  }}
+                >
+                  {userBook.book.title}
+                </Text>
+                {type === "future_reading" && (
+                  <Button
+                    onPress={() => onAddToCompletedPile(userBook.id)}
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 6,
+                      marginTop: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "white",
+                        textAlign: "center",
+                        fontWeight: "500",
+                        fontSize: 12,
+                      }}
+                    >
+                      Move to finished pile
+                    </Text>
+                  </Button>
+                )}
+                {/* <Button
             title="View"
             onPress={()=>{
               router.push('/book', {id: book.id});
             }}
           /> */}
-            </View>
-          );
-        })}
+              </View>
+            );
+          })}
       </View>
     </ScrollView>
   );

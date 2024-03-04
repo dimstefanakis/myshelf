@@ -81,6 +81,14 @@ function Gallery() {
     router.push("/bookList/future_reading");
   }
 
+  function onCompletedPress() {
+    router.push("/bookList/completed");
+  }
+
+  function onToReadPress() {
+    router.push("/bookList/to_read");
+  }
+
   return (
     <View>
       <View style={styles.galleryItem}>
@@ -93,13 +101,13 @@ function Gallery() {
         <View style={styles.placeholderBox}></View>
       </View>
       <View style={styles.galleryItem}>
-        <Button style={styles.galleryItemButton}>
+        <Button style={styles.galleryItemButton} onPress={onCompletedPress}>
           <Text style={styles.galleryItemButtonText}>Completed books</Text>
         </Button>
         <View style={styles.placeholderBox}></View>
       </View>
       <View style={styles.galleryItem}>
-        <Button style={styles.galleryItemButton}>
+        <Button style={styles.galleryItemButton} onPress={onToReadPress}>
           <Text style={styles.galleryItemButtonText}>Books to read</Text>
         </Button>
         <View style={styles.placeholderBox}></View>
@@ -122,7 +130,9 @@ function Shelves() {
             borderColor: "black",
           }}
         >
-          <Text style={{ marginVertical: 10 }}>{shelf.title}</Text>
+          <Text style={{ marginVertical: 10, marginHorizontal: 10 }}>
+            {shelf.title}
+          </Text>
           <View
             style={{
               backgroundColor: "#D2B48C",
@@ -138,6 +148,7 @@ function Shelves() {
             key={shelf.id}
             horizontal={true}
             style={{ height: "17%" }}
+            contentContainerStyle={{ width: "100%" }}
           >
             {user?.books
               ?.filter((book) => book.status === shelf.id)

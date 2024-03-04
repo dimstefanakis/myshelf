@@ -37,14 +37,13 @@ function useUser() {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "UPDATE",
           schema: "public",
+          table: "users_books",
+          filter: `user=eq.${session?.user?.id}`,
         },
-        (payload) => {
-          console.log("Change received!", payload);
-          if (payload.table === "users_books") {
-            updateUsersBooks();
-          }
+        () => {
+          updateUsersBooks();
         },
       )
       .subscribe();
@@ -77,7 +76,7 @@ function useUser() {
     if (session) {
       listenToUserBooks();
     }
-  }, [session]);
+  }, [session?.access_token]);
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
