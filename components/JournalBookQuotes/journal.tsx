@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, Modal, TouchableOpacity, StyleSheet, ScrollView,Button } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 
@@ -14,19 +14,7 @@ interface JournalEntry {
 
 const JournalScreen = () => {
   const [data, setData] = useState<JournalEntry[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [photoUri, setPhotoUri] = useState("");
-
-
-    const navigation = useRouter();
-
-  const handleScroll = (event:any) => {
-    const scrollY = event.nativeEvent.contentOffset.y;
-    if (scrollY < -50) { // Threshold for closing the modal, adjust as needed
-      setModalVisible(false);
-    }
-  };
-  
+  const navigation = useRouter();
 
   const getData = async () => {
     let { data, error } = await supabase.from("journals").select("*");
@@ -35,46 +23,39 @@ const JournalScreen = () => {
       return;
     }
     setData(data ? data : []);
-    console.log(data);
   };
 
- 
-
-
-
   useEffect(() => {
-  
-    getData().then((response) => {
-      console.log(response);
-    });
+    getData();
   }, []);
 
   return (
     <View style={{ height: "100%", alignItems: "center" }}>
-      <TouchableOpacity onPress={()=>navigation.navigate('Camera')} >
-        <Text>Open Camera</Text>
-      </TouchableOpacity>
       <TouchableOpacity
         style={styles.createJournalButton}
-        onPress={() => navigation.navigate('modalContent')} // Navigate to the modal screen
+        onPress={() => navigation.navigate('modalContent')}
       >
-        <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
+        <Text style={styles.createButtonText}>
           Create New Journal
         </Text>
       </TouchableOpacity>
       {data.length > 0 ? (
-        <ScrollView
-          style={{ width: "100%" }}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-        >
+        <ScrollView style={styles.scrollView}>
           {data.map((journal, index) => {
             return (
-              <View key={index}>
-                <Text>{journal.title}</Text>
+              <View key={index} style={styles.journalEntry}>
+                <Text style={styles.dateAndTitle}>
+                  <Text style={styles.createdAt}>{new Date(
+                    journal.created_at
+                  ).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                    })}</Text>
+                  <Text> - </Text>
+                  <Text style={styles.createdAt}>{journal.title}</Text>
+                </Text>
                 <Text>{journal.description}</Text>
-                <Text>{journal.created_at}</Text>
-                <Text>{journal.image_url}</Text>
               </View>
             );
           })}
@@ -82,60 +63,40 @@ const JournalScreen = () => {
       ) : (
         <Text>No data</Text>
       )}
-        
-
     </View>
-
   );
 };
 
 const styles = StyleSheet.create({
-    createJournalButton: {
-        backgroundColor: "blue",
-        padding: 10,
-        alignItems: "center",
-        width: 200, 
-        borderRadius: 10,
-        marginVertical: 10,
-      },
-      centeredView: {
-        flex: 1,
-        justifyContent: "flex-end", // Align the modal at the bottom
-        alignItems: "center",
-      },
-      modalView: {
-        width: '100%', 
-        height: '90%', 
-        backgroundColor: "white",
-        padding: 35,
-        alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-        borderTopLeftRadius: 20, 
-        borderTopRightRadius: 20, 
-      },
-  button: {
-    borderRadius: 20,
+  createJournalButton: {
+    backgroundColor: "blue",
     padding: 10,
-    elevation: 2,
+    alignItems: "center",
+    width: 200,
+    borderRadius: 10,
+    marginVertical: 15,
   },
-  buttonClose: {
-    backgroundColor: "#2196F3",
-  },
-  textStyle: {
+  createButtonText: {
     color: "white",
+    fontSize: 16,
     fontWeight: "bold",
-    textAlign: "center",
   },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center",
+  scrollView: {
+    width: "100%",
+  },
+  journalEntry: {
+    padding: 10,
+    borderBottomWidth: 1,
+    margin:0,
+    borderBottomColor: "#ddd",
+  },
+  dateAndTitle: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  createdAt: {
+    color: "blue",
+    fontWeight: "bold",
   },
 });
 
