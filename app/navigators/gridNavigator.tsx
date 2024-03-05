@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomepageContainers from "../(tabs)/index";
 import ChronologyScreen from "../gridNavigation/chronology";
 import JournalLanding from '../gridNavigation/journalLanding';
+import ModalContentScreen from '../modalContent';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,11 @@ export default function HomeStack() {
       name="Journal"
       component={JournalLanding}
       options={{ headerShown: true, headerTitle: "Journal" }}
+      />
+      <Stack.Screen
+      name="ModalContentScreen"
+      component={ModalContentScreen}
+      options={{ presentation: "modal",headerShown:false }}
       />
     </Stack.Navigator>
   );

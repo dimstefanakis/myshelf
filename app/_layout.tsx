@@ -73,10 +73,10 @@ function RootLayoutNav() {
               title: "Books",
             }}
           />
-          <Stack.Screen 
+          {/* <Stack.Screen 
           name="modalContent/index"
           options={{ presentation: "modal",headerShown:false }}
-          />
+          /> */}
         </Stack>
       </ThemeProvider>
     </SafeAreaView>

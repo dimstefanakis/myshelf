@@ -10,22 +10,25 @@ import { TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router"
 import useUser from "@/hooks/useUser";
+import { useLocalSearchParams } from "expo-router"
 
 
-const JournalLanding = () => {
-  const navigation = useNavigation();
-  const router = useRouter();
+const JournalLanding = ({navigation}:any) => {
+ 
   const user = useUser();
   const openCamera = async () => {
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
     });
-  
+    
+    
+
     if (!result?.canceled) {
-      // Assuming you have a mechanism to pass the image data to ModalContentScreen
-      // For example, using React Navigation's parameter passing
-      router.navigate('modalContent', { image: result.assets[0],user:user });
+      navigation.navigate('ModalContentScreen', { 
+        image: result.assets[0],
+        user: user
+      });
     }
   };
 

@@ -6,29 +6,18 @@ import useUser from "@/hooks/useUser";
 import { useNavigation, useRouter } from "expo-router";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
+import { useLocalSearchParams } from "expo-router";
 
-const ModalContentScreen = () => {
-  const navigation = useNavigation();
-  const route = useRouter();
+const ModalContentScreen = ({ route, navigation }: any) => {
+
   const [journalData, setJournalData] = useState({
     title: "",
     users_book: "",
     description: "",
   });
-  const [image, setImage] = useState(null);
-  const [user, setUser] = useState(null);
+  const user = useUser();
 
-  // Load the image data from the route parameters
-  useEffect(() => {
-    if (route.params?.image) {
-      setImage(route.params.image);
-    }
-    if(route.params?.user){
-      setUser(route.params.user)
-    }
-  }, [route.params]);
-
-  // const user = useUser();
+  const { image } = route.params;
 
   useEffect(() => {
     if (user?.user?.books?.length && !journalData.users_book) {
@@ -39,7 +28,7 @@ const ModalContentScreen = () => {
     }
   }, [user]);
 
-  const handleChange = (name, value) => {
+  const handleChange = (name: string, value: any) => {
     setJournalData({ ...journalData, [name]: value });
   };
 
@@ -49,9 +38,13 @@ const ModalContentScreen = () => {
       return;
     }
 
-    const base64 = await FileSystem.readAsStringAsync(image.uri, { encoding: 'base64' });
-    const filePath = `journals/${new Date().getTime()}.jpg`;
-    const { error: uploadError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpg' });
+    const base64 = await FileSystem.readAsStringAsync(image.uri, {
+      encoding: "base64",
+    });
+    const filePath = `${new Date().getTime()}.jpg`;
+    const { error: uploadError } = await supabase.storage
+      .from("images")
+      .upload(filePath, decode(base64), { contentType: "image/jpg" });
 
     if (uploadError) {
       console.error("Error uploading file", uploadError);
@@ -72,9 +65,9 @@ const ModalContentScreen = () => {
 
   return (
     <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>
-      {image && (
+      {/* {image && (
         <Image source={{ uri: image.uri }} style={{ width: 200, height: 200, margin: 20 }} />
-      )}
+      )} */}
       <TextInput
         placeholder="Title"
         style={styles.input}
@@ -104,7 +97,6 @@ const ModalContentScreen = () => {
 };
 
 export default ModalContentScreen;
-
 
 const styles = StyleSheet.create({
   input: {
