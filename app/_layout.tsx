@@ -77,10 +77,6 @@ function RootLayoutNav() {
           name="modalContent/index"
           options={{ presentation: "modal",headerShown:false }}
           />
-          <Stack.Screen 
-          name="Camera/index"
-          options={{ headerShown: false }}
-          />
         </Stack>
       </ThemeProvider>
     </SafeAreaView>

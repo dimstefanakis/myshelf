@@ -1,7 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomepageContainers from "../(tabs)/index";
 import ChronologyScreen from "../gridNavigation/chronology";
-import JournalLanding from "../gridNavigation/journalLanding";
+import JournalLanding from '../gridNavigation/journalLanding';
 
 const Stack = createNativeStackNavigator();
 
