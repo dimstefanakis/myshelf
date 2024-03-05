@@ -77,6 +77,13 @@ function RootLayoutNav() {
                 title: "Books",
               }}
             />
+            <Stack.Screen
+              name="searchModal/[action]"
+              options={{
+                presentation: "modal",
+                headerShown: false,
+              }}
+            />
           </Stack>
         </ThemeProvider>
       </SafeAreaView>

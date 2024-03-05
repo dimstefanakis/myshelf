@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
-import { ScrollView, Dimensions } from "react-native";
+import {
+  Entypo,
+  AntDesign,
+  MaterialCommunityIcons,
+  Ionicons,
+} from "@expo/vector-icons";
+import { ScrollView, Dimensions, Pressable } from "react-native";
 import Toast from "react-native-root-toast";
 import { supabase } from "@/utils/supabase";
 import { View, Text, Button } from "@/components/Themed";
@@ -129,7 +135,48 @@ export default function App() {
               </View>
             );
           })}
+        <AddButton />
       </View>
     </ScrollView>
+  );
+}
+
+// should look the same as a book item
+function AddButton() {
+  const router = useRouter();
+  const localSearchParams = useLocalSearchParams();
+  const type = localSearchParams.type;
+  const height = Dimensions.get("window").height;
+  const width = Dimensions.get("window").width;
+  const bookImageWidth = width / 3 - 20;
+  const bookImageHeight = bookImageWidth * 1.5;
+
+  function onClick() {
+    router.push(`/searchModal/${type}`);
+  }
+
+  return (
+    <View
+      style={{
+        width: bookImageWidth,
+        height: bookImageHeight,
+        marginTop: 20,
+      }}
+    >
+      <Button
+        onPress={onClick}
+        style={{
+          backgroundColor: "white",
+          borderWidth: 1,
+          borderColor: "#d3d3d3",
+          width: "100%",
+          height: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Entypo name="plus" size={24} color="black" />
+      </Button>
+    </View>
   );
 }
