@@ -1,87 +1,80 @@
-
-
-import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, StyleSheet, Alert, Image } from "react-native";
 import SelectDropdown from "react-native-select-dropdown";
 import { supabase } from "@/utils/supabase";
 import useUser from "@/hooks/useUser";
-import { useNavigation } from "expo-router";
-import { useRoute } from "@react-navigation/native";
+import { useNavigation, useRouter } from "expo-router";
 import * as FileSystem from "expo-file-system";
-import * as ImagePicker from "expo-image-picker";
 import { decode } from "base64-arraybuffer";
 
 const ModalContentScreen = () => {
   const navigation = useNavigation();
-  const route = useRoute();
+  const route = useRouter();
   const [journalData, setJournalData] = useState({
     title: "",
-    users_book: "", 
+    users_book: "",
     description: "",
   });
+  const [image, setImage] = useState(null);
+  const [user, setUser] = useState(null);
 
-  const user = useUser();
+  // Load the image data from the route parameters
+  useEffect(() => {
+    if (route.params?.image) {
+      setImage(route.params.image);
+    }
+    if(route.params?.user){
+      setUser(route.params.user)
+    }
+  }, [route.params]);
+
+  // const user = useUser();
 
   useEffect(() => {
-    if (user?.user?.books?.length && !journalData.users_book) { 
+    if (user?.user?.books?.length && !journalData.users_book) {
       setJournalData((prevData) => ({
         ...prevData,
-        users_book: user?.user?.books[0]?.id || "", 
+        users_book: user?.user?.books[0]?.id || "",
       }));
     }
   }, [user]);
 
-
-  const handleChange = (name:string, value:any) => {
+  const handleChange = (name, value) => {
     setJournalData({ ...journalData, [name]: value });
   };
 
-  const uploadData = async (filePath:string) => {
-    const { data, error } = await supabase
-      .from("journals")
-      .insert([{ ...journalData, image_url: filePath }]); 
-
-    if (error) {
-      console.error("Error inserting data", error);
-      Alert.alert("Error", "Failed to insert journal data.");
-    } else {
-      Alert.alert("Success", "Journal entry created successfully.");
-      navigation.goBack(); 
+  const uploadData = async () => {
+    if (!image) {
+      Alert.alert("Error", "No image selected.");
+      return;
     }
-  };
 
-  const selectImage = async () => {
-    const options = {
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-    };
+    const base64 = await FileSystem.readAsStringAsync(image.uri, { encoding: 'base64' });
+    const filePath = `journals/${new Date().getTime()}.jpg`;
+    const { error: uploadError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType: 'image/jpg' });
 
-    const result = await ImagePicker.launchCameraAsync(options);
-
-    if (!result?.canceled) {
-      const img = result.assets[0];
-      const base64 = await FileSystem.readAsStringAsync(img.uri, { encoding: 'base64' });
-      const filePath = `${new Date().getTime()}.${img.type === 'image' ? 'jpg' : 'mp4'}`;
-      const contentType = img.type === 'image' ? 'image/jpg' : 'video/mp4';
-
-      
-      const { error: uploadError } = await supabase.storage.from('images').upload(filePath, decode(base64), { contentType });
-
-      if (uploadError) {
-        console.error("Error uploading file", uploadError);
-        Alert.alert("Error", "Failed to upload image.");
+    if (uploadError) {
+      console.error("Error uploading file", uploadError);
+      Alert.alert("Error", "Failed to upload image.");
+    } else {
+      const { data, error } = await supabase
+        .from("journals")
+        .insert([{ ...journalData, image_url: filePath }]);
+      if (error) {
+        console.error("Error inserting data", error);
+        Alert.alert("Error", "Failed to insert journal data.");
       } else {
-        uploadData(filePath); 
+        Alert.alert("Success", "Journal entry created successfully.");
+        navigation.goBack();
       }
     }
   };
 
-  const handleSubmit = () => {
-    selectImage();
-  };
-
   return (
     <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>
+      {image && (
+        <Image source={{ uri: image.uri }} style={{ width: 200, height: 200, margin: 20 }} />
+      )}
       <TextInput
         placeholder="Title"
         style={styles.input}
@@ -92,12 +85,8 @@ const ModalContentScreen = () => {
         onSelect={(selectedItem, index) => {
           handleChange("users_book", user?.user?.books[index].id);
         }}
-        buttonTextAfterSelection={(selectedItem, index) => {
-          return selectedItem;
-        }}
-        rowTextForSelection={(item, index) => {
-          return item;
-        }}
+        buttonTextAfterSelection={(selectedItem) => selectedItem}
+        rowTextForSelection={(item) => item}
         buttonStyle={styles.dropdown1BtnStyle}
       />
       <TextInput
@@ -107,14 +96,12 @@ const ModalContentScreen = () => {
         style={styles.multilineInput}
         onChangeText={(text) => handleChange("description", text)}
       />
-      <Text style={styles.submitButtonText} onPress={handleSubmit}>
-        Capture & Submit
+      <Text style={styles.submitButton} onPress={uploadData}>
+        Submit
       </Text>
     </View>
-  
   );
 };
-
 
 export default ModalContentScreen;
 
