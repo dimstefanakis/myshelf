@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 
@@ -15,6 +21,10 @@ interface JournalEntry {
 const JournalScreen = () => {
   const [data, setData] = useState<JournalEntry[]>([]);
   const navigation = useRouter();
+
+  const handleScroll = (event: any) => {
+    console.log(event.nativeEvent.contentOffset.y);
+  };
 
   const getData = async () => {
     let { data, error } = await supabase.from("journals").select("*");
@@ -33,25 +43,28 @@ const JournalScreen = () => {
     <View style={{ height: "100%", alignItems: "center" }}>
       <TouchableOpacity
         style={styles.createJournalButton}
-        onPress={() => navigation.navigate('modalContent')}
+        onPress={() => navigation.navigate("modalContent")}
       >
-        <Text style={styles.createButtonText}>
-          Create New Journal
-        </Text>
+        <Text style={styles.createButtonText}>Create New Journal</Text>
       </TouchableOpacity>
       {data.length > 0 ? (
-        <ScrollView style={styles.scrollView}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={{ paddingBottom: 46 }}
+          onScroll={handleScroll}
+          scrollEventThrottle={20}
+        >
           {data.map((journal, index) => {
             return (
               <View key={index} style={styles.journalEntry}>
                 <Text style={styles.dateAndTitle}>
-                  <Text style={styles.createdAt}>{new Date(
-                    journal.created_at
-                  ).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                    })}</Text>
+                  <Text style={styles.createdAt}>
+                    {new Date(journal.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </Text>
                   <Text> - </Text>
                   <Text style={styles.createdAt}>{journal.title}</Text>
                 </Text>
@@ -83,11 +96,12 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     width: "100%",
+    paddingBottom: 50,
   },
   journalEntry: {
     padding: 10,
     borderBottomWidth: 1,
-    margin:0,
+    margin: 0,
     borderBottomColor: "#ddd",
   },
   dateAndTitle: {
