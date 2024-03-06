@@ -69,13 +69,7 @@ export default function App() {
       >
         {user?.books
           .filter((userBook) => {
-            if (type === "future_reading") {
-              return userBook.status === "future_reading";
-            } else if (type === "completed") {
-              return userBook.status === "completed";
-            } else if (type === "to_read") {
-              return userBook.status === "to_read";
-            }
+            return userBook.status == type;
           })
           .map((userBook) => {
             return (

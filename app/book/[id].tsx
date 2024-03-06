@@ -13,12 +13,19 @@ import { supabase } from "@/utils/supabase";
 import { Text, View, Button } from "@/components/Themed";
 import type { Book } from "@/constants/BookTypes";
 
+const actionTypes = {
+  currently_reading: "currently reading",
+  completed: "completed pile",
+  future_reading: "future reading",
+};
+
 export default function BookModalScreen() {
   const [addingBook, setAddingBook] = useState(false);
   const [book, setBook] = useState<Book | null>(null);
   const localSearchParams = useLocalSearchParams();
   const globalSearchParams = useGlobalSearchParams();
   const bookId = localSearchParams.id;
+  const action = localSearchParams.addAction as string;
 
   const blurhash =
     "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
@@ -94,7 +101,7 @@ export default function BookModalScreen() {
           {
             user: session.user.id,
             book: newBook?.id,
-            status: "future_reading",
+            status: action || "future_reading",
           },
         ]);
       }
@@ -103,7 +110,7 @@ export default function BookModalScreen() {
         {
           user: session.user.id,
           book: existingBook[0].id,
-          status: "future_reading",
+          status: action || "future_reading",
         },
       ]);
     }
@@ -116,6 +123,7 @@ export default function BookModalScreen() {
     });
   }, [bookId]);
 
+  console.log("book", action);
   return (
     <View style={styles.container}>
       <Image
@@ -154,7 +162,8 @@ export default function BookModalScreen() {
           />
         )}
         <Text style={{ color: "white", fontWeight: "700" }}>
-          Add to future reading
+          {/* @ts-ignore */}
+          Add to {action ? actionTypes[action] : "future reading"}
         </Text>
       </Button>
       <StatusBar style="auto" />

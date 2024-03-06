@@ -21,7 +21,7 @@ const tabs = [
 
 const shelves = [
   {
-    id: "future_reading",
+    id: "currently_reading",
     title: "Currently Reading",
   },
   {
@@ -29,7 +29,7 @@ const shelves = [
     title: "Completed",
   },
   {
-    id: "to_read",
+    id: "future_reading",
     title: "To Read",
   },
   {
@@ -78,7 +78,7 @@ function Gallery() {
   const router = useRouter();
 
   function onCurrentReadingPress() {
-    router.push("/bookList/future_reading");
+    router.push("/bookList/currently_reading");
   }
 
   function onCompletedPress() {
@@ -86,7 +86,7 @@ function Gallery() {
   }
 
   function onToReadPress() {
-    router.push("/bookList/to_read");
+    router.push("/bookList/future_reading");
   }
 
   return (
@@ -96,7 +96,7 @@ function Gallery() {
           style={styles.galleryItemButton}
           onPress={onCurrentReadingPress}
         >
-          <Text style={styles.galleryItemButtonText}>Current reading</Text>
+          <Text style={styles.galleryItemButtonText}>Currently reading</Text>
         </Button>
         <View style={styles.placeholderBox}></View>
       </View>

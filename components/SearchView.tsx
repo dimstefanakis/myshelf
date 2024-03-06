@@ -28,11 +28,9 @@ export default function Search({ addAction }: { addAction?: string }) {
     );
     const data = await response.json();
     setResults(data.items);
-    console.log(data);
   }
 
   useEffect(() => {
-    console.log(search);
     if (search) {
       getBookResults(search);
     }
@@ -69,20 +67,25 @@ export default function Search({ addAction }: { addAction?: string }) {
         }}
       >
         {results.map((book: Book) => (
-          <SearchResult key={book.id} book={book} />
+          <SearchResult key={book.id} book={book} action={addAction || ""} />
         ))}
       </View>
     </ScrollView>
   );
 }
 
-function SearchResult({ book }: { book: Book }) {
+function SearchResult({ book, action }: { book: Book; action: string }) {
   const router = useRouter();
   const blurhash =
     "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
 
   function handlePress() {
-    router.push(`/book/${book.id}`);
+    router.push({
+      pathname: `/book/${book.id}`,
+      params: {
+        addAction: action,
+      },
+    });
   }
 
   return (
