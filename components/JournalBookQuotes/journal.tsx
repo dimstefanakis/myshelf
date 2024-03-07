@@ -8,6 +8,9 @@ import {
 } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
+import { Image } from "react-native-elements";
+import {Modal } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
 
 interface JournalEntry {
   created_at: string;
@@ -20,6 +23,7 @@ interface JournalEntry {
 
 const JournalScreen = () => {
   const [data, setData] = useState<JournalEntry[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
   const navigation = useRouter();
 
   const handleScroll = (event: any) => {
@@ -37,16 +41,21 @@ const JournalScreen = () => {
 
   useEffect(() => {
     getData();
+
   }, []);
+
+  const handleModal = () => {
+    setModalVisible(!modalVisible);
+  }
 
   return (
     <View style={{ height: "100%", alignItems: "center" }}>
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.createJournalButton}
         onPress={() => navigation.navigate("modalContent")}
       >
         <Text style={styles.createButtonText}>Create New Journal</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       {data.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
@@ -67,6 +76,30 @@ const JournalScreen = () => {
                   </Text>
                   <Text> - </Text>
                   <Text style={styles.createdAt}>{journal.title}</Text>
+                  <View style={styles.iconContainer}>
+                    <AntDesign name="eye" size={15} color="black" onPress={handleModal} />
+                    <Modal
+                      animationType="slide"
+                      visible={modalVisible}
+                      onRequestClose={handleModal}
+                      style={{
+                        backgroundColor: "rgba(0, 0, 255, 0.7)",                        
+                        borderRadius: 20,
+                        borderWidth: 1,
+                        borderColor: "black",
+                        borderStyle: "solid",
+                      }}
+                    >
+                      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                        <View style={{ width: "80%", height: "80%", backgroundColor: "white" }}>
+                          <Image
+                            source={{ uri: `http://127.0.0.1:54321/storage/v1/object/public/images/${journal.image_url}`}}
+                            style={{ width: "100%", height: "100%" }}
+                          />
+                        </View>
+                      </View>
+                    </Modal>
+                  </View>
                 </Text>
                 <Text>{journal.description}</Text>
               </View>
@@ -76,6 +109,7 @@ const JournalScreen = () => {
       ) : (
         <Text>No data</Text>
       )}
+
     </View>
   );
 };
@@ -111,6 +145,13 @@ const styles = StyleSheet.create({
   createdAt: {
     color: "blue",
     fontWeight: "bold",
+  },
+  iconContainer: {
+    display:"flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
   },
 });
 

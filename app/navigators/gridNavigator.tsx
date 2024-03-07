@@ -3,6 +3,7 @@ import HomepageContainers from "../(tabs)/index";
 import ChronologyScreen from "../gridNavigation/chronology";
 import JournalLanding from '../gridNavigation/journalLanding';
 import ModalContentScreen from '../modalContent';
+import ModalBookScreen from "../modalBookNotes";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,11 @@ export default function HomeStack() {
       <Stack.Screen
       name="ModalContentScreen"
       component={ModalContentScreen}
+      options={{ presentation: "modal",headerShown:false }}
+      />
+      <Stack.Screen 
+      name="ModalBookScreen"
+      component={ModalBookScreen}
       options={{ presentation: "modal",headerShown:false }}
       />
     </Stack.Navigator>

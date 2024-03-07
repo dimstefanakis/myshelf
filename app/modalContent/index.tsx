@@ -41,7 +41,7 @@ const ModalContentScreen = ({ route, navigation }: any) => {
     const base64 = await FileSystem.readAsStringAsync(image.uri, {
       encoding: "base64",
     });
-    const filePath = `${new Date().getTime()}.jpg`;
+    const filePath = `journals/${new Date().getTime()}.jpg`;
     const { error: uploadError } = await supabase.storage
       .from("images")
       .upload(filePath, decode(base64), { contentType: "image/jpg" });
