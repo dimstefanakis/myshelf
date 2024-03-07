@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { StatusBar } from "expo-status-bar";
-import { useLocalSearchParams, useGlobalSearchParams, Link } from "expo-router";
+import {
+  useLocalSearchParams,
+  useGlobalSearchParams,
+  useRouter,
+  Link,
+} from "expo-router";
 import { Image } from "expo-image";
 import {
   Platform,
@@ -20,6 +25,7 @@ const actionTypes = {
 };
 
 export default function BookModalScreen() {
+  const router = useRouter();
   const [addingBook, setAddingBook] = useState(false);
   const [book, setBook] = useState<Book | null>(null);
   const localSearchParams = useLocalSearchParams();
@@ -115,6 +121,7 @@ export default function BookModalScreen() {
       ]);
     }
     setAddingBook(false);
+    router.back();
   }
 
   useEffect(() => {
