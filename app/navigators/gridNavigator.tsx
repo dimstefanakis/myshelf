@@ -1,6 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomepageContainers from "../(tabs)/index";
 import ChronologyScreen from "../gridNavigation/chronology";
+import JournalLanding from '../gridNavigation/journalLanding';
+import ModalContentScreen from '../modalContent';
+import ModalBookScreen from "../modalBookNotes";
 
 const Stack = createNativeStackNavigator();
 
@@ -12,6 +15,21 @@ export default function HomeStack() {
         name="Chronology"
         component={ChronologyScreen}
         options={{ headerShown: true, headerTitle: "asd" }}
+      />
+      <Stack.Screen
+      name="Journal"
+      component={JournalLanding}
+      options={{ headerShown: true, headerTitle: "Journal" }}
+      />
+      <Stack.Screen
+      name="ModalContentScreen"
+      component={ModalContentScreen}
+      options={{ presentation: "modal",headerShown:false }}
+      />
+      <Stack.Screen 
+      name="ModalBookScreen"
+      component={ModalBookScreen}
+      options={{ presentation: "modal",headerShown:false }}
       />
     </Stack.Navigator>
   );

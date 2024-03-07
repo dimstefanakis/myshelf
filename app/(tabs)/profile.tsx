@@ -2,8 +2,13 @@ import { Button } from '@/components/Themed';
 import React from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { supabase } from '@/utils/supabase';
 
-export default function ProfileScreen() {
+export default function TabTwoScreen() {
+  const handleSignout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.log("Error logging out:", error.message);
+  };
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -41,7 +46,7 @@ export default function ProfileScreen() {
           <Text style={styles.menuItemText}>Contact Us</Text>
           <MaterialIcons name="keyboard-arrow-right" size={30} color="#788490" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={handleSignout}>
           <Text style={styles.menuItemText}>Sign Out</Text>
           <MaterialIcons name="keyboard-arrow-right" size={30} color="#788490" />
         </TouchableOpacity>
