@@ -26,9 +26,7 @@ const JournalScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useRouter();
 
-  const handleScroll = (event: any) => {
-    console.log(event.nativeEvent.contentOffset.y);
-  };
+
 
   const getData = async () => {
     let { data, error } = await supabase.from("journals").select("*");
@@ -60,7 +58,6 @@ const JournalScreen = () => {
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={{ paddingBottom: 46 }}
-          onScroll={handleScroll}
           scrollEventThrottle={20}
         >
           {data.map((journal, index) => {

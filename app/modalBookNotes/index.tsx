@@ -41,6 +41,7 @@ const ModalBookScreen = () => {
       return;
     }
     // navigation.navigate("BookScreen");
+    navigation.goBack();
   };
 
   useEffect(() => {
