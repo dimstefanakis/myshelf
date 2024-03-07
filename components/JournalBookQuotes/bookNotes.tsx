@@ -6,18 +6,35 @@ import {
   StyleSheet,
   ScrollView,
   Image,
+  StyleProp,
+  ViewStyle,
 } from "react-native";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useNavigation } from "@react-navigation/native";
 
-const BookScreen = () => {
-  const [bookData, setBookData] = useState([]);
+// Define types for your data
+type BookDataType = {
+  id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  user: string;
+  users_books?: {
+    book?: {
+      cover_url?: string;
+      google_api_data?: any; // Specify the type further based on your data structure
+    };
+  };
+};
+
+const BookScreen: React.FC = () => {
+  const [bookData, setBookData] = useState<BookDataType[]>([]);
 
   const navigation = useNavigation();
   const user = useUser();
 
-  const getThumbnailUrl = (item:any) => {
+  const getThumbnailUrl = (item: BookDataType): string => {
     return item.users_books?.book?.cover_url ?? "default_thumbnail_url";
   };
 
@@ -40,7 +57,7 @@ const BookScreen = () => {
       console.error("Error fetching data:", error);
       return;
     }
-    setBookData(data? data: []);
+    setBookData(data ? data : []);
   };
 
   useEffect(() => {
@@ -61,24 +78,26 @@ const BookScreen = () => {
           contentContainerStyle={styles.booksContainer}
           scrollEventThrottle={20}
         >
-          {bookData.map((item:any, index) => {
+          {bookData.map((item: BookDataType, index) => {
             const thumbnailUrl = getThumbnailUrl(item);
             // Calculate dynamic styling for alignment
             const remainder = (index + 1) % 3; // Determine position in the row
-            let additionalStyle = {};
-            if (remainder === 1) { // First item in a row
+            let additionalStyle: StyleProp<ViewStyle> = {};
+            if (remainder === 1) {
+              // First item in a row
               additionalStyle = { marginRight: 'auto', marginLeft: 0 };
-            } else if (remainder === 0) { // Last item in a row
+            } else if (remainder === 0) {
+              // Last item in a row
               additionalStyle = { marginLeft: 'auto', marginRight: 0 };
             } // Middle item naturally centers due to justifyContent
             return (
-              <View key={item?.id} style={[styles.bookItem, additionalStyle]}>
+              <View key={item.id.toString()} style={[styles.bookItem, additionalStyle]}>
                 <Image
                   source={{ uri: thumbnailUrl }}
                   style={styles.bookImage}
                 />
-                <Text style={styles.bookTitle}>{item?.title}</Text>
-                <Text style={styles.bookDescription}>{item?.description}</Text>
+                <Text style={styles.bookTitle}>{item.title}</Text>
+                <Text style={styles.bookDescription}>{item.description}</Text>
               </View>
             );
           })}
@@ -114,16 +133,15 @@ const styles = StyleSheet.create({
   booksContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between", // Adjusted for spacing
+    justifyContent: "space-between",
     paddingBottom: 50,
   },
   bookItem: {
-    width: "30%", // Adjusted for margin inclusion
+    width: "30%",
     padding: 10,
     alignItems: "center",
     marginBottom: 20,
-    // Add margin for spacing
-    marginHorizontal: "1.5%", // Adjust based on desired spacing
+    marginHorizontal: "1.5%",
   },
   bookImage: {
     width: 100,
