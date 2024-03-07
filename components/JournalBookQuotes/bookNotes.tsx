@@ -40,7 +40,7 @@ const BookScreen = () => {
       console.error("Error fetching data:", error);
       return;
     }
-    setBookData(data ?? []);
+    setBookData(data? data: []);
   };
 
   useEffect(() => {
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   createBookButton: {
-    backgroundColor: "#ff9999",
+    backgroundColor: "black",
     padding: 10,
     margin: 10,
     borderRadius: 10,

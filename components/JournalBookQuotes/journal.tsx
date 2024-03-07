@@ -98,7 +98,7 @@ const JournalScreen = () => {
                     </Modal>
                   </View>
                 </Text>
-                <Text>{journal.description}</Text>
+                <Text style={{fontSize:11}}>{journal.description}</Text>
               </View>
             );
           })}
@@ -130,10 +130,11 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   journalEntry: {
-    padding: 10,
+    padding: 20,
     borderBottomWidth: 1,
     margin: 0,
     borderBottomColor: "#ddd",
+    paddingLeft:30
   },
   dateAndTitle: {
     flexDirection: "row",
@@ -142,6 +143,7 @@ const styles = StyleSheet.create({
   createdAt: {
     color: "blue",
     fontWeight: "bold",
+    fontSize : 12
   },
   iconContainer: {
     display:"flex",

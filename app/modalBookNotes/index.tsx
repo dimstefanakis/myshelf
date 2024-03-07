@@ -1,4 +1,4 @@
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity } from "react-native";
 import React, { useEffect } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 import useUser from "@/hooks/useUser";
@@ -50,7 +50,6 @@ const ModalBookScreen = () => {
 
   return (
     <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>
-      <Text>Book</Text>
       <TextInput
         placeholder="Title"
         style={styles.input}
@@ -73,7 +72,9 @@ const ModalBookScreen = () => {
         rowTextForSelection={(item) => item}
         buttonStyle={styles.dropdown1BtnStyle}
       />
-      <Text onPress={handleSubmit}>Submit</Text>
+      <TouchableOpacity onPress={handleSubmit} style={styles.Touchable} >
+        <Text style={{color:"white"}}>Submit</Text>
+        </TouchableOpacity>
     </View>
   );
 };
@@ -101,9 +102,17 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   dropdown1BtnStyle: {
-    backgroundColor: "#ff9999",
+    backgroundColor: "#e7e7e7",
     padding: 10,
     margin: 10,
     borderRadius: 10,
   },
+  Touchable:{
+    backgroundColor: "black",
+    padding: 10,
+    margin: 10,
+    borderRadius: 10,
+    width:"40%",
+    alignItems:"center"
+  }
 });
