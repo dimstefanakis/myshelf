@@ -9,6 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { RootSiblingParent } from "react-native-root-siblings";
 
 import { useColorScheme } from "@/components/useColorScheme";
 
@@ -53,28 +54,39 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen
-            name="(tabs)"
-            options={{ headerShown: false, title: "" }}
-          />
-          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="book/[id]"
-            options={{ presentation: "modal", headerShown: false }}
-          />
-          <Stack.Screen
-            name="bookList/[type]"
-            options={{
-              title: "Books",
-            }}
-          />
-        </Stack>
-      </ThemeProvider>
-    </SafeAreaView>
+    <RootSiblingParent>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack>
+            <Stack.Screen
+              name="(tabs)"
+              options={{ headerShown: false, title: "" }}
+            />
+            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="signup" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="book/[id]"
+              options={{ presentation: "modal", headerShown: false }}
+            />
+            <Stack.Screen
+              name="bookList/[type]"
+              options={{
+                title: "Books",
+              }}
+            />
+            <Stack.Screen
+              name="searchModal/[action]"
+              options={{
+                presentation: "modal",
+                headerShown: false,
+              }}
+            />
+          </Stack>
+        </ThemeProvider>
+      </SafeAreaView>
+    </RootSiblingParent>
   );
 }
