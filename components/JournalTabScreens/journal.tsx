@@ -9,7 +9,7 @@ import {
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 import { Image } from "react-native-elements";
-import {Modal } from "react-native";
+import { Modal } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
 interface JournalEntry {
@@ -26,8 +26,6 @@ const JournalScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useRouter();
 
-
-
   const getData = async () => {
     let { data, error } = await supabase.from("journals").select("*");
     if (error) {
@@ -39,12 +37,11 @@ const JournalScreen = () => {
 
   useEffect(() => {
     getData();
-
   }, []);
 
   const handleModal = () => {
     setModalVisible(!modalVisible);
-  }
+  };
 
   return (
     <View style={{ height: "100%", alignItems: "center" }}>
@@ -57,48 +54,76 @@ const JournalScreen = () => {
       {data.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={{ paddingBottom: 46 }}
+          contentContainerStyle={{ paddingVertical: 30 }}
           scrollEventThrottle={20}
         >
           {data.map((journal, index) => {
             return (
               <View key={index} style={styles.journalEntry}>
-                <Text style={styles.dateAndTitle}>
-                  <Text style={styles.createdAt}>
-                    {new Date(journal.created_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                <View style={styles.dateAndTitle}>
+                  <Text>
+                    <Text style={styles.createdAt}>
+                      {new Date(journal.created_at).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        },
+                      )}
+                    </Text>
+                    <Text> - </Text>
+                    <Text style={styles.createdAt}>{journal.title}</Text>
                   </Text>
-                  <Text> - </Text>
-                  <Text style={styles.createdAt}>{journal.title}</Text>
-                  <View style={styles.iconContainer}>
-                    <AntDesign name="eye" size={15} color="black" onPress={handleModal} />
+                  <View style={{ paddingHorizontal: 10 }}>
+                    <AntDesign
+                      name="eye"
+                      size={15}
+                      color="black"
+                      onPress={handleModal}
+                    />
+                  </View>
+                  <View style={styles.modalContainer}>
                     <Modal
                       animationType="slide"
                       visible={modalVisible}
                       onRequestClose={handleModal}
+                      presentationStyle="formSheet"
                       style={{
-                        backgroundColor: "rgba(0, 0, 255, 0.7)",                        
+                        backgroundColor: "rgba(0, 0, 255, 0.7)",
                         borderRadius: 20,
                         borderWidth: 1,
                         borderColor: "black",
                         borderStyle: "solid",
                       }}
                     >
-                      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                        <View style={{ width: "80%", height: "80%", backgroundColor: "white" }}>
+                      <View
+                        style={{
+                          flex: 1,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: "80%",
+                            height: "80%",
+                          }}
+                        >
                           <Image
-                            source={{ uri: `http://127.0.0.1:54321/storage/v1/object/public/images/${journal.image_url}`}}
+                            source={{
+                              uri: `http://127.0.0.1:54321/storage/v1/object/public/images/${journal.image_url}`,
+                            }}
                             style={{ width: "100%", height: "100%" }}
                           />
                         </View>
                       </View>
                     </Modal>
                   </View>
+                </View>
+                <Text style={{ fontSize: 12, marginTop: 10 }}>
+                  {journal.description}
                 </Text>
-                <Text style={{fontSize:11}}>{journal.description}</Text>
               </View>
             );
           })}
@@ -106,14 +131,12 @@ const JournalScreen = () => {
       ) : (
         <Text>No data</Text>
       )}
-
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   createJournalButton: {
-    backgroundColor: "blue",
     padding: 10,
     alignItems: "center",
     width: 200,
@@ -130,27 +153,35 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   journalEntry: {
-    padding: 20,
+    paddingHorizontal: 20,
     borderBottomWidth: 1,
     margin: 0,
     borderBottomColor: "#ddd",
-    paddingLeft:30
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   dateAndTitle: {
     flexDirection: "row",
     alignItems: "center",
   },
   createdAt: {
-    color: "blue",
+    color: "#326E78",
     fontWeight: "bold",
-    fontSize : 12
+    fontSize: 12,
   },
-  iconContainer: {
-    display:"flex",
+  modalContainer: {
+    display: "flex",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: 10,
+  },
+  iconContainer: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10,
   },
 });
 

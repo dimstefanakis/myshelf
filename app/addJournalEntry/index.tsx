@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, Alert, Image } from "react-native";
+import { View, StyleSheet, Alert, Image } from "react-native";
 import SelectDropdown from "react-native-select-dropdown";
+import { Button, Text, TextInput } from "@/components/Themed";
 import { supabase } from "@/utils/supabase";
 import useUser from "@/hooks/useUser";
-import { useNavigation, useRouter } from "expo-router";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
-import { useLocalSearchParams } from "expo-router";
 
-const ModalContentScreen = ({ route, navigation }: any) => {
-
+const AddJournalEntryScreen = ({ route, navigation }: any) => {
   const [journalData, setJournalData] = useState({
     title: "",
     users_book: "",
@@ -73,6 +71,14 @@ const ModalContentScreen = ({ route, navigation }: any) => {
         style={styles.input}
         onChangeText={(text) => handleChange("title", text)}
       />
+      <TextInput
+        placeholder="Description"
+        multiline={true}
+        numberOfLines={4}
+        style={styles.multilineInput}
+        placeholderTextColor={"#9E9E9E"}
+        onChangeText={(text) => handleChange("description", text)}
+      />
       <SelectDropdown
         data={user?.user?.books.map((book) => book.book.title) || []}
         onSelect={(selectedItem, index) => {
@@ -81,27 +87,20 @@ const ModalContentScreen = ({ route, navigation }: any) => {
         buttonTextAfterSelection={(selectedItem) => selectedItem}
         rowTextForSelection={(item) => item}
         buttonStyle={styles.dropdown1BtnStyle}
+        defaultButtonText="Select a book"
       />
-      <TextInput
-        placeholder="Description"
-        multiline={true}
-        numberOfLines={4}
-        style={styles.multilineInput}
-        onChangeText={(text) => handleChange("description", text)}
-      />
-      <Text style={styles.submitButton} onPress={uploadData}>
-        Submit
-      </Text>
+      <Button style={styles.submitButton} onPress={uploadData}>
+        <Text style={{ color: "white" }}>Submit</Text>
+      </Button>
     </View>
   );
 };
 
-export default ModalContentScreen;
+export default AddJournalEntryScreen;
 
 const styles = StyleSheet.create({
   input: {
     height: 40,
-    borderColor: "gray",
     borderWidth: 1,
     width: "80%",
     padding: 10,
@@ -110,16 +109,16 @@ const styles = StyleSheet.create({
   },
   multilineInput: {
     height: 120,
-    borderColor: "gray",
+    borderColor: "#E0E0E0",
     borderWidth: 1,
     width: "80%",
     padding: 10,
     borderRadius: 10,
     textAlignVertical: "top",
-    margin: 20,
+    marginBottom: 20,
   },
   submitButton: {
-    backgroundColor: "blue",
+    // backgroundColor: "blue",
     padding: 10,
     alignItems: "center",
     width: 200,
@@ -134,10 +133,8 @@ const styles = StyleSheet.create({
   dropdown1BtnStyle: {
     width: "80%",
     height: 50,
-    backgroundColor: "#FFF",
+    backgroundColor: "#e7e7e7",
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#444",
     marginBottom: 20,
   },
 });

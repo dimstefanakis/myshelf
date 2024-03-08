@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   item: {
     width: "35%",
-    backgroundColor: "blue",
+    // backgroundColor: "blue",
     margin: "5%",
     marginTop: "4%",
     height: 150,

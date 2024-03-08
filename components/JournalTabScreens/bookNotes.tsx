@@ -12,6 +12,8 @@ import {
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRouter } from "expo-router";
 
 // Define types for your data
 type BookDataType = {
@@ -29,10 +31,8 @@ type BookDataType = {
 };
 
 const BookScreen: React.FC = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [bookData, setBookData] = useState<BookDataType[]>([]);
-
-  const navigation = useNavigation();
-  const user = useUser();
 
   const getThumbnailUrl = (item: BookDataType): string => {
     return item.users_books?.book?.cover_url ?? "default_thumbnail_url";
@@ -45,7 +45,7 @@ const BookScreen: React.FC = () => {
       description,
       created_at,
       user,
-      users_books (*, 
+      users_books (*,
         book (
           *,
           google_api_data
@@ -57,7 +57,8 @@ const BookScreen: React.FC = () => {
       console.error("Error fetching data:", error);
       return;
     }
-    setBookData(data ? data : []);
+    let userBooks = data as unknown as BookDataType[];
+    setBookData(userBooks ? userBooks : []);
   };
 
   useEffect(() => {
@@ -68,7 +69,9 @@ const BookScreen: React.FC = () => {
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.createBookButton}
-        onPress={() => navigation.navigate("ModalBookScreen")}
+        onPress={() => {
+          navigation.navigate("AddBookNoteEntryScreen");
+        }}
       >
         <Text style={styles.createButtonText}>Create New BookNotes</Text>
       </TouchableOpacity>
@@ -85,13 +88,16 @@ const BookScreen: React.FC = () => {
             let additionalStyle: StyleProp<ViewStyle> = {};
             if (remainder === 1) {
               // First item in a row
-              additionalStyle = { marginRight: 'auto', marginLeft: 0 };
+              additionalStyle = { marginRight: "auto", marginLeft: 0 };
             } else if (remainder === 0) {
               // Last item in a row
-              additionalStyle = { marginLeft: 'auto', marginRight: 0 };
+              additionalStyle = { marginLeft: "auto", marginRight: 0 };
             } // Middle item naturally centers due to justifyContent
             return (
-              <View key={item.id.toString()} style={[styles.bookItem, additionalStyle]}>
+              <View
+                key={item.id.toString()}
+                style={[styles.bookItem, additionalStyle]}
+              >
                 <Image
                   source={{ uri: thumbnailUrl }}
                   style={styles.bookImage}

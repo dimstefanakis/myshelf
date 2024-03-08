@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomepageContainers from "../(tabs)/index";
 import ChronologyScreen from "../gridNavigation/chronology";
-import JournalLanding from '../gridNavigation/journalLanding';
-import ModalContentScreen from '../modalContent';
-import ModalBookScreen from "../modalBookNotes";
+import JournalLanding from "../gridNavigation/journal";
+import AddJournalEntryScreen from "../addJournalEntry";
+import AddBookNoteEntryScreen from "../addBookNoteEntry";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,19 +17,19 @@ export default function HomeStack() {
         options={{ headerShown: true, headerTitle: "asd" }}
       />
       <Stack.Screen
-      name="Journal"
-      component={JournalLanding}
-      options={{ headerShown: true, headerTitle: "Journal" }}
+        name="Journal"
+        component={JournalLanding}
+        options={{ headerShown: true, headerTitle: "Journal" }}
       />
       <Stack.Screen
-      name="ModalContentScreen"
-      component={ModalContentScreen}
-      options={{ presentation: "modal",headerShown:false }}
+        name="AddJournalEntryScreen"
+        component={AddJournalEntryScreen}
+        options={{ presentation: "modal", headerShown: false }}
       />
-      <Stack.Screen 
-      name="ModalBookScreen"
-      component={ModalBookScreen}
-      options={{ presentation: "modal",headerShown:false }}
+      <Stack.Screen
+        name="AddBookNoteEntryScreen"
+        component={AddBookNoteEntryScreen}
+        options={{ presentation: "modal", headerShown: false }}
       />
     </Stack.Navigator>
   );

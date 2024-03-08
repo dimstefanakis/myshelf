@@ -35,7 +35,7 @@ export default function TabLayout() {
     <NavigationContainer independent>
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          tabBarActiveTintColor: Colors["light"].tint,
           headerShown: false,
         }}
       >
@@ -70,7 +70,7 @@ export default function TabLayout() {
               <MaterialCommunityIcons
                 name="bookshelf"
                 size={24}
-                color="black"
+                color={color}
               />
             ),
           }}
@@ -81,7 +81,7 @@ export default function TabLayout() {
           options={{
             title: "Statistics",
             tabBarIcon: ({ color }) => (
-              <Ionicons name="stats-chart-sharp" size={24} color="black" />
+              <Ionicons name="stats-chart-sharp" size={24} color={color} />
             ),
             // tabBarButton: () => null,
           }}
@@ -92,7 +92,7 @@ export default function TabLayout() {
           options={{
             title: "Profile",
             tabBarIcon: ({ color }) => (
-              <Ionicons name="person-circle" size={24} color="black" />
+              <Ionicons name="person-circle" size={24} color={color} />
             ),
             // tabBarButton: () => null,
           }}

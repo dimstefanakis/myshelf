@@ -1,20 +1,18 @@
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import React, { useEffect } from "react";
 import SelectDropdown from "react-native-select-dropdown";
+import { Text, TextInput, Button } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase";
 
-const ModalBookScreen = () => {
-  const [bookData, setBookData] = useState(
-    {
-      title: "",
-      description: "",
-      users_book: "",
-      //   user: "",
-    },
-  );
+const AddBookNoteEntryScreen = () => {
+  const [bookData, setBookData] = useState({
+    title: "",
+    description: "",
+    users_book: "",
+  });
   const navigation = useNavigation();
   const user = useUser();
 
@@ -35,18 +33,15 @@ const ModalBookScreen = () => {
   };
 
   const handleSubmit = async () => {
-    const { data, error } = await supabase.from("notes").insert([{...bookData,user: user?.user?.id}]);
+    const { data, error } = await supabase
+      .from("notes")
+      .insert([{ ...bookData, user: user?.user?.id }]);
     if (error) {
       console.error("Error inserting data", error);
       return;
     }
-    // navigation.navigate("BookScreen");
     navigation.goBack();
   };
-
-  useEffect(() => {
-    console.log(bookData);
-  }, [bookData]);
 
   return (
     <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>
@@ -71,48 +66,49 @@ const ModalBookScreen = () => {
         buttonTextAfterSelection={(selectedItem) => selectedItem}
         rowTextForSelection={(item) => item}
         buttonStyle={styles.dropdown1BtnStyle}
+        defaultButtonText="Select a book"
       />
-      <TouchableOpacity onPress={handleSubmit} style={styles.Touchable} >
-        <Text style={{color:"white"}}>Submit</Text>
-        </TouchableOpacity>
+      <Button onPress={handleSubmit} style={styles.Touchable}>
+        <Text style={{ color: "white" }}>Submit</Text>
+      </Button>
     </View>
   );
 };
 
-export default ModalBookScreen;
+export default AddBookNoteEntryScreen;
 
 const styles = StyleSheet.create({
   input: {
     height: 40,
-    borderColor: "gray",
     borderWidth: 1,
     width: "80%",
     padding: 10,
     borderRadius: 10,
-    margin: 20,
+    marginTop: 20,
   },
   multilineInput: {
     height: 120,
-    borderColor: "gray",
     borderWidth: 1,
     width: "80%",
     padding: 10,
     borderRadius: 10,
     textAlignVertical: "top",
-    margin: 20,
+    marginTop: 20,
+    marginBottom: 20,
   },
   dropdown1BtnStyle: {
+    width: "80%",
+    height: 50,
     backgroundColor: "#e7e7e7",
-    padding: 10,
-    margin: 10,
-    borderRadius: 10,
+    borderRadius: 8,
+    marginBottom: 20,
   },
-  Touchable:{
+  Touchable: {
     backgroundColor: "black",
     padding: 10,
     margin: 10,
     borderRadius: 10,
-    width:"40%",
-    alignItems:"center"
-  }
+    width: "40%",
+    alignItems: "center",
+  },
 });

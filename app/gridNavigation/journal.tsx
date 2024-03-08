@@ -7,9 +7,9 @@ import {
   Touchable,
   Pressable,
 } from "react-native";
-import BookScreen from "@/components/JournalBookQuotes/bookNotes";
-import JournalScreen from "@/components/JournalBookQuotes/journal";
-import QuoteScreen from "@/components/JournalBookQuotes/quotes";
+import BookScreen from "@/components/JournalTabScreens/bookNotes";
+import JournalScreen from "@/components/JournalTabScreens/journal";
+import QuoteScreen from "@/components/JournalTabScreens/quotes";
 import { useLayoutEffect } from "react";
 import { useNavigation } from "expo-router";
 import { Entypo } from "@expo/vector-icons";
@@ -20,34 +20,37 @@ import useUser from "@/hooks/useUser";
 import { useLocalSearchParams } from "expo-router";
 
 const JournalLanding = ({ navigation }: any) => {
-
-  const getButtonStyle = (index) => ({
-    ...styles.buttonCs,
-    backgroundColor: pageIndex === index ? 'black' : 'white', // Changes the background color
-    borderWidth: pageIndex === index ? 0 : 1, // Optional: remove border if active for better visibility
-    
-  });
-  
-  const getTextStyle = (index) => ({
-    color: pageIndex === index ? 'white' : 'black', // Changes the text color
-  });
-
   const user = useUser();
-  const openCamera = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-    });
+  const [pageIndex, setPageIndex] = useState(0);
 
-    if (!result?.canceled) {
-      navigation.navigate("ModalContentScreen", {
-        image: result.assets[0],
-        user: user,
+  const getButtonStyle = (index: number) => ({
+    ...styles.buttonCs,
+    backgroundColor: pageIndex === index ? "black" : "white", // Changes the background color
+    borderWidth: pageIndex === index ? 0 : 1, // Optional: remove border if active for better visibility
+  });
+
+  const getTextStyle = (index: number) => ({
+    color: pageIndex === index ? "white" : "black", // Changes the text color
+  });
+
+  const openCamera = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted) {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
       });
+
+      if (!result?.canceled) {
+        navigation.navigate("AddJournalEntryScreen", {
+          image: result.assets[0],
+          user: user,
+        });
+      }
+    } else {
     }
   };
-
-  const [pageIndex, setPageIndex] = useState(0);
 
   useLayoutEffect(() => {
     const titles = ["Journal", "Book Notes", "Quotes"];
@@ -63,10 +66,10 @@ const JournalLanding = ({ navigation }: any) => {
               </TouchableOpacity>
             )
           : undefined,
-      headerStyle: {
-        backgroundColor: headerColors[pageIndex],
-      },
-      headerTintColor: "#fff",
+      // headerStyle: {
+      //   backgroundColor: headerColors[pageIndex],
+      // },
+      headerTintColor: "black",
     });
   }, [pageIndex, navigation]);
 
@@ -77,16 +80,14 @@ const JournalLanding = ({ navigation }: any) => {
           flexDirection: "row",
           justifyContent: "space-around",
           paddingTop: 10,
-
         }}
       >
         <Pressable style={getButtonStyle(0)} onPress={() => setPageIndex(0)}>
-          <Text style={getTextStyle(0)} >Journal</Text>
+          <Text style={getTextStyle(0)}>Journal</Text>
         </Pressable>
         <Pressable style={getButtonStyle(1)} onPress={() => setPageIndex(1)}>
-          <Text style={ getTextStyle(1)}>Book Notes</Text>
+          <Text style={getTextStyle(1)}>Book Notes</Text>
         </Pressable>
-
         <Pressable style={getButtonStyle(2)} onPress={() => setPageIndex(2)}>
           <Text style={getTextStyle(2)}>Quotes</Text>
         </Pressable>

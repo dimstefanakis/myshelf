@@ -4,14 +4,13 @@ import { Image } from "expo-image";
 import { useDebounceValue } from "usehooks-ts";
 import {
   StyleSheet,
-  TextInput,
   ScrollView,
   TouchableNativeFeedback,
   NativeSyntheticEvent,
   TextInputChangeEventData,
 } from "react-native";
 
-import { Text, View } from "@/components/Themed";
+import { Text, TextInput, View } from "@/components/Themed";
 import type { Book } from "@/constants/BookTypes";
 
 export default function Search({ addAction }: { addAction?: string }) {
@@ -49,7 +48,6 @@ export default function Search({ addAction }: { addAction?: string }) {
       <TextInput
         style={{
           height: 40,
-          borderColor: "gray",
           borderWidth: 1,
           width: "80%",
           padding: 10,

@@ -123,7 +123,7 @@ function Shelves() {
       {shelves.map((shelf) => (
         <View
           style={{
-            width: "100%",
+            minWidth: "100%",
             alignItems: "flex-start",
             position: "relative",
             borderBottomWidth: 3,
@@ -148,7 +148,7 @@ function Shelves() {
             key={shelf.id}
             horizontal={true}
             style={{ height: "17%" }}
-            contentContainerStyle={{ width: "100%" }}
+            contentContainerStyle={{ minWidth: "100%" }}
           >
             {user?.books
               ?.filter((book) => book.status === shelf.id)

@@ -46,6 +46,18 @@ function useUser() {
           updateUsersBooks();
         },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "users_books",
+          filter: `user=eq.${session?.user?.id}`,
+        },
+        () => {
+          updateUsersBooks();
+        },
+      )
       .subscribe();
   }
 
