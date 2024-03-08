@@ -69,7 +69,7 @@ const JournalLanding = ({ navigation }: any) => {
       // headerStyle: {
       //   backgroundColor: headerColors[pageIndex],
       // },
-      headerTintColor: "black",
+      // headerTintColor: "black",
     });
   }, [pageIndex, navigation]);
 

@@ -11,8 +11,7 @@ import {
   TextInput,
 } from "react-native";
 
-
-const TOTAL_TITLE_CHARS_TO_SHOW = 18
+const TOTAL_TITLE_CHARS_TO_SHOW = 18;
 
 type Decade = {
   start: number;
@@ -28,8 +27,8 @@ type Book = {
 };
 
 function yearLastDigit(creationDate: string): number {
-  const year: string = creationDate.slice(0, 4)
-  return year.slice(-1) !== '-' ? parseInt(year.charAt(3)) : 0;
+  const year: string = creationDate.slice(0, 4);
+  return year.slice(-1) !== "-" ? parseInt(year.charAt(3)) : 0;
 }
 
 function generateDecades(numberOfDecades: number): Decade[] {
@@ -48,9 +47,11 @@ function generateDecades(numberOfDecades: number): Decade[] {
 }
 
 function getBookCreationYear(book: UserBook): string {
-  return (book.book.google_api_data as any).volumeInfo.publishedDate.slice(0, 4)
+  return (book.book.google_api_data as any).volumeInfo.publishedDate.slice(
+    0,
+    4,
+  );
 }
-
 
 function calculateOffset(creationYear: string): DimensionValue {
   const lastDigit = parseInt(creationYear.charAt(3));
@@ -61,8 +62,8 @@ export default function ChronologyScreen() {
   const numberOfDecades = 4;
   const [decades, setDecades] = useState<Decade[]>([]);
   const [addText, setAddText] = useState<string>("");
-  const { user, session, loading } = useUser()
-  const [userBooks, setUserBooks] = useState<UserBook[]>([])
+  const { user, session, loading } = useUser();
+  const [userBooks, setUserBooks] = useState<UserBook[]>([]);
 
   const handleInputChange = (text: string) => {
     setAddText(text);
@@ -70,21 +71,36 @@ export default function ChronologyScreen() {
 
   useEffect(() => {
     setDecades(generateDecades(numberOfDecades));
-    setUserBooks(user?.books ? user.books : [])
-  }, [loading])
+    setUserBooks(user?.books ? user.books : []);
+  }, [loading]);
 
   function renderBookEntries(decade: Decade): React.JSX.Element[] {
-    let decadeBooks = userBooks.filter(item => parseInt(getBookCreationYear(item)) >= decade.start && parseInt(getBookCreationYear(item)) <= decade.end)
-    let result: React.JSX.Element[] = []
-    let booksToDisplay: UserBook[] = []
+    let decadeBooks = userBooks.filter(
+      (item) =>
+        parseInt(getBookCreationYear(item)) >= decade.start &&
+        parseInt(getBookCreationYear(item)) <= decade.end,
+    );
+    let result: React.JSX.Element[] = [];
+    let booksToDisplay: UserBook[] = [];
     for (let i = 0; i < decadeBooks.length; i++) {
-      let numberOfSameYearBooksRendered = booksToDisplay.filter(item => item.book.title !== decadeBooks[i].book.title && getBookCreationYear(item) === getBookCreationYear(decadeBooks[i])).length
+      let numberOfSameYearBooksRendered = booksToDisplay.filter(
+        (item) =>
+          item.book.title !== decadeBooks[i].book.title &&
+          getBookCreationYear(item) === getBookCreationYear(decadeBooks[i]),
+      ).length;
       if (numberOfSameYearBooksRendered < 2) {
-        booksToDisplay.push(decadeBooks[i])
-        result.push(<BookChronologyEntry left={numberOfSameYearBooksRendered === 1} book={booksToDisplay.slice(-1)[0]} index={booksToDisplay.length} key={booksToDisplay.length} />)
+        booksToDisplay.push(decadeBooks[i]);
+        result.push(
+          <BookChronologyEntry
+            left={numberOfSameYearBooksRendered === 1}
+            book={booksToDisplay.slice(-1)[0]}
+            index={booksToDisplay.length}
+            key={booksToDisplay.length}
+          />,
+        );
       }
     }
-    return result
+    return result;
   }
 
   if (loading) {
@@ -92,7 +108,7 @@ export default function ChronologyScreen() {
       <View>
         <Text> Loading... </Text>
       </View>
-    )
+    );
   }
 
   return (
@@ -152,25 +168,43 @@ type BookChronologyEntryProps = {
   index: number;
   book: UserBook;
   left: boolean;
-}
+};
 function BookChronologyEntry(props: BookChronologyEntryProps) {
   return (
-    <View style={{
-      zIndex: -1,
-      position: "absolute",
-      top: calculateOffset(getBookCreationYear(props.book)),
-      left: props.left ? null : yearLastDigit(getBookCreationYear(props.book)) == 0 ? "92%" : "50%",
-      right: props.left ? yearLastDigit(getBookCreationYear(props.book)) ? "52%" : "80%" : null,
-      marginLeft: 1,
-      width: 185,
-      borderBottomWidth: 1,
-      borderColor: '#3EB489',
-      backgroundColor: 'rgba(0, 0, 0, 0.0)'
-    }}>
-      <Text style={{
-        color: 'black',
-        textAlign: 'center'
-      }} key={props.index} >{props.book.book.title!.length > TOTAL_TITLE_CHARS_TO_SHOW ? props.book.book.title!.slice(0, TOTAL_TITLE_CHARS_TO_SHOW) + ".." : props.book.book.title} ({getBookCreationYear(props.book)})</Text>
+    <View
+      style={{
+        zIndex: -1,
+        position: "absolute",
+        top: calculateOffset(getBookCreationYear(props.book)),
+        left: props.left
+          ? null
+          : yearLastDigit(getBookCreationYear(props.book)) == 0
+            ? "92%"
+            : "50%",
+        right: props.left
+          ? yearLastDigit(getBookCreationYear(props.book))
+            ? "52%"
+            : "80%"
+          : null,
+        marginLeft: 1,
+        width: 185,
+        borderBottomWidth: 1,
+        borderColor: "#3EB489",
+        backgroundColor: "rgba(0, 0, 0, 0.0)",
+      }}
+    >
+      <Text
+        style={{
+          color: "black",
+          textAlign: "center",
+        }}
+        key={props.index}
+      >
+        {props.book.book.title!.length > TOTAL_TITLE_CHARS_TO_SHOW
+          ? props.book.book.title!.slice(0, TOTAL_TITLE_CHARS_TO_SHOW) + ".."
+          : props.book.book.title}{" "}
+        ({getBookCreationYear(props.book)})
+      </Text>
     </View>
   );
 }
@@ -241,8 +275,8 @@ const styles = StyleSheet.create({
     paddingTop: 2,
     paddingBottom: 0,
     paddingHorizontal: 5,
-    borderColor: 'black',
-    color: 'black',
+    borderColor: "black",
+    color: "black",
     width: 75,
     height: 25,
     textAlign: "center",

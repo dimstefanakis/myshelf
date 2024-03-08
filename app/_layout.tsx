@@ -57,7 +57,8 @@ function RootLayoutNav() {
     <RootSiblingParent>
       <SafeAreaView style={{ flex: 1 }}>
         <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          // value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          value={DefaultTheme}
         >
           <Stack>
             <Stack.Screen

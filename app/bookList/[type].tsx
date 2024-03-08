@@ -13,7 +13,7 @@ import { supabase } from "@/utils/supabase";
 import { View, Text, Button } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 
-export default function App() {
+export default function BookList() {
   const router = useRouter();
   const { user } = useUser();
   const [showToast, setShowToast] = useState(false);
