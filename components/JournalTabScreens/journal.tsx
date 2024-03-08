@@ -121,7 +121,9 @@ const JournalScreen = () => {
                     </Modal>
                   </View>
                 </View>
-                <Text style={{ fontSize: 12 }}>{journal.description}</Text>
+                <Text style={{ fontSize: 12, marginTop: 10 }}>
+                  {journal.description}
+                </Text>
               </View>
             );
           })}
