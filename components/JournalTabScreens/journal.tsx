@@ -54,8 +54,8 @@ const JournalScreen = () => {
       {data.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
-          contentContainerStyle={{ paddingVertical: 30 }}
-          scrollEventThrottle={20}
+          // contentContainerStyle={{ paddingVertical: 30 }}
+          // scrollEventThrottle={20}
         >
           {data.map((journal, index) => {
             return (
@@ -121,9 +121,7 @@ const JournalScreen = () => {
                     </Modal>
                   </View>
                 </View>
-                <Text style={{ fontSize: 12, marginTop: 10 }}>
-                  {journal.description}
-                </Text>
+                <Text style={{ fontSize: 12 }}>{journal.description}</Text>
               </View>
             );
           })}
@@ -154,6 +152,7 @@ const styles = StyleSheet.create({
   },
   journalEntry: {
     paddingHorizontal: 20,
+    paddingVertical: 20,
     borderBottomWidth: 1,
     margin: 0,
     borderBottomColor: "#ddd",
