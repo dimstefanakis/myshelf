@@ -9,43 +9,30 @@ import {
   StyleProp,
   ViewStyle,
 } from "react-native";
-import useUser from "@/hooks/useUser";
-import { supabase } from "@/utils/supabase";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRouter } from "expo-router";
-
-// Define types for your data
-type BookDataType = {
-  id: number;
-  title: string;
-  description: string;
-  created_at: string;
-  user: string;
-  users_books?: {
-    book?: {
-      cover_url?: string;
-      google_api_data?: any; // Specify the type further based on your data structure
-    };
-  };
-};
+import useUser from "@/hooks/useUser";
+import { supabase } from "@/utils/supabase";
+import { useJournalStore } from "@/store/journalStore";
+import type { Note } from "@/store/journalStore";
 
 const BookScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const [bookData, setBookData] = useState<BookDataType[]>([]);
+  const { notes, setNotes } = useJournalStore();
 
-  const getThumbnailUrl = (item: BookDataType): string => {
-    return item.users_books?.book?.cover_url ?? "default_thumbnail_url";
+  const getThumbnailUrl = (item: Note): string => {
+    return item.users_book?.book?.cover_url ?? "default_thumbnail_url";
   };
 
-  const getBookData = async () => {
+  const getNotes = async () => {
     let { data, error } = await supabase.from("notes").select(`
       id,
       title,
       description,
       created_at,
       user,
-      users_books (*,
+      users_book (*,
         book (
           *,
           google_api_data
@@ -57,12 +44,35 @@ const BookScreen: React.FC = () => {
       console.error("Error fetching data:", error);
       return;
     }
-    let userBooks = data as unknown as BookDataType[];
-    setBookData(userBooks ? userBooks : []);
+    let userNotes = data as unknown as Note[];
+    setNotes(userNotes ? userNotes : []);
   };
 
+  async function listenToNotesUpdates() {
+    console.log("Listening to notes updates");
+    const channel = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notes",
+          // filter: `users_book.user=eq.${session?.user?.id}`,
+        },
+        () => {
+          console.log("Notes table changed");
+          getNotes();
+        },
+      )
+      .subscribe();
+
+    return channel;
+  }
+
   useEffect(() => {
-    getBookData();
+    getNotes();
+    listenToNotesUpdates();
   }, []);
 
   return (
@@ -73,15 +83,15 @@ const BookScreen: React.FC = () => {
           navigation.navigate("AddBookNoteEntryScreen");
         }}
       >
-        <Text style={styles.createButtonText}>Create New BookNotes</Text>
+        <Text style={styles.createButtonText}>Create New Note</Text>
       </TouchableOpacity>
-      {bookData.length > 0 ? (
+      {notes.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.booksContainer}
           scrollEventThrottle={20}
         >
-          {bookData.map((item: BookDataType, index) => {
+          {notes.map((item, index) => {
             const thumbnailUrl = getThumbnailUrl(item);
             // Calculate dynamic styling for alignment
             const remainder = (index + 1) % 3; // Determine position in the row
@@ -109,7 +119,7 @@ const BookScreen: React.FC = () => {
           })}
         </ScrollView>
       ) : (
-        <Text>No BookNotes to display</Text>
+        <Text>No notes to display</Text>
       )}
     </View>
   );
