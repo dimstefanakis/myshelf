@@ -179,18 +179,21 @@ export interface Database {
       }
       quotes: {
         Row: {
+          author: string | null
           created_at: string
           id: string
           title: string | null
           users_book: string | null
         }
         Insert: {
+          author?: string | null
           created_at?: string
           id?: string
           title?: string | null
           users_book?: string | null
         }
         Update: {
+          author?: string | null
           created_at?: string
           id?: string
           title?: string | null

@@ -7,18 +7,18 @@ import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase";
 
-const AddBookNoteEntryScreen = () => {
-  const [bookData, setBookData] = useState({
+const AddQuoteEntryScreen = () => {
+  const [quoteData, setQuoteData] = useState({
     title: "",
-    description: "",
+    author: "",
     users_book: "",
   });
   const navigation = useNavigation();
   const user = useUser();
 
   useEffect(() => {
-    if (user?.user?.books?.length && !bookData.users_book) {
-      setBookData((prevData) => ({
+    if (user?.user?.books?.length && !quoteData.users_book) {
+      setQuoteData((prevData) => ({
         ...prevData,
         users_book: user?.user?.books[0]?.id || "",
       }));
@@ -26,16 +26,16 @@ const AddBookNoteEntryScreen = () => {
   }, [user]);
 
   const handleChange = (name: string, value: any) => {
-    setBookData({
-      ...bookData,
+    setQuoteData({
+      ...quoteData,
       [name]: value,
     });
   };
 
   const handleSubmit = async () => {
     const { data, error } = await supabase
-      .from("notes")
-      .insert([{ ...bookData, user: user?.user?.id }]);
+      .from("quotes")
+      .insert([{ ...quoteData }]);
     if (error) {
       console.error("Error inserting data", error);
       return;
@@ -46,16 +46,16 @@ const AddBookNoteEntryScreen = () => {
   return (
     <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>
       <TextInput
-        placeholder="Title"
+        placeholder="Author (optional)"
         style={styles.input}
-        onChangeText={(text) => handleChange("title", text)}
+        onChangeText={(text) => handleChange("author", text)}
       />
       <TextInput
-        placeholder="Description"
+        placeholder="Quote"
         multiline={true}
         numberOfLines={4}
         style={styles.multilineInput}
-        onChangeText={(text) => handleChange("description", text)}
+        onChangeText={(text) => handleChange("title", text)}
       />
 
       <SelectDropdown
@@ -69,13 +69,13 @@ const AddBookNoteEntryScreen = () => {
         defaultButtonText="Select a book"
       />
       <Button onPress={handleSubmit} style={styles.Touchable}>
-        <Text style={{ color: "white" }}>Create Note</Text>
+        <Text style={{ color: "white" }}>Create Quote</Text>
       </Button>
     </View>
   );
 };
 
-export default AddBookNoteEntryScreen;
+export default AddQuoteEntryScreen;
 
 const styles = StyleSheet.create({
   input: {

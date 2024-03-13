@@ -90,7 +90,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
         defaultButtonText="Select a book"
       />
       <Button style={styles.submitButton} onPress={uploadData}>
-        <Text style={{ color: "white" }}>Submit</Text>
+        <Text style={{ color: "white" }}>Add</Text>
       </Button>
     </View>
   );

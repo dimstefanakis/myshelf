@@ -18,6 +18,7 @@ import { useJournalStore } from "@/store/journalStore";
 import type { Note } from "@/store/journalStore";
 
 const BookScreen: React.FC = () => {
+  const { session } = useUser();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { notes, setNotes } = useJournalStore();
 
@@ -26,7 +27,10 @@ const BookScreen: React.FC = () => {
   };
 
   const getNotes = async () => {
-    let { data, error } = await supabase.from("notes").select(`
+    let { data, error } = await supabase
+      .from("notes")
+      .select(
+        `
       id,
       title,
       description,
@@ -38,7 +42,9 @@ const BookScreen: React.FC = () => {
           google_api_data
         )
       )
-    `);
+    `,
+      )
+      .eq("users_book.user", session?.user?.id || "");
 
     if (error) {
       console.error("Error fetching data:", error);
@@ -71,9 +77,11 @@ const BookScreen: React.FC = () => {
   }
 
   useEffect(() => {
-    getNotes();
-    listenToNotesUpdates();
-  }, []);
+    if (session?.user?.id) {
+      getNotes();
+      listenToNotesUpdates();
+    }
+  }, [session?.user?.id]);
 
   return (
     <View style={styles.container}>

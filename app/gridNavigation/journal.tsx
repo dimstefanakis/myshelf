@@ -52,6 +52,10 @@ const JournalLanding = ({ navigation }: any) => {
     }
   };
 
+  function navigateToQuoteEntry() {
+    navigation.navigate("AddQuoteEntryScreen");
+  }
+
   useLayoutEffect(() => {
     const titles = ["Journal", "Book Notes", "Quotes"];
     const headerColors = ["#ff9999", "#99ccff", "#99ff99"];
@@ -65,7 +69,13 @@ const JournalLanding = ({ navigation }: any) => {
                 <Entypo name="camera" size={24} color="black" />
               </TouchableOpacity>
             )
-          : undefined,
+          : pageIndex === 2
+            ? () => (
+                <TouchableOpacity onPress={navigateToQuoteEntry}>
+                  <Entypo name="plus" size={24} color="black" />
+                </TouchableOpacity>
+              )
+            : null,
       // headerStyle: {
       //   backgroundColor: headerColors[pageIndex],
       // },
