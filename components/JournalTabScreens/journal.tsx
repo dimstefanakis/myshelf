@@ -22,7 +22,10 @@ const JournalScreen = () => {
   const navigation = useRouter();
 
   const getData = async () => {
-    let { data, error } = await supabase.from("journals").select("*");
+    let { data, error } = await supabase
+      .from("journals")
+      .select("*, users_book(*)")
+      .eq("users_book.user", session?.user?.id || "");
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -51,9 +54,11 @@ const JournalScreen = () => {
   }
 
   useEffect(() => {
-    getData();
-    const channel = listenToJournalUpdates();
-  }, []);
+    if (session?.user?.id) {
+      getData();
+      const channel = listenToJournalUpdates();
+    }
+  }, [session?.user?.id]);
 
   const handleModal = () => {
     setModalVisible(!modalVisible);

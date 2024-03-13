@@ -4,6 +4,7 @@ import ChronologyScreen from "../gridNavigation/chronology";
 import JournalLanding from "../gridNavigation/journal";
 import AddJournalEntryScreen from "../addJournalEntry";
 import AddBookNoteEntryScreen from "../addBookNoteEntry";
+import AddQuoteEntryScreen from "../addQuoteEntry";
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +30,11 @@ export default function HomeStack() {
       <Stack.Screen
         name="AddBookNoteEntryScreen"
         component={AddBookNoteEntryScreen}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="AddQuoteEntryScreen"
+        component={AddQuoteEntryScreen}
         options={{ presentation: "modal", headerShown: false }}
       />
     </Stack.Navigator>

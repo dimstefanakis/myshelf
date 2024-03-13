@@ -7,13 +7,19 @@ export type Note = Database["public"]["Tables"]["notes"]["Row"] & {
     book: Database["public"]["Tables"]["books"]["Row"];
   };
 };
+export type Quote = Database["public"]["Tables"]["quotes"]["Row"] & {
+  users_book: Database["public"]["Tables"]["users_books"]["Row"] & {
+    book: Database["public"]["Tables"]["books"]["Row"];
+  };
+};
 
 type JournalStore = {
   journal: Journal[];
   notes: Note[];
-  // quotes: Database['public']['Tables']['quotes']['Row'][]
+  quotes: Quote[];
   setJournal: (journal: Journal[]) => void;
   setNotes: (notes: Note[]) => void;
+  setQuotes: (quotes: Quote[]) => void;
 };
 
 export const useJournalStore = create<JournalStore>((set) => ({
@@ -22,5 +28,5 @@ export const useJournalStore = create<JournalStore>((set) => ({
   quotes: [],
   setJournal: (journal) => set({ journal }),
   setNotes: (notes) => set({ notes }),
-  // setQuotes: (quotes) => set({ quotes }),
+  setQuotes: (quotes) => set({ quotes }),
 }));
