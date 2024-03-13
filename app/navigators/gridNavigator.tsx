@@ -14,7 +14,7 @@ export default function HomeStack() {
       <Stack.Screen
         name="Chronology"
         component={ChronologyScreen}
-        options={{ headerShown: true, headerTitle: "asd" }}
+        options={{ headerShown: true, headerTitle: "Chronology" }}
       />
       <Stack.Screen
         name="Journal"
