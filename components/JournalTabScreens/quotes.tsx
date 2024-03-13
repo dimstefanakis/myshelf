@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -16,20 +16,46 @@ const QuoteCard = ({
   quote,
   author,
   work,
+  quoteId,
+  defaultLiked = false,
 }: {
   quote: string | null;
   author: string | null;
   work: string | null;
+  quoteId: string;
+  defaultLiked: boolean | null;
 }) => {
+  const [liked, setLiked] = useState(defaultLiked);
+
+  async function toggleQuote() {
+    const { data, error } = await supabase
+      .from("quotes")
+      .update({ liked: liked })
+      .eq("id", quoteId);
+  }
+
+  useEffect(() => {
+    toggleQuote();
+  }, [liked]);
+
   return (
     <View style={styles.quoteCard}>
       <Text style={styles.quoteText}>{quote}</Text>
       <Text style={styles.quoteAuthor}>
         {author}, {work}
       </Text>
-      <TouchableOpacity style={styles.likeButton}>
-        <Text style={styles.likeButtonText}>♥</Text>
-      </TouchableOpacity>
+      <View style={styles.likeButtonContainer}>
+        <TouchableOpacity
+          style={styles.likeButton}
+          onPress={() => setLiked(!liked)}
+        >
+          <Text
+            style={liked ? styles.likeButtonTextLiked : styles.likeButtonText}
+          >
+            ♥
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -42,7 +68,8 @@ const QuotesScreen = () => {
     let { data, error } = await supabase
       .from("quotes")
       .select("*, users_book(*, book(*))")
-      .eq("users_book.user", session?.user?.id || "");
+      .eq("users_book.user", session?.user?.id || "")
+      .order("created_at", { ascending: false });
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -62,7 +89,6 @@ const QuotesScreen = () => {
           // filter: `users_book.user=eq.${session?.user?.id}`,
         },
         () => {
-          console.log("Quote updated");
           getData();
         },
       )
@@ -99,6 +125,8 @@ const QuotesScreen = () => {
               quote={quote.title}
               author={getAuthor(quote)}
               work={quote.users_book.book.title}
+              quoteId={quote.id}
+              defaultLiked={!!quote.liked}
             />
           ))}
         </View>
@@ -145,10 +173,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 10,
   },
+  likeButtonContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
   likeButton: {
     alignSelf: "flex-end",
   },
   likeButtonText: {
+    fontSize: 14,
+    color: "#a0a0a0",
+    opacity: 0.3,
+  },
+  likeButtonTextLiked: {
     fontSize: 14,
     color: "#ff6b6b",
   },

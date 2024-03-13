@@ -182,6 +182,7 @@ export interface Database {
           author: string | null
           created_at: string
           id: string
+          liked: boolean | null
           title: string | null
           users_book: string | null
         }
@@ -189,6 +190,7 @@ export interface Database {
           author?: string | null
           created_at?: string
           id?: string
+          liked?: boolean | null
           title?: string | null
           users_book?: string | null
         }
@@ -196,6 +198,7 @@ export interface Database {
           author?: string | null
           created_at?: string
           id?: string
+          liked?: boolean | null
           title?: string | null
           users_book?: string | null
         }
