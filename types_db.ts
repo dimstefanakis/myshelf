@@ -34,6 +34,42 @@ export interface Database {
   }
   public: {
     Tables: {
+      book_tags: {
+        Row: {
+          book: string | null
+          created_at: string
+          id: string
+          tag: string | null
+        }
+        Insert: {
+          book?: string | null
+          created_at?: string
+          id?: string
+          tag?: string | null
+        }
+        Update: {
+          book?: string | null
+          created_at?: string
+          id?: string
+          tag?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_tags_book_fkey"
+            columns: ["book"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_tags_tag_fkey"
+            columns: ["tag"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       books: {
         Row: {
           cover_url: string | null
@@ -141,10 +177,58 @@ export interface Database {
           }
         ]
       }
+      quotes: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          users_book: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          users_book?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          users_book?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_users_book_fkey"
+            columns: ["users_book"]
+            isOneToOne: false
+            referencedRelation: "users_books"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           avatar_url: string | null
           billing_address: Json | null
+          created_at: string | null
           full_name: string | null
           id: string
           payment_method: Json | null
@@ -152,6 +236,7 @@ export interface Database {
         Insert: {
           avatar_url?: string | null
           billing_address?: Json | null
+          created_at?: string | null
           full_name?: string | null
           id: string
           payment_method?: Json | null
@@ -159,6 +244,7 @@ export interface Database {
         Update: {
           avatar_url?: string | null
           billing_address?: Json | null
+          created_at?: string | null
           full_name?: string | null
           id?: string
           payment_method?: Json | null
@@ -171,18 +257,21 @@ export interface Database {
           created_at: string
           id: string
           status: string | null
+          user: string | null
         }
         Insert: {
           book?: string | null
           created_at?: string
           id?: string
           status?: string | null
+          user?: string | null
         }
         Update: {
           book?: string | null
           created_at?: string
           id?: string
           status?: string | null
+          user?: string | null
         }
         Relationships: [
           {
@@ -190,6 +279,13 @@ export interface Database {
             columns: ["book"]
             isOneToOne: false
             referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_books_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]

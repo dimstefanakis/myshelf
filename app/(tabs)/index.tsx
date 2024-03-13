@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Text, View, Image, SafeAreaView } from "react-native";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import TopNavBar from "@/components/topNavBar";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { supabase } from "@/utils/supabase";
 
 const data = [
   {

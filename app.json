@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "waterstones",
-    "slug": "waterstones",
+    "slug": "myshelf",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -20,7 +22,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -35,11 +40,25 @@
           "photosPermission": "The app accesses your photos to let you share them with your friends.",
           "cameraPermission": "The app accesses your camera to let you take photos."
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true
     },
-    "permissions": ["CAMERA", "CAMERA_ROLL", "AUDIO_RECORDING"]
+    "permissions": [
+      "CAMERA",
+      "CAMERA_ROLL",
+      "AUDIO_RECORDING"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "95127c7a-c555-4847-88f6-8bab57d6ec15"
+      }
+    },
+    "owner": "senec"
   }
 }

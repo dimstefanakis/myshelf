@@ -9,32 +9,56 @@ import {
 } from "victory-native";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
+import languages from "../languages";
 
 function StatisticsView() {
   const { user } = useUser();
-  const [books, setBooks] = useState<any[]>([]);
-
-  const data = [
-    { bookType: "Literary fiction", books: 10 },
-    { bookType: "Mystery/Crime/Thriller", books: 2 },
-    { bookType: "Biography", books: 2 },
-    { bookType: "Gothic fiction", books: 2 },
-    { bookType: "Science fiction", books: 10 },
-  ];
+  const [booksLanguage, setBooksLanguage] = useState<any[]>([]);
+  const [booksGenre, setBooksGenre] = useState<any[]>([]);
 
   const fictionData = [{ bookType: "Fiction", percentage: 92 }];
 
   const nonFictionData = [{ bookType: "Non-fiction", percentage: 8 }];
 
-  const totalBooks = data.reduce((total, item) => total + item.books, 0);
+  const getBooksGenre = async () => {
+    let { data: fetchedBooks, error } = await supabase
+      .from("books")
+      .select("id,book_tags(*,tags(*))");
+    if (error) {
+      console.error("Error fetching data:", error);
+      return;
+    }
+    if (fetchedBooks) {
+      const genreCounts = fetchedBooks.reduce(
+        (acc: { [key: string]: number }, book: { [key: string]: any }) => {
+          const tags = book?.book_tags.map((tag: any) => tag?.tags?.name);
+          tags.forEach((tag: string) => {
+            acc[tag] = (acc[tag] || 0) + 1;
+          });
+          return acc;
+        },
+        {}
+      );
 
-  const chartData = data.map((item) => ({
-    x: item.bookType,
-    y: item.books,
-    label: `${((item.books / totalBooks) * 100).toFixed(0)}%`,
-  }));
+      const totalGenreAssignments = Object.values(genreCounts).reduce(
+        (total, count) => total + count,
+        0
+      );
+      const dataForGenre = Object.keys(genreCounts).map((genre) => ({
+        x: genre,
+        y: (genreCounts[genre] / totalGenreAssignments) * 100,
+        label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(
+          0
+        )}%`,
+      }));
 
-  const getBooks = async () => {
+      setBooksGenre(dataForGenre);
+    } else {
+      setBooksGenre([]);
+    }
+  };
+
+  const getBooksLanguage = async () => {
     let { data: fetchedBooks, error } = await supabase
       .from("books")
       .select(`google_api_data`);
@@ -59,17 +83,15 @@ function StatisticsView() {
         label: `${((languageCounts[language] / totalBooks) * 100).toFixed(0)}%`,
       }));
 
-      setBooks(
-        // x, y , label
-        dataForLanguage
-      );
+      setBooksLanguage(dataForLanguage);
     } else {
-      setBooks([]);
+      setBooksLanguage([]);
     }
   };
 
   useEffect(() => {
-    getBooks();
+    getBooksLanguage();
+    getBooksGenre();
   }, []);
 
   const customColorScale = [
@@ -93,7 +115,7 @@ function StatisticsView() {
         <View style={styles.graphContainer}>
           <Text style={styles.title}>Genres</Text>
           <VictoryPie
-            data={chartData}
+            data={booksGenre}
             colorScale={customColorScale}
             style={{
               labels: { fill: "black", fontSize: 16, fontWeight: "bold" },
@@ -103,10 +125,10 @@ function StatisticsView() {
             height={250}
           />
           <View style={styles.legendContainer}>
-            {data.map((item, index) => (
+            {booksGenre.map((item, index) => (
               <LegendItem
                 key={index}
-                name={item.bookType}
+                name={item.x}
                 color={customColorScale[index]}
               />
             ))}
@@ -149,7 +171,7 @@ function StatisticsView() {
         <View style={styles.graphContainer}>
           <Text style={styles.title2}>Languages</Text>
           <VictoryPie
-            data={books}
+            data={booksLanguage}
             colorScale={customColorScale}
             style={{
               labels: { fill: "black", fontSize: 16, fontWeight: "bold" },
@@ -159,10 +181,12 @@ function StatisticsView() {
             height={250}
           />
           <View style={styles.legendContainer}>
-            {books.map((item, index) => (
+            {booksLanguage.map((item, index) => (
               <LegendItem
                 key={index}
-                name={item.x}
+                name={
+                  languages.find((lang) => lang.code === item.x)?.name || item.x
+                }
                 color={customColorScale[index]}
               />
             ))}
