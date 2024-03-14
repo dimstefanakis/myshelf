@@ -9,13 +9,16 @@ import {
   StyleProp,
   ViewStyle,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+// import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRouter } from "expo-router";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
 import type { Note } from "@/store/journalStore";
+import { Button } from "@/components/Themed";
+import { AntDesign } from "@expo/vector-icons";
+import { useNavigation } from "expo-router";
 
 const BookScreen: React.FC = () => {
   const { session } = useUser();
@@ -42,7 +45,7 @@ const BookScreen: React.FC = () => {
           google_api_data
         )
       )
-    `,
+    `
       )
       .eq("users_book.user", session?.user?.id || "");
 
@@ -69,7 +72,7 @@ const BookScreen: React.FC = () => {
         () => {
           console.log("Notes table changed");
           getNotes();
-        },
+        }
       )
       .subscribe();
 
@@ -122,6 +125,16 @@ const BookScreen: React.FC = () => {
                 />
                 <Text style={styles.bookTitle}>{item.title}</Text>
                 <Text style={styles.bookDescription}>{item.description}</Text>
+                <AntDesign
+                  name="edit"
+                  size={15}
+                  onPress={() => {
+                    navigation.navigate("AddBookNoteEntryScreen", {
+                      id: item.id,
+                    });
+                  }}
+                  color="black"
+                />
               </View>
             );
           })}

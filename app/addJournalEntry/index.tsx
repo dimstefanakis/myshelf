@@ -6,16 +6,79 @@ import { supabase } from "@/utils/supabase";
 import useUser from "@/hooks/useUser";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
+import { set } from "react-hook-form";
 
 const AddJournalEntryScreen = ({ route, navigation }: any) => {
-  const [journalData, setJournalData] = useState({
+  const [journalData, setJournalData] = useState<{
+    title: string;
+    users_book: string;
+    description: string;
+  }>({
     title: "",
     users_book: "",
     description: "",
   });
+
+  const [journalToEdit, setJournalToEdit] = useState<{
+    id: string;
+    title: string | null;
+    description: string | null;
+  }>({ id: "", title: null, description: null });
+
   const user = useUser();
 
-  const { image } = route.params;
+  const { image, id } = route.params;
+
+  // if id exists then we are editing an existing journal entry
+  useEffect(() => {
+    if (id) {
+      const getJournalEntry = async () => {
+        const { data, error } = await supabase
+          .from("journals")
+          .select("*")
+          .eq("id", id || "")
+          .single(); 
+
+        if (error) {
+          console.error("Error fetching data:", error);
+          return;
+        }
+        setJournalToEdit(data);
+      };
+      getJournalEntry();
+    }
+  }, [id]);
+
+  const updateJournalEntry = async () => {
+    const { data, error } = await supabase
+      .from("journals")
+      .update({
+        title: journalToEdit.title,
+        description: journalToEdit.description,
+      })
+      .eq("id", journalToEdit.id);
+
+    if (error) {
+      console.error("Error updating data:", error);
+      return;
+    }
+    console.log("Data updated successfully");
+    navigation.goBack();
+  };
+
+  const deleteJournalEntry = async () => {
+    const { error } = await supabase
+      .from("journals")
+      .delete()
+      .eq("id", journalToEdit.id);
+
+    if (error) {
+      console.error("Error deleting data:", error);
+      return;
+    }
+    console.log("Data deleted successfully");
+    navigation.goBack();
+  };
 
   useEffect(() => {
     if (user?.user?.books?.length && !journalData.users_book) {
@@ -27,7 +90,11 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
   }, [user]);
 
   const handleChange = (name: string, value: any) => {
-    setJournalData({ ...journalData, [name]: value });
+    if (id) {
+      setJournalToEdit({ ...journalToEdit, [name]: value });
+    } else {
+      setJournalData({ ...journalData, [name]: value });
+    }
   };
 
   const uploadData = async () => {
@@ -67,9 +134,11 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
         <Image source={{ uri: image.uri }} style={{ width: 200, height: 200, margin: 20 }} />
       )} */}
       <TextInput
-        placeholder="Title"
         style={styles.input}
         onChangeText={(text) => handleChange("title", text)}
+        // if id exists then we are editing an existing journal entry
+        defaultValue={journalToEdit.title ? journalToEdit.title : ""}
+        placeholder="Title"
       />
       <TextInput
         placeholder="Description"
@@ -78,20 +147,37 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
         style={styles.multilineInput}
         placeholderTextColor={"#9E9E9E"}
         onChangeText={(text) => handleChange("description", text)}
+        defaultValue={
+          journalToEdit.description ? journalToEdit.description : ""
+        }
       />
-      <SelectDropdown
-        data={user?.user?.books.map((book) => book.book.title) || []}
-        onSelect={(selectedItem, index) => {
-          handleChange("users_book", user?.user?.books[index].id);
-        }}
-        buttonTextAfterSelection={(selectedItem) => selectedItem}
-        rowTextForSelection={(item) => item}
-        buttonStyle={styles.dropdown1BtnStyle}
-        defaultButtonText="Select a book"
-      />
-      <Button style={styles.submitButton} onPress={uploadData}>
-        <Text style={{ color: "white" }}>Add</Text>
-      </Button>
+
+      {id ? (
+        <>
+          <Button style={styles.submitButton} onPress={updateJournalEntry}>
+            <Text style={{ color: "white" }}>Update</Text>
+          </Button>
+          <Button style={styles.deleteButton} onPress={deleteJournalEntry}>
+            <Text style={{ color: "white" }}>Delete</Text>
+          </Button>
+        </>
+      ) : (
+        <>
+          <SelectDropdown
+            data={user?.user?.books.map((book) => book.book.title) || []}
+            onSelect={(selectedItem, index) => {
+              handleChange("users_book", user?.user?.books[index].id);
+            }}
+            buttonTextAfterSelection={(selectedItem) => selectedItem}
+            rowTextForSelection={(item) => item}
+            buttonStyle={styles.dropdown1BtnStyle}
+            defaultButtonText="Select a book"
+          />
+          <Button style={styles.submitButton} onPress={uploadData}>
+            <Text style={{ color: "white" }}>Add</Text>
+          </Button>
+        </>
+      )}
     </View>
   );
 };
@@ -125,6 +211,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 10,
   },
+  deleteButton: {
+    backgroundColor: "red",
+    padding: 10,
+    alignItems: "center",
+    width: 200,
+    borderRadius: 10,
+    marginVertical: 10,
+  },
+
   submitButtonText: {
     color: "black",
     fontSize: 16,
