@@ -14,13 +14,20 @@ import { AntDesign } from "@expo/vector-icons";
 import { useJournalStore } from "@/store/journalStore";
 import useUser from "@/hooks/useUser";
 import type { Journal } from "@/store/journalStore";
+import { useNavigation } from "expo-router";
+
+interface NavigationProp<T> {
+  navigate: (screen: keyof T, params?: any) => void;
+}
+interface RootStackParamList {
+  AddJournalEntryScreen: { id: string };
+}
 
 const JournalScreen = () => {
   const { session } = useUser();
   const { journal, setJournal } = useJournalStore();
   const [modalVisible, setModalVisible] = useState(false);
-  const navigation = useRouter();
-
+  const nav = useNavigation<NavigationProp<RootStackParamList>>();
   const getData = async () => {
     let { data, error } = await supabase
       .from("journals")
@@ -46,7 +53,7 @@ const JournalScreen = () => {
         },
         () => {
           getData();
-        },
+        }
       )
       .subscribe();
 
@@ -90,13 +97,30 @@ const JournalScreen = () => {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
-                        },
+                        }
                       )}
                     </Text>
                     <Text> - </Text>
                     <Text style={styles.createdAt}>{journal.title}</Text>
                   </Text>
-                  <View style={{ paddingHorizontal: 10 }}>
+                  <View
+                    style={{
+                      paddingHorizontal: 10,
+                      display: "flex",
+                      flexDirection: "row",
+                    }}
+                  >
+                    <AntDesign
+                      name="edit"
+                      size={15}
+                      color="black"
+                      style={{ marginRight: 12 }}
+                      onPress={() =>
+                        nav.navigate("AddJournalEntryScreen", {
+                          id: journal.id,
+                        })
+                      }
+                    />
                     <AntDesign
                       name="eye"
                       size={15}
