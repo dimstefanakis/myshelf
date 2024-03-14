@@ -86,14 +86,6 @@ const BookScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.createBookButton}
-        onPress={() => {
-          navigation.navigate("AddBookNoteEntryScreen");
-        }}
-      >
-        <Text style={styles.createButtonText}>Create New Note</Text>
-      </TouchableOpacity>
       {notes.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
@@ -156,6 +148,10 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  createButtonContainer: {
+    width: "100%",
+    alignItems: "center",
   },
   scrollView: {
     width: "100%",
