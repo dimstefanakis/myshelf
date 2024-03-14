@@ -1,16 +1,11 @@
 import React, { useEffect, useState } from "react";
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { TouchableOpacity, StyleSheet } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 import { Image } from "react-native-elements";
 import { Modal } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { View, Text, ScrollView } from "../Themed";
 import { useJournalStore } from "@/store/journalStore";
 import useUser from "@/hooks/useUser";
 import type { Journal } from "@/store/journalStore";
@@ -53,7 +48,7 @@ const JournalScreen = () => {
         },
         () => {
           getData();
-        }
+        },
       )
       .subscribe();
 
@@ -97,7 +92,7 @@ const JournalScreen = () => {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
-                        }
+                        },
                       )}
                     </Text>
                     <Text> - </Text>

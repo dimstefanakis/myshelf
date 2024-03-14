@@ -1,13 +1,6 @@
-import { Button } from "@/components/Themed";
+import { Button, View, Text, ScrollView } from "@/components/Themed";
 import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import { Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { supabase } from "@/utils/supabase";
 
@@ -18,7 +11,7 @@ export default function TabTwoScreen() {
   };
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity>
           <MaterialIcons name="edit" size={24} color="white" />
         </TouchableOpacity>
@@ -29,7 +22,7 @@ export default function TabTwoScreen() {
         <TouchableOpacity>
           <Feather name="settings" size={24} color="white" />
         </TouchableOpacity>
-      </View>
+      </View> */}
       <View style={styles.rewardsSection}>
         <Text
           style={{
@@ -106,7 +99,7 @@ export default function TabTwoScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
+    // backgroundColor: "white",
   },
   buttons: {
     display: "flex",
@@ -129,7 +122,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   rewardsSection: {
-    backgroundColor: "#ffffff",
+    // backgroundColor: "#ffffff",
     padding: 20,
     borderBottomWidth: 1,
     borderColor: "#B8C0CB",

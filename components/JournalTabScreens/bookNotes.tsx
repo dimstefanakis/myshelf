@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import {
-  Text,
-  View,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Image,
   StyleProp,
   ViewStyle,
+  Pressable,
 } from "react-native";
 // import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -16,7 +14,7 @@ import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
 import type { Note } from "@/store/journalStore";
-import { Button } from "@/components/Themed";
+import { Button, View, ScrollView, Text } from "@/components/Themed";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 
@@ -45,7 +43,7 @@ const BookScreen: React.FC = () => {
           google_api_data
         )
       )
-    `
+    `,
       )
       .eq("users_book.user", session?.user?.id || "");
 
@@ -72,7 +70,7 @@ const BookScreen: React.FC = () => {
         () => {
           console.log("Notes table changed");
           getNotes();
-        }
+        },
       )
       .subscribe();
 
@@ -115,9 +113,14 @@ const BookScreen: React.FC = () => {
               additionalStyle = { marginLeft: "auto", marginRight: 0 };
             } // Middle item naturally centers due to justifyContent
             return (
-              <View
+              <Pressable
                 key={item.id.toString()}
                 style={[styles.bookItem, additionalStyle]}
+                onPress={() => {
+                  navigation.navigate("AddBookNoteEntryScreen", {
+                    id: item.id,
+                  });
+                }}
               >
                 <Image
                   source={{ uri: thumbnailUrl }}
@@ -125,17 +128,7 @@ const BookScreen: React.FC = () => {
                 />
                 <Text style={styles.bookTitle}>{item.title}</Text>
                 <Text style={styles.bookDescription}>{item.description}</Text>
-                <AntDesign
-                  name="edit"
-                  size={15}
-                  onPress={() => {
-                    navigation.navigate("AddBookNoteEntryScreen", {
-                      id: item.id,
-                    });
-                  }}
-                  color="black"
-                />
-              </View>
+              </Pressable>
             );
           })}
         </ScrollView>

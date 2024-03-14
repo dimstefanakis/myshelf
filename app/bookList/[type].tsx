@@ -7,10 +7,10 @@ import {
   MaterialCommunityIcons,
   Ionicons,
 } from "@expo/vector-icons";
-import { ScrollView, Dimensions, Pressable } from "react-native";
+import { Dimensions, Pressable } from "react-native";
 import Toast from "react-native-root-toast";
 import { supabase } from "@/utils/supabase";
-import { View, Text, Button } from "@/components/Themed";
+import { View, Text, Button, ScrollView } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 
 export default function BookList() {
@@ -55,7 +55,7 @@ export default function BookList() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: "white" }}>
+    <ScrollView style={{ flex: 1 }}>
       <View
         style={{
           width: "100%",
@@ -64,7 +64,7 @@ export default function BookList() {
           justifyContent: "space-around",
           alignItems: "flex-start",
           // alignContent: "flex-start",
-          marginTop: 20,
+          paddingVertical: 20,
         }}
       >
         {user?.books

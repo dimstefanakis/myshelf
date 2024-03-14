@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  SafeAreaView,
-  TouchableOpacity,
-} from "react-native";
+import { StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView } from "../Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
@@ -116,30 +110,25 @@ const QuotesScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        <View style={styles.quotesContainer}>
-          {quotes.map((quote, index) => (
-            <QuoteCard
-              key={index}
-              quote={quote.title}
-              author={getAuthor(quote)}
-              work={quote.users_book.book.title}
-              quoteId={quote.id}
-              defaultLiked={!!quote.liked}
-            />
-          ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+    <ScrollView contentContainerStyle={styles.contentContainer}>
+      <View style={styles.quotesContainer}>
+        {quotes.map((quote, index) => (
+          <QuoteCard
+            key={index}
+            quote={quote.title}
+            author={getAuthor(quote)}
+            work={quote.users_book.book.title}
+            quoteId={quote.id}
+            defaultLiked={!!quote.liked}
+          />
+        ))}
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    // flex: 1,
-    backgroundColor: "#f0f0f0",
-  },
+  container: {},
   contentContainer: {
     padding: 16,
   },
@@ -176,6 +165,7 @@ const styles = StyleSheet.create({
   likeButtonContainer: {
     flex: 1,
     justifyContent: "flex-end",
+    backgroundColor: "transparent",
   },
   likeButton: {
     alignSelf: "flex-end",

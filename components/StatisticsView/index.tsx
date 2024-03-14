@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, ScrollView } from "react-native";
+import { StyleSheet } from "react-native";
 import {
   VictoryBar,
   VictoryChart,
@@ -7,6 +7,7 @@ import {
   VictoryLabel,
   VictoryPie,
 } from "victory-native";
+import { View, Text, ScrollView } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import languages from "../languages";
@@ -37,18 +38,18 @@ function StatisticsView() {
           });
           return acc;
         },
-        {}
+        {},
       );
 
       const totalGenreAssignments = Object.values(genreCounts).reduce(
         (total, count) => total + count,
-        0
+        0,
       );
       const dataForGenre = Object.keys(genreCounts).map((genre) => ({
         x: genre,
         y: (genreCounts[genre] / totalGenreAssignments) * 100,
         label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(
-          0
+          0,
         )}%`,
       }));
 
@@ -73,7 +74,7 @@ function StatisticsView() {
           acc[lang] = (acc[lang] || 0) + 1;
           return acc;
         },
-        {}
+        {},
       );
 
       const totalBooks = fetchedBooks.length;
@@ -202,7 +203,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "white",
+    paddingTop: 10,
+    // backgroundColor: "white",
   },
   graphContainer: {
     borderBottomWidth: 1,
