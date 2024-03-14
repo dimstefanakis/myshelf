@@ -107,23 +107,30 @@ export default function BookModalScreen() {
       const categories = [...new Set(googleCategories?.flat())];
       if (categories) {
         for (const category of categories) {
+          let tagId = null;
           const { data, error } = await supabase
             .from("tags")
-            .upsert(
-              {
-                name: category,
-              },
-              { onConflict: "name" },
-            )
             .select("*")
-            .single();
+            .eq("name", category);
+          if (data && data.length > 0) {
+            tagId = data[0].id;
+          } else {
+            const { data: tagData, error: tagError } = await supabase
+              .from("tags")
+              .insert({
+                name: category,
+              })
+              .select("*")
+              .single();
+            tagId = tagData?.id;
+          }
           // create a book_tag
-          if (data) {
+          if (tagId) {
             const { data: tagData, error: tagError } = await supabase
               .from("book_tags")
               .insert({
                 book: newBook?.id,
-                tag: data.id,
+                tag: tagId,
               });
           }
         }
