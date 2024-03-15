@@ -52,7 +52,7 @@ export default function Search({ addAction }: { addAction?: string }) {
           borderRadius: 10,
           marginTop: 10,
         }}
-        placeholder="Search"
+        placeholder="Search: Title, Author, ISBN..."
         // value={search}
         onChange={handleChange}
       />
