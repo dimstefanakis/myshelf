@@ -79,7 +79,6 @@ export default function BookModalScreen() {
       .eq("isbn_13", isbn13 || "");
 
     if (existingBookError) {
-      console.log("error", existingBookError);
       setAddingBook(false);
       return;
     }
@@ -98,6 +97,44 @@ export default function BookModalScreen() {
         ])
         .select("*")
         .single();
+
+      const googleCategories = book?.volumeInfo.categories.map((category) => {
+        return category
+          .split("/")
+          .flat()
+          .map((c) => c.trim());
+      });
+      const categories = [...new Set(googleCategories?.flat())];
+      if (categories) {
+        for (const category of categories) {
+          let tagId = null;
+          const { data, error } = await supabase
+            .from("tags")
+            .select("*")
+            .eq("name", category);
+          if (data && data.length > 0) {
+            tagId = data[0].id;
+          } else {
+            const { data: tagData, error: tagError } = await supabase
+              .from("tags")
+              .insert({
+                name: category,
+              })
+              .select("*")
+              .single();
+            tagId = tagData?.id;
+          }
+          // create a book_tag
+          if (tagId) {
+            const { data: tagData, error: tagError } = await supabase
+              .from("book_tags")
+              .insert({
+                book: newBook?.id,
+                tag: tagId,
+              });
+          }
+        }
+      }
 
       if (newBookError) {
         setAddingBook(false);
@@ -130,7 +167,6 @@ export default function BookModalScreen() {
     });
   }, [bookId]);
 
-  console.log("book", action);
   return (
     <View style={styles.container}>
       <Image

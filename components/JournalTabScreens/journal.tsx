@@ -1,43 +1,66 @@
 import React, { useEffect, useState } from "react";
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { TouchableOpacity, StyleSheet } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 import { Image } from "react-native-elements";
 import { Modal } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { View, Text, ScrollView } from "../Themed";
+import { useJournalStore } from "@/store/journalStore";
+import useUser from "@/hooks/useUser";
+import type { Journal } from "@/store/journalStore";
+import { useNavigation } from "expo-router";
 
-interface JournalEntry {
-  created_at: string;
-  description: string | null;
-  id: string | null;
-  image_url: string | null;
-  title: string | null;
-  users_book: string | null;
+interface NavigationProp<T> {
+  navigate: (screen: keyof T, params?: any) => void;
+}
+interface RootStackParamList {
+  AddJournalEntryScreen: { id: string };
 }
 
 const JournalScreen = () => {
-  const [data, setData] = useState<JournalEntry[]>([]);
+  const { session } = useUser();
+  const { journal, setJournal } = useJournalStore();
   const [modalVisible, setModalVisible] = useState(false);
-  const navigation = useRouter();
-
+  const nav = useNavigation<NavigationProp<RootStackParamList>>();
   const getData = async () => {
-    let { data, error } = await supabase.from("journals").select("*");
+    let { data, error } = await supabase
+      .from("journals")
+      .select("*, users_book(*)")
+      .eq("users_book.user", session?.user?.id || "");
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
-    setData(data ? data : []);
+    setJournal(data as Journal[]);
   };
 
+  async function listenToJournalUpdates() {
+    const channel = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "journals",
+          // filter: `users_book.user=eq.${session?.user?.id}`,
+        },
+        () => {
+          getData();
+        },
+      )
+      .subscribe();
+
+    return channel;
+  }
+
   useEffect(() => {
-    getData();
-  }, []);
+    if (session?.user?.id) {
+      getData();
+      const channel = listenToJournalUpdates();
+    }
+  }, [session?.user?.id]);
 
   const handleModal = () => {
     setModalVisible(!modalVisible);
@@ -51,13 +74,13 @@ const JournalScreen = () => {
       >
         <Text style={styles.createButtonText}>Create New Journal</Text>
       </TouchableOpacity> */}
-      {data.length > 0 ? (
+      {journal.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
           // contentContainerStyle={{ paddingVertical: 30 }}
           // scrollEventThrottle={20}
         >
-          {data.map((journal, index) => {
+          {journal.map((journal, index) => {
             return (
               <View key={index} style={styles.journalEntry}>
                 <View style={styles.dateAndTitle}>
@@ -75,7 +98,24 @@ const JournalScreen = () => {
                     <Text> - </Text>
                     <Text style={styles.createdAt}>{journal.title}</Text>
                   </Text>
-                  <View style={{ paddingHorizontal: 10 }}>
+                  <View
+                    style={{
+                      paddingHorizontal: 10,
+                      display: "flex",
+                      flexDirection: "row",
+                    }}
+                  >
+                    <AntDesign
+                      name="edit"
+                      size={15}
+                      color="black"
+                      style={{ marginRight: 12 }}
+                      onPress={() =>
+                        nav.navigate("AddJournalEntryScreen", {
+                          id: journal.id,
+                        })
+                      }
+                    />
                     <AntDesign
                       name="eye"
                       size={15}

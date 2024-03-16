@@ -41,7 +41,7 @@ export default function TabLayout() {
       >
         {/* Points to the grid navigator to enable nested routes */}
         <Tab.Screen
-          name="HomeScreen"
+          name="Home"
           component={HomeStack}
           options={{
             headerShown: false,

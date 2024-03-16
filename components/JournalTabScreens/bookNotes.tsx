@@ -1,87 +1,98 @@
 import React, { useEffect, useState } from "react";
 import {
-  Text,
-  View,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Image,
   StyleProp,
   ViewStyle,
+  Pressable,
 } from "react-native";
-import useUser from "@/hooks/useUser";
-import { supabase } from "@/utils/supabase";
-import { useNavigation } from "@react-navigation/native";
+// import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRouter } from "expo-router";
-
-// Define types for your data
-type BookDataType = {
-  id: number;
-  title: string;
-  description: string;
-  created_at: string;
-  user: string;
-  users_books?: {
-    book?: {
-      cover_url?: string;
-      google_api_data?: any; // Specify the type further based on your data structure
-    };
-  };
-};
+import useUser from "@/hooks/useUser";
+import { supabase } from "@/utils/supabase";
+import { useJournalStore } from "@/store/journalStore";
+import type { Note } from "@/store/journalStore";
+import { Button, View, ScrollView, Text } from "@/components/Themed";
+import { AntDesign } from "@expo/vector-icons";
+import { useNavigation } from "expo-router";
 
 const BookScreen: React.FC = () => {
+  const { session } = useUser();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const [bookData, setBookData] = useState<BookDataType[]>([]);
+  const { notes, setNotes } = useJournalStore();
 
-  const getThumbnailUrl = (item: BookDataType): string => {
-    return item.users_books?.book?.cover_url ?? "default_thumbnail_url";
+  const getThumbnailUrl = (item: Note): string => {
+    return item.users_book?.book?.cover_url ?? "default_thumbnail_url";
   };
 
-  const getBookData = async () => {
-    let { data, error } = await supabase.from("notes").select(`
+  const getNotes = async () => {
+    let { data, error } = await supabase
+      .from("notes")
+      .select(
+        `
       id,
       title,
       description,
       created_at,
       user,
-      users_books (*,
+      users_book (*,
         book (
           *,
           google_api_data
         )
       )
-    `);
+    `,
+      )
+      .eq("users_book.user", session?.user?.id || "");
 
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
-    let userBooks = data as unknown as BookDataType[];
-    setBookData(userBooks ? userBooks : []);
+    let userNotes = data as unknown as Note[];
+    setNotes(userNotes ? userNotes : []);
   };
 
+  async function listenToNotesUpdates() {
+    console.log("Listening to notes updates");
+    const channel = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notes",
+          // filter: `users_book.user=eq.${session?.user?.id}`,
+        },
+        () => {
+          console.log("Notes table changed");
+          getNotes();
+        },
+      )
+      .subscribe();
+
+    return channel;
+  }
+
   useEffect(() => {
-    getBookData();
-  }, []);
+    if (session?.user?.id) {
+      getNotes();
+      listenToNotesUpdates();
+    }
+  }, [session?.user?.id]);
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.createBookButton}
-        onPress={() => {
-          navigation.navigate("AddBookNoteEntryScreen");
-        }}
-      >
-        <Text style={styles.createButtonText}>Create New BookNotes</Text>
-      </TouchableOpacity>
-      {bookData.length > 0 ? (
+      {notes.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.booksContainer}
           scrollEventThrottle={20}
         >
-          {bookData.map((item: BookDataType, index) => {
+          {notes.map((item, index) => {
             const thumbnailUrl = getThumbnailUrl(item);
             // Calculate dynamic styling for alignment
             const remainder = (index + 1) % 3; // Determine position in the row
@@ -94,9 +105,14 @@ const BookScreen: React.FC = () => {
               additionalStyle = { marginLeft: "auto", marginRight: 0 };
             } // Middle item naturally centers due to justifyContent
             return (
-              <View
+              <Pressable
                 key={item.id.toString()}
                 style={[styles.bookItem, additionalStyle]}
+                onPress={() => {
+                  navigation.navigate("AddBookNoteEntryScreen", {
+                    id: item.id,
+                  });
+                }}
               >
                 <Image
                   source={{ uri: thumbnailUrl }}
@@ -104,12 +120,12 @@ const BookScreen: React.FC = () => {
                 />
                 <Text style={styles.bookTitle}>{item.title}</Text>
                 <Text style={styles.bookDescription}>{item.description}</Text>
-              </View>
+              </Pressable>
             );
           })}
         </ScrollView>
       ) : (
-        <Text>No BookNotes to display</Text>
+        <Text>No notes to display</Text>
       )}
     </View>
   );
@@ -132,6 +148,10 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  createButtonContainer: {
+    width: "100%",
+    alignItems: "center",
   },
   scrollView: {
     width: "100%",

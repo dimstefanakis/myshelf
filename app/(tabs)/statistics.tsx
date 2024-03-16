@@ -1,12 +1,15 @@
-import { StyleSheet } from "react-native";
+import React from "react";
+import { StyleSheet, View, Text, ScrollView } from "react-native";
+import {
+  VictoryBar,
+  VictoryChart,
+  VictoryAxis,
+  VictoryLabel,
+  VictoryPie,
+} from "victory-native";
+import StatisticsView from "@/components/StatisticsView";
 
-// import EditScreenInfo from '@/components/topNavBar';
-import { Text, View } from "@/components/Themed";
-
-export default function StatisticsScreen() {
-  return (
-    <View>
-      <Text>Statistics</Text>
-    </View>
-  );
+function StatisticsScreen() {
+  return <StatisticsView />;
 }
+export default StatisticsScreen;
