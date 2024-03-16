@@ -35,6 +35,7 @@ export type RootStackParamList = {
   Journal: undefined;
   Chronology: undefined;
   Search: undefined;
+  HabitLogBook: undefined;
 };
 function HomepageContainers() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -46,6 +47,9 @@ function HomepageContainers() {
         break;
       case "Chronology":
         navigation.navigate("Chronology");
+        break;
+      case "Habit Logbook":
+        navigation.navigate("HabitLogBook");
         break;
     }
   };
