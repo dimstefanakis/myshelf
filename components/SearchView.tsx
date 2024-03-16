@@ -4,13 +4,12 @@ import { Image } from "expo-image";
 import { useDebounceValue } from "usehooks-ts";
 import {
   StyleSheet,
-  ScrollView,
   TouchableNativeFeedback,
   NativeSyntheticEvent,
   TextInputChangeEventData,
 } from "react-native";
 
-import { Text, TextInput, View } from "@/components/Themed";
+import { Text, TextInput, View, ScrollView } from "@/components/Themed";
 import type { Book } from "@/constants/BookTypes";
 
 export default function Search({ addAction }: { addAction?: string }) {
@@ -39,7 +38,6 @@ export default function Search({ addAction }: { addAction?: string }) {
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: "white",
       }}
       contentContainerStyle={{
         alignItems: "center",
@@ -52,8 +50,9 @@ export default function Search({ addAction }: { addAction?: string }) {
           width: "80%",
           padding: 10,
           borderRadius: 10,
+          marginTop: 10,
         }}
-        placeholder="Search"
+        placeholder="Search: Title, Author, ISBN..."
         // value={search}
         onChange={handleChange}
       />

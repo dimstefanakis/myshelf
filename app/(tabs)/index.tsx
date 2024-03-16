@@ -1,29 +1,32 @@
-import React from "react";
-import { Text, View, Image, SafeAreaView } from "react-native";
+import React, { useEffect } from "react";
+import { Text, SafeAreaView } from "react-native";
 import { StyleSheet, TouchableOpacity } from "react-native";
-import TopNavBar from "@/components/topNavBar";
+import { Image } from "expo-image";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+import TopNavBar from "@/components/topNavBar";
+import { View } from "@/components/Themed";
+import { supabase } from "@/utils/supabase";
 
 const data = [
   {
     title: "Journal",
-    image: require("./../../assets/images/placeholder.jpg"),
+    image: require("./../../assets/images/journal.jpg"),
   },
   {
     title: "Habit Logbook",
-    image: require("./../../assets/images/placeholder.jpg"),
+    image: require("./../../assets/images/habit_logbook.jpg"),
   },
   {
     title: "Map",
-    image: require("./../../assets/images/placeholder.jpg"),
+    image: require("./../../assets/images/map.jpg"),
   },
   {
     title: "Chronology",
-    image: require("./../../assets/images/placeholder.jpg"),
+    image: require("./../../assets/images/chronology.jpg"),
   },
   {
     title: "Goal Tracker",
-    image: require("./../../assets/images/placeholder.jpg"),
+    image: require("./../../assets/images/goals.jpg"),
   },
   {
     title: "Community",
@@ -83,11 +86,9 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     padding: 10,
     height: "100%",
-    backgroundColor: "white",
   },
   item: {
     width: "35%",
-    // backgroundColor: "blue",
     margin: "5%",
     marginTop: "4%",
     height: 150,
@@ -107,7 +108,6 @@ const styles = StyleSheet.create({
   },
   imagecontainer: {
     height: "50%",
-    backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
   },

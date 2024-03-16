@@ -1,4 +1,4 @@
-import { View, Text } from "@/components/Themed";
+import { View, Text, TextInput } from "@/components/Themed";
 import useUser, { UserBook } from "@/hooks/useUser";
 import { EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -8,7 +8,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  TextInput,
 } from "react-native";
 
 const TOTAL_TITLE_CHARS_TO_SHOW = 18;
@@ -115,9 +114,9 @@ export default function ChronologyScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.inputContainer}>
-          <EvilIcons name="search" size={25} />
+          {/* <EvilIcons name="search" size={25} /> */}
           <TextInput
-            style={styles.input}
+            // style={styles.input}
             placeholder="Search here"
             onChangeText={handleInputChange}
             value={addText}
@@ -215,33 +214,35 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     backgroundColor: "white",
     maxWidth: Dimensions.get("window").width - 30,
+    marginTop: 10,
   },
   inputContainer: {
     width: "65%",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "wheat",
-    borderRadius: 10,
-    borderWidth: 1,
+    // backgroundColor: "wheat",
+    // borderWidth: 1,
     marginRight: 15,
     height: 40,
   },
-  input: {
-    alignSelf: "center",
-    maxWidth: "90%",
-    borderWidth: 0,
-    fontSize: 17,
-  },
+  // input: {
+  //   alignSelf: "center",
+  //   maxWidth: "90%",
+  //   borderWidth: 0,
+  //   fontSize: 17,
+  // },
   addButton: {
     marginLeft: 15,
     flexDirection: "row",
-    borderRadius: 10,
+    borderRadius: 6,
     borderWidth: 1,
     width: 80,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "wheat",
+    borderColor: "#E0E0E0",
+
+    // backgroundColor: "wheat",
   },
   today: {
     marginTop: 30,

@@ -1,28 +1,33 @@
 import React, { useEffect, useState } from "react";
-import {
-  Text,
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { TouchableOpacity, StyleSheet } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 import { Image } from "react-native-elements";
 import { Modal } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { View, Text, ScrollView } from "../Themed";
 import { useJournalStore } from "@/store/journalStore";
 import useUser from "@/hooks/useUser";
 import type { Journal } from "@/store/journalStore";
+import { useNavigation } from "expo-router";
+
+interface NavigationProp<T> {
+  navigate: (screen: keyof T, params?: any) => void;
+}
+interface RootStackParamList {
+  AddJournalEntryScreen: { id: string };
+}
 
 const JournalScreen = () => {
   const { session } = useUser();
   const { journal, setJournal } = useJournalStore();
   const [modalVisible, setModalVisible] = useState(false);
-  const navigation = useRouter();
-
+  const nav = useNavigation<NavigationProp<RootStackParamList>>();
   const getData = async () => {
-    let { data, error } = await supabase.from("journals").select("*");
+    let { data, error } = await supabase
+      .from("journals")
+      .select("*, users_book(*)")
+      .eq("users_book.user", session?.user?.id || "");
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -51,9 +56,11 @@ const JournalScreen = () => {
   }
 
   useEffect(() => {
-    getData();
-    const channel = listenToJournalUpdates();
-  }, []);
+    if (session?.user?.id) {
+      getData();
+      const channel = listenToJournalUpdates();
+    }
+  }, [session?.user?.id]);
 
   const handleModal = () => {
     setModalVisible(!modalVisible);
@@ -91,7 +98,24 @@ const JournalScreen = () => {
                     <Text> - </Text>
                     <Text style={styles.createdAt}>{journal.title}</Text>
                   </Text>
-                  <View style={{ paddingHorizontal: 10 }}>
+                  <View
+                    style={{
+                      paddingHorizontal: 10,
+                      display: "flex",
+                      flexDirection: "row",
+                    }}
+                  >
+                    <AntDesign
+                      name="edit"
+                      size={15}
+                      color="black"
+                      style={{ marginRight: 12 }}
+                      onPress={() =>
+                        nav.navigate("AddJournalEntryScreen", {
+                          id: journal.id,
+                        })
+                      }
+                    />
                     <AntDesign
                       name="eye"
                       size={15}

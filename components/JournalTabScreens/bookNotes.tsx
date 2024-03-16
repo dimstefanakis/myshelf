@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from "react";
 import {
-  Text,
-  View,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Image,
   StyleProp,
   ViewStyle,
+  Pressable,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+// import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRouter } from "expo-router";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
 import type { Note } from "@/store/journalStore";
+import { Button, View, ScrollView, Text } from "@/components/Themed";
+import { AntDesign } from "@expo/vector-icons";
+import { useNavigation } from "expo-router";
 
 const BookScreen: React.FC = () => {
+  const { session } = useUser();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { notes, setNotes } = useJournalStore();
 
@@ -26,7 +28,10 @@ const BookScreen: React.FC = () => {
   };
 
   const getNotes = async () => {
-    let { data, error } = await supabase.from("notes").select(`
+    let { data, error } = await supabase
+      .from("notes")
+      .select(
+        `
       id,
       title,
       description,
@@ -38,7 +43,9 @@ const BookScreen: React.FC = () => {
           google_api_data
         )
       )
-    `);
+    `,
+      )
+      .eq("users_book.user", session?.user?.id || "");
 
     if (error) {
       console.error("Error fetching data:", error);
@@ -71,20 +78,14 @@ const BookScreen: React.FC = () => {
   }
 
   useEffect(() => {
-    getNotes();
-    listenToNotesUpdates();
-  }, []);
+    if (session?.user?.id) {
+      getNotes();
+      listenToNotesUpdates();
+    }
+  }, [session?.user?.id]);
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.createBookButton}
-        onPress={() => {
-          navigation.navigate("AddBookNoteEntryScreen");
-        }}
-      >
-        <Text style={styles.createButtonText}>Create New Note</Text>
-      </TouchableOpacity>
       {notes.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
@@ -104,9 +105,14 @@ const BookScreen: React.FC = () => {
               additionalStyle = { marginLeft: "auto", marginRight: 0 };
             } // Middle item naturally centers due to justifyContent
             return (
-              <View
+              <Pressable
                 key={item.id.toString()}
                 style={[styles.bookItem, additionalStyle]}
+                onPress={() => {
+                  navigation.navigate("AddBookNoteEntryScreen", {
+                    id: item.id,
+                  });
+                }}
               >
                 <Image
                   source={{ uri: thumbnailUrl }}
@@ -114,7 +120,7 @@ const BookScreen: React.FC = () => {
                 />
                 <Text style={styles.bookTitle}>{item.title}</Text>
                 <Text style={styles.bookDescription}>{item.description}</Text>
-              </View>
+              </Pressable>
             );
           })}
         </ScrollView>
@@ -142,6 +148,10 @@ const styles = StyleSheet.create({
   createButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  createButtonContainer: {
+    width: "100%",
+    alignItems: "center",
   },
   scrollView: {
     width: "100%",

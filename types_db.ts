@@ -34,6 +34,42 @@ export interface Database {
   }
   public: {
     Tables: {
+      book_tags: {
+        Row: {
+          book: string | null
+          created_at: string
+          id: string
+          tag: string | null
+        }
+        Insert: {
+          book?: string | null
+          created_at?: string
+          id?: string
+          tag?: string | null
+        }
+        Update: {
+          book?: string | null
+          created_at?: string
+          id?: string
+          tag?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_tags_book_fkey"
+            columns: ["book"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_tags_tag_fkey"
+            columns: ["tag"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       books: {
         Row: {
           cover_url: string | null
@@ -143,20 +179,26 @@ export interface Database {
       }
       quotes: {
         Row: {
+          author: string | null
           created_at: string
           id: string
+          liked: boolean | null
           title: string | null
           users_book: string | null
         }
         Insert: {
+          author?: string | null
           created_at?: string
           id?: string
+          liked?: boolean | null
           title?: string | null
           users_book?: string | null
         }
         Update: {
+          author?: string | null
           created_at?: string
           id?: string
+          liked?: boolean | null
           title?: string | null
           users_book?: string | null
         }
@@ -169,6 +211,24 @@ export interface Database {
             referencedColumns: ["id"]
           }
         ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
       }
       users: {
         Row: {
