@@ -19,13 +19,6 @@ type Decade = {
   representation: string;
 };
 
-type Book = {
-  book: string;
-  created_at: string;
-  id: string;
-  status: string;
-};
-
 function yearLastDigit(creationDate: string): number {
   const year: string = creationDate.slice(0, 4);
   return year.slice(-1) !== "-" ? parseInt(year.charAt(3)) : 0;
@@ -61,18 +54,28 @@ function calculateOffset(creationYear: string): DimensionValue {
 export default function ChronologyScreen() {
   const numberOfDecades = 4;
   const [decades, setDecades] = useState<Decade[]>([]);
-  const [addText, setAddText] = useState<string>("");
+  const [searchQuery, setSearchQuert] = useState<string>("");
   const { user, session, loading } = useUser();
   const [userBooks, setUserBooks] = useState<UserBook[]>([]);
 
   const handleInputChange = (text: string) => {
-    setAddText(text);
+    setSearchQuert(text);
   };
 
   useEffect(() => {
     setDecades(generateDecades(numberOfDecades));
     setUserBooks(user?.books ? user.books : []);
   }, [loading]);
+
+  useEffect(() => {
+    console.log(searchQuery)
+    setUserBooks(
+      user?.books ?
+        user.books
+          .filter(userBook => userBook.book.title?.toLowerCase().includes(searchQuery) || getBookCreationYear(userBook).includes(searchQuery))
+        : []
+    )
+  }, [searchQuery])
 
   function renderBookEntries(decade: Decade): React.JSX.Element[] {
     let decadeBooks = userBooks.filter(
@@ -120,7 +123,7 @@ export default function ChronologyScreen() {
             style={styles.input}
             placeholder="Search here"
             onChangeText={handleInputChange}
-            value={addText}
+            value={searchQuery}
             keyboardType="default"
           />
         </View>
