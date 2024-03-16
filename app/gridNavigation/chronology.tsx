@@ -67,11 +67,10 @@ export default function ChronologyScreen() {
   }, [loading]);
 
   useEffect(() => {
-    console.log(searchQuery)
     setUserBooks(
       user?.books ?
         user.books
-          .filter(userBook => userBook.book.title?.toLowerCase().includes(searchQuery) || getBookCreationYear(userBook).includes(searchQuery))
+          .filter(userBook => userBook.book.title?.toLowerCase().includes(searchQuery.toLocaleLowerCase()) || getBookCreationYear(userBook).includes(searchQuery))
         : []
     )
   }, [searchQuery])
