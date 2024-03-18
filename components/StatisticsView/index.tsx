@@ -23,33 +23,49 @@ function StatisticsView() {
 
   const getBooksGenre = async () => {
     let { data: fetchedBooks, error } = await supabase
-      .from("books")
-      .select("id,book_tags(*,tags(*))");
+      .from("users_books")
+      .select(
+        `
+        id,
+        book:books ( 
+          id, 
+          book_tags (*, 
+            tags (name)
+          )
+        )
+      `
+      )
+      .eq("user", user?.id ? user.id : "");
+
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
+
+    console.log(fetchedBooks);
     if (fetchedBooks) {
       const genreCounts = fetchedBooks.reduce(
         (acc: { [key: string]: number }, book: { [key: string]: any }) => {
-          const tags = book?.book_tags.map((tag: any) => tag?.tags?.name);
+          const tags = book?.book?.book_tags.map(
+            (tag: { [key: string]: any }) => tag?.tags?.name
+          );
           tags.forEach((tag: string) => {
             acc[tag] = (acc[tag] || 0) + 1;
           });
           return acc;
         },
-        {},
+        {}
       );
 
       const totalGenreAssignments = Object.values(genreCounts).reduce(
         (total, count) => total + count,
-        0,
+        0
       );
       const dataForGenre = Object.keys(genreCounts).map((genre) => ({
         x: genre,
         y: (genreCounts[genre] / totalGenreAssignments) * 100,
         label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(
-          0,
+          0
         )}%`,
       }));
 
@@ -58,11 +74,11 @@ function StatisticsView() {
       setBooksGenre([]);
     }
   };
-
   const getBooksLanguage = async () => {
     let { data: fetchedBooks, error } = await supabase
       .from("books")
-      .select(`google_api_data`);
+      .select(`users_books(*),google_api_data`)
+      .eq("users_books.user", user?.id || "");
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -74,7 +90,7 @@ function StatisticsView() {
           acc[lang] = (acc[lang] || 0) + 1;
           return acc;
         },
-        {},
+        {}
       );
 
       const totalBooks = fetchedBooks.length;
@@ -91,9 +107,11 @@ function StatisticsView() {
   };
 
   useEffect(() => {
-    getBooksLanguage();
-    getBooksGenre();
-  }, []);
+    if (user) {
+      getBooksLanguage();
+      getBooksGenre();
+    }
+  }, [user?.id]);
 
   const customColorScale = [
     "#0088FE",
