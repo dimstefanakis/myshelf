@@ -1,20 +1,51 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  TextInput,
+  FlatList,
+} from "react-native";
 import { supabase } from "@/utils/supabase";
 import { AntDesign, EvilIcons, MaterialIcons } from "@expo/vector-icons";
+import useUser from "@/hooks/useUser";
+interface Habit {
+  weekOffset: number;
+  id: string;
+  name: string;
+  created_at: string;
+  color_code?: string;
+}
 
-const HabitLogBookComponent = () => {
+interface HabitWithDate extends Habit {
+  dayString: string;
+}
+
+const HabitLogBookComponent: React.FC = () => {
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [maxWeekOffset, setMaxWeekOffset] = useState<number>(0);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [newHabit, setNewHabit] = useState<string>("");
+  const [addHabitModalVisible, setAddHabitModalVisible] =
+    useState<boolean>(false);
+  const [colorPickerModalVisible, setColorPickerModalVisible] =
+    useState<boolean>(false);
+  const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
+  const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
 
-  const getWeeksSinceCreation = (createdAt: string): number => {
-    const createdDate = new Date(createdAt);
-    const currentDate = new Date();
+  const { user } = useUser();
+
+  const getWeeksSinceCreation = (
+    userCreatedAt: string,
+    habitCreatedAt: string
+  ): number => {
+    const start = new Date(userCreatedAt);
+    const end = new Date(habitCreatedAt);
     const millisecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-    return Math.floor(
-      (currentDate.getTime() - createdDate.getTime()) / millisecondsPerWeek
-    );
+    return Math.floor((end.getTime() - start.getTime()) / millisecondsPerWeek);
   };
 
   const getCreationDate = async () => {
@@ -29,19 +60,93 @@ const HabitLogBookComponent = () => {
     }
 
     if (data) {
-      setMaxWeekOffset(getWeeksSinceCreation(data.created_at));
+      setUserCreatedAt(data.created_at);
+      setMaxWeekOffset(
+        getWeeksSinceCreation(data.created_at, new Date().toISOString())
+      );
     }
   };
 
   useEffect(() => {
     getCreationDate();
-  }, []);
+    fetchHabits();
+  }, [user]);
 
   useEffect(() => {
     if (weekOffset < maxWeekOffset) {
       setWeekOffset(maxWeekOffset);
     }
   }, [maxWeekOffset]);
+
+  const fetchHabits = async () => {
+    if (!userCreatedAt) return;
+    let { data: habitsData, error: habitsError } = await supabase
+      .from("habits")
+      .select("id, name, created_at");
+
+    let { data: colorsData, error: colorsError } = await supabase
+      .from("habit_colors")
+      .select("*");
+
+    if (habitsError) {
+      console.error("Error fetching habits:", habitsError);
+      return;
+    }
+    const combinedHabits = habitsData?.map((habit) => {
+      const colorEntry = colorsData?.find((color) => color.habit === habit.id);
+      return {
+        ...habit,
+        color_code: colorEntry ? colorEntry.color_code : "#808080", // Default gray color
+        weekOffset: getWeeksSinceCreation(userCreatedAt, habit.created_at),
+      };
+    });
+
+    setHabits(combinedHabits);
+    await fetchHabits();
+  };
+
+  const addHabit = async () => {
+    let { data: insertedHabit, error: insertError } = await supabase
+      .from("habits")
+      .insert([{ name: newHabit, created_at: new Date(), user: user?.id }])
+      .single();
+
+    setAddHabitModalVisible(false);
+    setNewHabit("");
+
+    if (insertError) {
+      console.error("Error adding habit:", insertError);
+      return;
+    }
+
+    if (insertedHabit) {
+      await fetchHabits();
+    }
+  };
+
+  const openColorPicker = (habitId: string) => {
+    setSelectedHabitId(habitId);
+    setColorPickerModalVisible(true);
+  };
+  const renderHabit = ({ item }: { item: Habit }) => {
+    const date = new Date(item.created_at);
+    const formattedDate = date.toLocaleDateString("en-US", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+    const color = item.color_code || "#808080";
+
+    return (
+      <View style={styles.habitContainer}>
+        <Text>{`${item.name} - ${formattedDate}`}</Text>
+        <TouchableOpacity
+          style={[styles.habitIndicator, { backgroundColor: color }]}
+          onPress={() => openColorPicker(item.id)}
+        />
+      </View>
+    );
+  };
 
   const goToPreviousWeek = () => {
     setWeekOffset((prevWeekOffset) => Math.max(prevWeekOffset - 1, 0));
@@ -51,6 +156,50 @@ const HabitLogBookComponent = () => {
     setWeekOffset((prevWeekOffset) =>
       Math.min(prevWeekOffset + 1, maxWeekOffset)
     );
+  };
+
+  const updateHabitColor = async (
+    habitId: string | null,
+    colorCode: string
+  ) => {
+    if (!habitId) {
+      setColorPickerModalVisible(false);
+      return;
+    }
+
+    const { data, error: fetchError } = await supabase
+      .from("habit_colors")
+      .select("id")
+      .eq("habit", habitId)
+      .single();
+
+    if (fetchError && fetchError.code !== "PGRST116") {
+      console.error("Error fetching habit color:", fetchError);
+      setColorPickerModalVisible(false);
+      return;
+    }
+
+    if (data) {
+      const { error: updateError } = await supabase
+        .from("habit_colors")
+        .update({ color_code: colorCode })
+        .eq("habit", habitId);
+
+      if (updateError) {
+        console.error("Error updating habit color:", updateError);
+      }
+    } else {
+      const { error: insertError } = await supabase
+        .from("habit_colors")
+        .insert({ habit: habitId, color_code: colorCode });
+
+      if (insertError) {
+        console.error("Error inserting habit color:", insertError);
+      }
+    }
+
+    setColorPickerModalVisible(false);
+    fetchHabits();
   };
 
   return (
@@ -119,6 +268,64 @@ const HabitLogBookComponent = () => {
           </View>
         </Modal>
       </View>
+      <TouchableOpacity
+        onPress={() => setAddHabitModalVisible(true)}
+        style={{ margin: 10 }}
+      >
+        <Text>Add +</Text>
+      </TouchableOpacity>
+      <Modal
+        visible={addHabitModalVisible}
+        onRequestClose={() => setAddHabitModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <TextInput
+            placeholder="New Habit"
+            value={newHabit}
+            onChangeText={setNewHabit}
+            style={{
+              height: 40,
+              borderColor: "gray",
+              borderWidth: 1,
+              marginBottom: 20,
+            }}
+          />
+          <TouchableOpacity
+            onPress={addHabit}
+            style={{ backgroundColor: "blue", padding: 10 }}
+          >
+            <Text style={{ color: "white" }}>Submit</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+      <FlatList
+        data={habits.filter((habit) => habit.weekOffset === weekOffset)}
+        renderItem={renderHabit}
+        keyExtractor={(item) => item.id}
+      />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={colorPickerModalVisible}
+        onRequestClose={() => {
+          setColorPickerModalVisible(false);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.colorPickerModalView}>
+            {["#FFFF00", "#008000", "#FF0000"].map((colorCode) => (
+              <TouchableOpacity
+                key={colorCode}
+                style={[
+                  styles.colorPickerOption,
+                  { backgroundColor: colorCode },
+                ]}
+                onPress={() => updateHabitColor(selectedHabitId, colorCode)}
+              />
+            ))}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -149,7 +356,7 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
-    padding: 35,
+    padding: 10,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -183,6 +390,39 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 18,
+  },
+  dayColumn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+  },
+  dayHeader: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  habitContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 5,
+  },
+  habitIndicator: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  colorPickerModalView: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  colorPickerOption: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: 10,
   },
 });
 
