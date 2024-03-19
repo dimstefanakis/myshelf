@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomepageContainers from "../(tabs)/index";
 import ChronologyScreen from "../gridNavigation/chronology";
 import JournalLanding from "../gridNavigation/journal";
+import GoalTrackerScreen from "../gridNavigation/goalTracker";
 import AddJournalEntryScreen from "../addJournalEntry";
 import AddBookNoteEntryScreen from "../addBookNoteEntry";
 import AddQuoteEntryScreen from "../addQuoteEntry";
@@ -36,6 +37,11 @@ export default function HomeStack() {
         name="AddQuoteEntryScreen"
         component={AddQuoteEntryScreen}
         options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="GoalTracker"
+        component={GoalTrackerScreen}
+        options={{ headerShown: true, headerTitle: "Goal Tracker" }}
       />
     </Stack.Navigator>
   );
