@@ -21,6 +21,7 @@
     "@supabase/supabase-js": "^2.39.7",
     "base-64": "^1.0.0",
     "base64-arraybuffer": "^1.0.2",
+    "date-fns": "^3.6.0",
     "expo": "~50.0.7",
     "expo-camera": "^14.0.5",
     "expo-font": "~11.10.3",
