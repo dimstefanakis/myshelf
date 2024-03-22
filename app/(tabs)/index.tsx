@@ -25,7 +25,7 @@ const data = [
     image: require("./../../assets/images/chronology.jpg"),
   },
   {
-    title: "Goal Tracker",
+    title: "GoalTracker",
     image: require("./../../assets/images/goals.jpg"),
   },
   {
@@ -39,6 +39,7 @@ export type RootStackParamList = {
   Chronology: undefined;
   Search: undefined;
   HabitLogBook: undefined;
+  GoalTracker: undefined;
 };
 function HomepageContainers() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -53,6 +54,9 @@ function HomepageContainers() {
         break;
       case "Habit Logbook":
         navigation.navigate("HabitLogBook");
+        break;
+      case "GoalTracker":
+        navigation.navigate("GoalTracker");
         break;
     }
   };
