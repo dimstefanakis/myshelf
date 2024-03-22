@@ -5,6 +5,7 @@ import JournalLanding from "../gridNavigation/journal";
 import AddJournalEntryScreen from "../addJournalEntry";
 import AddBookNoteEntryScreen from "../addBookNoteEntry";
 import AddQuoteEntryScreen from "../addQuoteEntry";
+import MapScreen from "../gridNavigation/map";
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,11 @@ export default function HomeStack() {
         name="Journal"
         component={JournalLanding}
         options={{ headerShown: true, headerTitle: "Journal" }}
+      />
+      <Stack.Screen
+        name="Map"
+        component={MapScreen}
+        options={{ headerShown: true, headerTitle: "Map" }}
       />
       <Stack.Screen
         name="AddJournalEntryScreen"

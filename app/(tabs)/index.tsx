@@ -36,6 +36,7 @@ const data = [
 export type RootStackParamList = {
   Home: undefined;
   Journal: undefined;
+  Map: undefined;
   Chronology: undefined;
   Search: undefined;
 };
@@ -49,6 +50,9 @@ function HomepageContainers() {
         break;
       case "Chronology":
         navigation.navigate("Chronology");
+        break;
+      case "Map":
+        navigation.navigate("Map");
         break;
     }
   };
