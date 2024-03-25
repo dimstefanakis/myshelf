@@ -5,6 +5,7 @@ import JournalLanding from "../gridNavigation/journal";
 import GoalTrackerScreen from "../gridNavigation/goalTracker";
 import AddJournalEntryScreen from "../addJournalEntry";
 import AddBookNoteEntryScreen from "../addBookNoteEntry";
+import HabitLogBook from "../gridNavigation/habitLogBook";
 import AddQuoteEntryScreen from "../addQuoteEntry";
 
 const Stack = createNativeStackNavigator();
@@ -22,6 +23,11 @@ export default function HomeStack() {
         name="Journal"
         component={JournalLanding}
         options={{ headerShown: true, headerTitle: "Journal" }}
+      />
+      <Stack.Screen
+        name="HabitLogBook"
+        component={HabitLogBook}
+        options={{ headerShown: true, headerTitle: "Habit LogBook" }}
       />
       <Stack.Screen
         name="AddJournalEntryScreen"
