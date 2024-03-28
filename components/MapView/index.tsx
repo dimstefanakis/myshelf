@@ -61,7 +61,7 @@ export default function MapViewScreen({ navigation }: any) {
         author_nationality_long,
         country_published_lat,
         country_published_long,
-        user_book: users_books(*)
+        user_book: users_books(*, book: books(*) )
       `
       )
       .eq("user_book.user", user?.user?.id || "");
@@ -105,7 +105,7 @@ export default function MapViewScreen({ navigation }: any) {
         };
       });
 
-      setMarkers(markersData);
+      setMarkers(markersData.map((marker:any) => marker));
     }
   };
 

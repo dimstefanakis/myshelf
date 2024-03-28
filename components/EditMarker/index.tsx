@@ -6,19 +6,16 @@ import { useUserBooksStore } from "@/store/userBooksStore";
 
 interface UserBook {
   book: {
-    id: any|number;
+    id: any | number;
     title: any;
   };
-
 }
 
-
-
 type MarkerType = {
-  id: number;
-  marker_type: string;
-  book_title: string;
-  country: string;
+  id: any|null;
+  marker_type: string|null;
+  book_title: string|null;
+  country: string|null;
   setting_origin_lat: number | null;
   setting_origin_long: number | null;
   author_nationality_lat: number | null;
@@ -29,11 +26,11 @@ type MarkerType = {
 
 const EditMarkers = () => {
   const { user } = useUser();
-  const {books} = useUserBooksStore();
+  const { books } = useUserBooksStore();
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
   const fetchCountryName = async (
-    latitude: number,   
+    latitude: number,
     longitude: number
   ): Promise<string> => {
     const response = await fetch(
@@ -62,7 +59,8 @@ const EditMarkers = () => {
   const fetchMarkers = async () => {
     let { data, error } = await supabase
       .from("book_origins")
-      .select(`
+      .select(
+        `
           id,
           setting_origin_lat,
           setting_origin_long,
@@ -70,22 +68,24 @@ const EditMarkers = () => {
           author_nationality_long,
           country_published_lat,
           country_published_long,
-          user_book(book(*))
-      `).eq("user_book.user", user?.id || "");
-  
+          user_book: users_books(*, book: books(*) )
+          `
+      )
+      .eq("user_book.user", user?.id || "");
+
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
-  
+
     if (data) {
       const markerPromises = data.map(async (marker) => {
         let marker_type = "Country Published";
         let latitude: any, longitude: any;
-  
+
         latitude = marker.country_published_lat ?? 0;
-        longitude = marker.country_published_long ?? 0; 
-  
+        longitude = marker.country_published_long ?? 0;
+
         if (marker.author_nationality_lat && marker.author_nationality_long) {
           marker_type = "Author Nationality";
           latitude = marker.author_nationality_lat;
@@ -94,29 +94,30 @@ const EditMarkers = () => {
           marker_type = "Setting Origin";
           latitude = marker.setting_origin_lat;
           longitude = marker.setting_origin_long;
-        } 
-  
+        }
+
         const country = await fetchCountryName(latitude, longitude);
-        const bookId = books.find((book: UserBook) => book.book.id === marker.user_book?.book?.id);
+        const bookId = books.find(
+          (book: UserBook) => book.book.id === marker.user_book?.book?.id
+        );
         return {
-            ...marker,
-            marker_type,
-            user_book: marker.user_book,
-            book_title: bookId?.book.title || "Unknown",
-            country,
+          ...marker,
+          marker_type,
+          book_title: bookId?.book.title || "Unknown",
+          country,
         };
       });
-  
-    const updatedMarkers = await Promise.all(markerPromises);
-    setMarkers(updatedMarkers);
+
+      const updatedMarkers = await Promise.all(markerPromises);
+      setMarkers(updatedMarkers.map((marker:any) => marker));
     }
   };
-  
 
   useEffect(() => {
-    if(user?.id) // Ensuring user.id exists before calling fetchMarkers
-    fetchMarkers();
-    console.log(books)
+    if (user?.id)
+      // Ensuring user.id exists before calling fetchMarkers
+      fetchMarkers();
+    console.log(books);
   }, [user?.id]);
 
   return (
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   markerContainer: {
-    flexDirection: "row", 
+    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     borderBottomWidth: 1,
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     maxWidth: "70%",
   },
   markerContent: {
-    flex: 1, 
+    flex: 1,
   },
   markerType: {
     fontSize: 14,
