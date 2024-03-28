@@ -4,6 +4,7 @@ import SelectDropdown from "react-native-select-dropdown";
 import { Button, Text, TextInput } from "@/components/Themed";
 import { supabase } from "@/utils/supabase";
 import useUser from "@/hooks/useUser";
+import { useUserBooksStore } from "@/store/userBooksStore";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
 import { set } from "react-hook-form";
@@ -26,6 +27,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
   }>({ id: "", title: null, description: null });
 
   const user = useUser();
+  const { books } = useUserBooksStore();
 
   const { image, id } = route.params;
 
@@ -37,7 +39,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
           .from("journals")
           .select("*")
           .eq("id", id || "")
-          .single(); 
+          .single();
 
         if (error) {
           console.error("Error fetching data:", error);
@@ -81,13 +83,13 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
   };
 
   useEffect(() => {
-    if (user?.user?.books?.length && !journalData.users_book) {
+    if (books?.length && !journalData.users_book) {
       setJournalData((prevData) => ({
         ...prevData,
-        users_book: user?.user?.books[0]?.id || "",
+        users_book: books[0]?.id || "",
       }));
     }
-  }, [user]);
+  }, [user, books]);
 
   const handleChange = (name: string, value: any) => {
     if (id) {
@@ -164,9 +166,9 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
       ) : (
         <>
           <SelectDropdown
-            data={user?.user?.books.map((book) => book.book.title) || []}
+            data={books.map((book) => book.book.title) || []}
             onSelect={(selectedItem, index) => {
-              handleChange("users_book", user?.user?.books[index].id);
+              handleChange("users_book", books[index].id);
             }}
             buttonTextAfterSelection={(selectedItem) => selectedItem}
             rowTextForSelection={(item) => item}

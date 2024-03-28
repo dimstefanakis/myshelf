@@ -6,10 +6,12 @@ import { StyleSheet } from "react-native";
 import { useState } from "react";
 import { View } from "react-native";
 import { supabase } from "@/utils/supabase";
+import { useUserBooksStore } from "@/store/userBooksStore";
 
 const AddMarker = ({ navigation, route }: any) => {
   const { longitude, latitude } = route.params;
   const user = useUser();
+    const { books } = useUserBooksStore();
   const [markerData, setMarkerData] = useState({
     marker_type: "",
     user_book: "",
@@ -80,9 +82,9 @@ const AddMarker = ({ navigation, route }: any) => {
   return (
     <View style={styles.container}>
       <SelectDropdown
-        data={user?.user?.books.map((book) => book.book.title) || []}
+        data={books.map((book) => book.book.title)}
         onSelect={(selectedItem, index) => {
-          handleChange("user_book", user?.user?.books[index]?.id || "");
+          handleChange("user_book", books[index].id);
         }}
         buttonTextAfterSelection={(selectedItem) => selectedItem}
         rowTextForSelection={(item) => item}

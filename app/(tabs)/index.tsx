@@ -18,7 +18,7 @@ const data = [
   },
   {
     title: "Map",
-    image: require("./../../assets/images/map.jpg"),
+    // image: require("./../../assets/images/map.jpg"),
   },
   {
     title: "Chronology",
@@ -39,6 +39,7 @@ export type RootStackParamList = {
   Map: undefined;
   Chronology: undefined;
   Search: undefined;
+  HabitLogBook: undefined;
   GoalTracker: undefined;
 };
 function HomepageContainers() {
@@ -54,6 +55,9 @@ function HomepageContainers() {
         break;
       case "Map":
         navigation.navigate("Map");
+        break;
+      case "Habit Logbook":
+        navigation.navigate("HabitLogBook");
         break;
       case "GoalTracker":
         navigation.navigate("GoalTracker");

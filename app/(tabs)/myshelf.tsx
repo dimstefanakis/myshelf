@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { StyleSheet, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
+import { useUserBooksStore } from "@/store/userBooksStore";
 import { supabase } from "@/utils/supabase";
 
 // import EditScreenInfo from '@/components/topNavBar';
@@ -118,6 +119,7 @@ function Gallery() {
 
 function Shelves() {
   const { user } = useUser();
+  const { books } = useUserBooksStore();
   return (
     <View style={{ width: "100%" }}>
       {shelves.map((shelf) => (
@@ -150,7 +152,7 @@ function Shelves() {
             style={{ height: "17%" }}
             contentContainerStyle={{ minWidth: "100%" }}
           >
-            {user?.books
+            {books
               ?.filter((book) => book.status === shelf.id)
               .map((user_book) => {
                 return (

@@ -1,7 +1,18 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Pressable, Dimensions, StyleSheet } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
+import PagerView from "react-native-pager-view";
 import { View, Text, Button, TextInput } from "@/components/Themed";
+import useUser from "@/hooks/useUser";
+import type { Database } from "@/types_db";
+import { supabase } from "@/utils/supabase";
+
+type Goal = Database["public"]["Tables"]["goals"]["Row"] & {
+  goal_logs: Database["public"]["Tables"]["goal_logs"]["Row"][];
+  progress: {
+    sum: number;
+  }[];
+};
 
 const width = Dimensions.get("window").width;
 const tabs = [
@@ -24,18 +35,48 @@ const tabs = [
 ];
 
 function GoalTrackerScreen() {
+  const { user } = useUser();
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const completed = 50;
   const total = 100;
-  const percentage = (completed / total) * 100;
 
   const markers = [
     { day: "6", completed: true },
     { day: "7", completed: false },
+    { day: "8", completed: true },
     { day: "9", completed: true },
-    { day: "11", completed: true },
-    { day: "17", completed: false },
+    { day: "10", completed: false },
   ];
+
+  function getPercentage() {
+    const unitAmount =
+      goals.find((goal) => goal.time_type === selectedTab.value)?.unit_amount ||
+      0;
+
+    console.log("unitAmount", unitAmount);
+  }
+
+  async function getGoals() {
+    const { data, error } = await supabase
+      .from("goals")
+      .select("*, progress:goal_logs(unit_amount.sum())")
+      .order("created_at", { ascending: true })
+      .eq("user", user?.id || "");
+    if (error) {
+      console.error("Error fetching goals", error);
+      return;
+    }
+    // @ts-ignore
+    setGoals(data);
+  }
+
+  useEffect(() => {
+    if (user?.id) {
+      getGoals();
+    }
+  }, [user]);
+
   return (
     <View style={styles.container}>
       <View
@@ -65,27 +106,91 @@ function GoalTrackerScreen() {
           </Button>
         ))}
       </View>
-      <AnimatedCircularProgress
-        size={200}
-        width={2}
-        fill={percentage}
-        tintColor="#5A6978"
-        backgroundColor="#b4cbcf"
-        arcSweepAngle={260}
-        rotation={230}
-      >
-        {(fill) => (
-          <View style={{ alignItems: "center" }}>
-            <Text style={styles.points}>
-              {completed}/{total}
-            </Text>
-            <Text>pages</Text>
+      {goals.length > 0 && (
+        <PagerView
+          key={selectedTab.value}
+          initialPage={0}
+          style={{
+            flex: 1,
+            width: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {goals
+            .filter((goal) => goal.time_type === selectedTab.value)
+            .map((goal, i) => {
+              const percentage =
+                ((goal.progress[0].sum ?? 0) / (goal.unit_amount ?? 1)) * 100;
+              console.log("Goal", goal, goal.goal_logs);
+              return (
+                <View
+                  key={i + 1}
+                  style={{
+                    width: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <AnimatedCircularProgress
+                    size={200}
+                    width={2}
+                    fill={percentage}
+                    tintColor="#5A6978"
+                    backgroundColor="#b4cbcf"
+                    arcSweepAngle={260}
+                    rotation={230}
+                  >
+                    {(fill) => (
+                      <View style={{ alignItems: "center" }}>
+                        <Text style={styles.points}>
+                          {goal.progress[0].sum || 0}/{goal.unit_amount}
+                        </Text>
+                        <Text>{goal.type}</Text>
+                      </View>
+                    )}
+                  </AnimatedCircularProgress>
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[styles.progressBar, { width: `${percentage}%` }]}
+                    />
+                  </View>
+                </View>
+              );
+            })}
+        </PagerView>
+      )}
+
+      {/* <View
+          key="2"
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <AnimatedCircularProgress
+            size={200}
+            width={2}
+            fill={percentage}
+            tintColor="#5A6978"
+            backgroundColor="#b4cbcf"
+            arcSweepAngle={260}
+            rotation={230}
+          >
+            {(fill) => (
+              <View style={{ alignItems: "center" }}>
+                <Text style={styles.points}>
+                  {completed}/{total}
+                </Text>
+                <Text>pages</Text>
+              </View>
+            )}
+          </AnimatedCircularProgress>
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBar, { width: `${percentage}%` }]} />
           </View>
-        )}
-      </AnimatedCircularProgress>
-      <View style={styles.progressBarContainer}>
-        <View style={[styles.progressBar, { width: `${percentage}%` }]} />
-      </View>
+        </View> */}
 
       <Button style={{ marginTop: 30 }}>
         <Text style={{ color: "white" }}>Update progress</Text>
@@ -102,7 +207,6 @@ function GoalTrackerScreen() {
 }
 
 function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
-  const [selectedTab, setSelectedTab] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   function getGoalTabs() {
@@ -150,7 +254,24 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
         },
       ];
     }
+    return [
+      {
+        title: "Pages",
+        value: "pages",
+      },
+      {
+        title: "Minutes",
+        value: "minutes",
+      },
+    ];
   }
+
+  const goalTabs = getGoalTabs();
+  const [selectedTab, setSelectedTab] = useState(goalTabs[0]);
+
+  useEffect(() => {
+    setSelectedTab(goalTabs[0]);
+  }, [tab]);
 
   return (
     <>
@@ -214,6 +335,8 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                 style={{
                   borderRadius: 10,
                   width: "100%",
+                  paddingHorizontal: 10,
+                  alignItems: "center",
                 }}
               >
                 <View
@@ -225,33 +348,45 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                     // justifyContent: "space-between",
                   }}
                 >
-                  <Button
-                    style={{
-                      marginTop: 20,
-                      backgroundColor: selectedTab == 0 ? "#507C82" : "white",
-                    }}
-                    // onPress={() => setIsModalVisible(!isModalVisible)}
-                  >
-                    <Text
-                      style={{ color: selectedTab == 0 ? "white" : "black" }}
+                  {goalTabs.map((goal) => (
+                    <Button
+                      style={{
+                        marginTop: 20,
+                        backgroundColor:
+                          selectedTab.value == goal.value ? "#507C82" : "white",
+                      }}
+                      onPress={() => setSelectedTab(goal)}
+                      // onPress={() => setIsModalVisible(!isModalVisible)}
                     >
-                      Books
-                    </Text>
-                  </Button>
-                  <Button
-                    style={{
-                      marginTop: 20,
-                      backgroundColor: selectedTab == 1 ? "#507C82" : "white",
-                    }}
-                    // onPress={() => setIsModalVisible(!isModalVisible)}
-                  >
-                    <Text
-                      style={{ color: selectedTab == 1 ? "white" : "black" }}
-                    >
-                      Days
-                    </Text>
-                  </Button>
+                      <Text
+                        style={{
+                          color:
+                            selectedTab.value == goal.value ? "white" : "black",
+                        }}
+                      >
+                        {goal.title}
+                      </Text>
+                    </Button>
+                  ))}
                 </View>
+                <TextInput
+                  textAlign="center"
+                  style={{
+                    width: "80%",
+                    marginTop: 20,
+                  }}
+                  placeholder={`Number of ${selectedTab.title.toLowerCase()}`}
+                />
+                <Button
+                  style={{
+                    backgroundColor: "#507C82",
+                    width: "80%",
+                    marginTop: 6,
+                  }}
+                  onPress={() => setIsModalVisible(!isModalVisible)}
+                >
+                  <Text style={{ color: "white" }}>Save</Text>
+                </Button>
               </View>
             </View>
           </Pressable>

@@ -12,10 +12,12 @@ import Toast from "react-native-root-toast";
 import { supabase } from "@/utils/supabase";
 import { View, Text, Button, ScrollView } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
+import { useUserBooksStore } from "@/store/userBooksStore";
 
 export default function BookList() {
   const router = useRouter();
   const { user } = useUser();
+  const { books } = useUserBooksStore();
   const [showToast, setShowToast] = useState(false);
   const localSearchParams = useLocalSearchParams();
   const type = localSearchParams.type;
@@ -67,7 +69,7 @@ export default function BookList() {
           paddingVertical: 20,
         }}
       >
-        {user?.books
+        {books
           .filter((userBook) => {
             return userBook.status == type;
           })

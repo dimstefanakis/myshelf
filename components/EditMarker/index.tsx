@@ -2,11 +2,14 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { supabase } from "../../utils/supabase";
 import useUser from "@/hooks/useUser";
+import { useUserBooksStore } from "@/store/userBooksStore";
 
 interface UserBook {
   book: {
-    title: string;
+    id: any|number;
+    title: any;
   };
+
 }
 
 
@@ -22,15 +25,15 @@ type MarkerType = {
   author_nationality_long: number | null;
   country_published_lat: number | null;
   country_published_long: number | null;
-
 };
 
 const EditMarkers = () => {
   const { user } = useUser();
+  const {books} = useUserBooksStore();
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
   const fetchCountryName = async (
-    latitude: number,
+    latitude: number,   
     longitude: number
   ): Promise<string> => {
     const response = await fetch(
@@ -69,20 +72,20 @@ const EditMarkers = () => {
           country_published_long,
           user_book(book(*))
       `).eq("user_book.user", user?.id || "");
-
+  
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
-
+  
     if (data) {
       const markerPromises = data.map(async (marker) => {
         let marker_type = "Country Published";
-        let latitude: number, longitude: number;
-
-        latitude = marker.country_published_lat ?? 0; 
+        let latitude: any, longitude: any;
+  
+        latitude = marker.country_published_lat ?? 0;
         longitude = marker.country_published_long ?? 0; 
-
+  
         if (marker.author_nationality_lat && marker.author_nationality_long) {
           marker_type = "Author Nationality";
           latitude = marker.author_nationality_lat;
@@ -92,25 +95,28 @@ const EditMarkers = () => {
           latitude = marker.setting_origin_lat;
           longitude = marker.setting_origin_long;
         } 
-
+  
         const country = await fetchCountryName(latitude, longitude);
-
+        const bookId = books.find((book: UserBook) => book.book.id === marker.user_book?.book?.id);
         return {
             ...marker,
             marker_type,
-            book_title: marker.user_book?.book?.title || null,
+            user_book: marker.user_book,
+            book_title: bookId?.book.title || "Unknown",
             country,
         };
       });
-
-      const updatedMarkers = await Promise.all(markerPromises);
-      setMarkers(updatedMarkers);
+  
+    const updatedMarkers = await Promise.all(markerPromises);
+    setMarkers(updatedMarkers);
     }
   };
+  
 
   useEffect(() => {
     if(user?.id) // Ensuring user.id exists before calling fetchMarkers
     fetchMarkers();
+    console.log(books)
   }, [user?.id]);
 
   return (

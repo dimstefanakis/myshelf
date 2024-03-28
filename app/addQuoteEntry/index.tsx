@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 import { Text, TextInput, Button } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
+import { useUserBooksStore } from "@/store/userBooksStore";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase";
@@ -15,15 +16,16 @@ const AddQuoteEntryScreen = () => {
   });
   const navigation = useNavigation();
   const user = useUser();
+  const { books } = useUserBooksStore();
 
   useEffect(() => {
-    if (user?.user?.books?.length && !quoteData.users_book) {
+    if (books?.length && !quoteData.users_book) {
       setQuoteData((prevData) => ({
         ...prevData,
-        users_book: user?.user?.books[0]?.id || "",
+        users_book: books[0]?.id || "",
       }));
     }
-  }, [user]);
+  }, [user, books]);
 
   const handleChange = (name: string, value: any) => {
     setQuoteData({
@@ -59,9 +61,9 @@ const AddQuoteEntryScreen = () => {
       />
 
       <SelectDropdown
-        data={user?.user?.books.map((book) => book.book.title) || []}
+        data={books.map((book) => book.book.title) || []}
         onSelect={(selectedItem, index) => {
-          handleChange("users_book", user?.user?.books[index].id);
+          handleChange("users_book", books[index].id);
         }}
         buttonTextAfterSelection={(selectedItem) => selectedItem}
         rowTextForSelection={(item) => item}

@@ -5,6 +5,7 @@ import JournalLanding from "../gridNavigation/journal";
 import GoalTrackerScreen from "../gridNavigation/goalTracker";
 import AddJournalEntryScreen from "../addJournalEntry";
 import AddBookNoteEntryScreen from "../addBookNoteEntry";
+import HabitLogBook from "../gridNavigation/habitLogBook";
 import AddQuoteEntryScreen from "../addQuoteEntry";
 import MapScreen from "../gridNavigation/map";
 import AddMarker from "../addMarker";
@@ -30,6 +31,11 @@ export default function HomeStack() {
         name="Map"
         component={MapScreen}
         options={{ headerShown: true, headerTitle: "Map" }}
+      />
+      <Stack.Screen
+        name="HabitLogBook"
+        component={HabitLogBook}
+        options={{ headerShown: true, headerTitle: "Habit LogBook" }}
       />
       <Stack.Screen
         name="AddJournalEntryScreen"
