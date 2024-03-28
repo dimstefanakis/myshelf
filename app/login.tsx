@@ -35,14 +35,10 @@ export default function Login() {
   };
 
   useEffect(() => {
-    if (session) {
-      router.push("/");
+    if (session && session.access_token) {
+      router.replace("/");
     }
-  }, [session]);
-
-  useEffect(() => {
-    if (session && session.access_token) router.replace("/");
-  }, [session]);
+  }, [session, user]);
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>

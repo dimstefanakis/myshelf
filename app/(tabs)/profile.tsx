@@ -1,14 +1,17 @@
 import { Button, View, Text, ScrollView } from "@/components/Themed";
-import React from "react";
+import React, { useEffect } from "react";
+import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 import { Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { supabase } from "@/utils/supabase";
 
 export default function TabTwoScreen() {
+  const router = useRouter();
   const handleSignout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) console.log("Error logging out:", error.message);
+    supabase.auth.signOut();
   };
+
   return (
     <ScrollView style={styles.container}>
       {/* <View style={styles.header}>
