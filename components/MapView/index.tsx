@@ -1,105 +1,139 @@
-import React, { useState } from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View, TextInput, Button } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import  MapEvent  from 'react-native-maps';
+import React, { useEffect, useState } from "react";
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  TextInput,
+  Button,
+} from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import MapEvent from "react-native-maps";
+import { supabase } from "@/utils/supabase";
+import { useNavigation } from "expo-router";
+import useUser from "@/hooks/useUser";
+
 // Define an interface for your markers
 interface MarkerType {
+  type: string;
   latitude: number;
   longitude: number;
   key: string;
   title?: string;
 }
 
-export default function MapViewScreen() {
+export default function MapViewScreen({ navigation }: any) {
+  const nav = useNavigation<any>();
+  const user = useUser();
   const [markers, setMarkers] = useState<MarkerType[]>([]);
-  const [modalVisible, setModalVisible] = useState<boolean>(false);
-  // Use MarkerType | null to allow the state to be null when no marker is selected
-  const [currentMarker, setCurrentMarker] = useState<MarkerType | null>(null);
-  const [markerTitle, setMarkerTitle] = useState<string>('');
 
-  const handleMapPress = (e: MapEvent) => {
+  const handleMapPress = (e: any) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
-    setModalVisible(true);
-    setCurrentMarker({
+    // navigate to addMarker
+    nav.navigate("AddMarker", {
       latitude,
       longitude,
-      key: Math.random().toString(),
     });
-    setMarkerTitle('');
+    console.log("latitude", latitude);
+    console.log("longitude", longitude);
   };
 
-  const handleMarkerPress = (key: string) => {
-    const marker = markers.find(marker => marker.key === key);
-    if (marker) {
-      setCurrentMarker(marker);
-      setMarkerTitle(marker.title || '');
-      setModalVisible(true);
-      console.log(marker);
-    }
+  const handleEditMarker = () => {
+    // navigate to editMarker
+    nav.navigate("EditMarkers");
   };
 
-  const handleDeleteMarker = () => {
-    if (currentMarker) {
-      setMarkers(markers => markers.filter(marker => marker.key !== currentMarker.key));
-      setCurrentMarker(null); // Clear the current marker
-      setModalVisible(false); // Hide the modal
 
+  const fetchMarkers = async () => {
+    if (!user.user?.id) {
+        console.log(user?.user?.id)
+      return;
     }
-    console.log(currentMarker); // Log to check the current marker
-};
+    let { data, error } = await supabase
+      .from("book_origins")
+      .select(
+        `
+        id,
+        setting_origin_lat,
+        setting_origin_long,
+        author_nationality_lat,
+        author_nationality_long,
+        country_published_lat,
+        country_published_long,
+        user_book: users_books(*)
+      `
+      )
+      .eq("user_book.user", user?.user?.id || "");
 
-  const handleSaveMarker = () => {
-    if (currentMarker) {
-      setMarkers(prevMarkers => {
-        const existingMarkerIndex = prevMarkers.findIndex(marker => marker.key === currentMarker.key);
-        if (existingMarkerIndex !== -1) {
-          // Edit existing marker
-          const updatedMarkers = [...prevMarkers];
-          updatedMarkers[existingMarkerIndex] = { ...currentMarker, title: markerTitle };
-          return updatedMarkers;
+    if (error) {
+      console.error("Error fetching data:", error);
+      return;
+    }
+
+    if (data) {
+      const markersData = data.map((marker) => {
+        let type, latitude, longitude;
+
+        if (
+          marker.author_nationality_lat !== null &&
+          marker.author_nationality_long !== null
+        ) {
+          type = "Author National";
+          latitude = marker.author_nationality_lat;
+          longitude = marker.author_nationality_long;
+        } else if (
+          marker.country_published_lat !== null &&
+          marker.country_published_long !== null
+        ) {
+          type = "Country Published";
+          latitude = marker.country_published_lat;
+          longitude = marker.country_published_long;
         } else {
-          // Add new marker
-          return [...prevMarkers, { ...currentMarker, title: markerTitle }];
+          type = "Setting Origin";
+          latitude = marker.setting_origin_lat;
+          longitude = marker.setting_origin_long;
         }
+        
+
+        return {
+          type,
+          latitude,
+          longitude,
+          key: marker.id.toString(),
+          title: marker.user_book?.book?.title,
+        };
       });
+
+      setMarkers(markersData);
     }
-    setModalVisible(false);
-    setCurrentMarker(null);
   };
+
+  useEffect(() => {
+    if(user)
+    fetchMarkers();
+  }, [user]);
 
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} onPress={handleMapPress}>
+      <TouchableOpacity
+        style={styles.editButton}
+        onPress={() => handleEditMarker()}
+      >
+        <Text style={styles.editButtonText}>Edit Marker</Text>
+      </TouchableOpacity>
+      <MapView style={styles.map} onPress={(e: any) => handleMapPress(e)}>
         {markers.map((marker) => (
           <Marker
             key={marker.key}
-            coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-            title={marker.title || "New Marker"}
-            onPress={() => handleMarkerPress(marker.key)}
+            coordinate={{
+              latitude: marker.latitude,
+              longitude: marker.longitude,
+            }}
+            title={marker.title}
           />
         ))}
       </MapView>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <TextInput
-              style={styles.input}
-              onChangeText={setMarkerTitle}
-              value={markerTitle}
-              placeholder="Enter marker title"
-            />
-            <Button onPress={handleSaveMarker} title="Save" />
-            <Button onPress={handleDeleteMarker} title="Delete" color="red" />
-            <Button onPress={() => setModalVisible(false)} title="Cancel" color="grey" />
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -109,35 +143,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   map: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  input: {
-    height: 40,
-    margin: 12,
-    borderWidth: 1,
+  editButton: {
+    position: "absolute",
+    zIndex: 10,
+    right: 20,
+    top: 40,
+    backgroundColor: "blue",
     padding: 10,
-    width: 200,
+    borderRadius: 20,
+  },
+  editButtonText: {
+    color: "white",
+    fontSize: 16,
   },
 });
