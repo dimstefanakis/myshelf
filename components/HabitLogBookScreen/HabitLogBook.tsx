@@ -52,7 +52,7 @@ const HabitLogBookComponent: React.FC = () => {
   const { user } = useUser();
   const getWeeksSinceCreation = (
     userCreatedAt: string,
-    habitCreatedAt: string
+    habitCreatedAt: string,
   ): number => {
     const start = new Date(userCreatedAt);
     const end = new Date(habitCreatedAt);
@@ -70,7 +70,7 @@ const HabitLogBookComponent: React.FC = () => {
     let { data, error } = await supabase
       .from("users")
       .select("created_at")
-      .eq("id", user?.id)
+      .eq("id", user?.id || "")
       .single();
 
     if (error) {
@@ -87,7 +87,7 @@ const HabitLogBookComponent: React.FC = () => {
       const maxWeekOffset = differenceInCalendarWeeks(
         startOfWeek(now, { weekStartsOn }),
         startOfWeek(createdAt, { weekStartsOn }),
-        { weekStartsOn }
+        { weekStartsOn },
       );
       setMaxWeekOffset(maxWeekOffset);
     }
@@ -108,7 +108,7 @@ const HabitLogBookComponent: React.FC = () => {
     const offset = differenceInCalendarWeeks(
       normalizedCurrentDate,
       normalizedCreationDate,
-      { weekStartsOn: 1 }
+      { weekStartsOn: 1 },
     );
 
     return offset;
@@ -128,7 +128,7 @@ const HabitLogBookComponent: React.FC = () => {
     const weekStartString = format(weekStart, "yyyy-MM-dd");
     const weekEndString = format(
       add(weekStart, { weeks: 1, days: -1 }),
-      "yyyy-MM-dd"
+      "yyyy-MM-dd",
     );
     let { data: habitsData, error: habitsError } = await supabase
       .from("habits")
@@ -222,7 +222,7 @@ const HabitLogBookComponent: React.FC = () => {
   const renderDayColumn = (dayDate: Date, habits: Habit[], index: number) => {
     const dayString = format(dayDate, "yyyy-MM-dd");
     const dayHabits = habits.filter(
-      (habit) => format(parseISO(habit.created_at), "yyyy-MM-dd") === dayString
+      (habit) => format(parseISO(habit.created_at), "yyyy-MM-dd") === dayString,
     );
 
     return (
@@ -278,7 +278,7 @@ const HabitLogBookComponent: React.FC = () => {
 
   const updateHabitColor = async (
     habitId: string | null,
-    colorCode: string
+    colorCode: string,
   ) => {
     if (!habitId) {
       setColorPickerModalVisible(false);
@@ -310,8 +310,8 @@ const HabitLogBookComponent: React.FC = () => {
     if (updateSuccessful) {
       setHabits((currentHabits) =>
         currentHabits.map((habit) =>
-          habit.id === habitId ? { ...habit, color_code: colorCode } : habit
-        )
+          habit.id === habitId ? { ...habit, color_code: colorCode } : habit,
+        ),
       );
     }
   };

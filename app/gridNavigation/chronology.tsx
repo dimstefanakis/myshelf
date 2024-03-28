@@ -1,5 +1,6 @@
 import { View, Text, TextInput } from "@/components/Themed";
 import useUser, { UserBook } from "@/hooks/useUser";
+import { useUserBooksStore } from "@/store/userBooksStore";
 import { EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
@@ -55,6 +56,7 @@ export default function ChronologyScreen() {
   const [decades, setDecades] = useState<Decade[]>([]);
   const [searchQuery, setSearchQuert] = useState<string>("");
   const { user, session, loading } = useUser();
+  const { books } = useUserBooksStore();
   const [userBooks, setUserBooks] = useState<UserBook[]>([]);
 
   const handleInputChange = (text: string) => {
@@ -63,17 +65,22 @@ export default function ChronologyScreen() {
 
   useEffect(() => {
     setDecades(generateDecades(numberOfDecades));
-    setUserBooks(user?.books ? user.books : []);
-  }, [loading]);
+    setUserBooks(books ? books : []);
+  }, [loading, books]);
 
   useEffect(() => {
     setUserBooks(
-      user?.books ?
-        user.books
-          .filter(userBook => userBook.book.title?.toLowerCase().includes(searchQuery.toLocaleLowerCase()) || getBookCreationYear(userBook).includes(searchQuery))
-        : []
-    )
-  }, [searchQuery])
+      books
+        ? books.filter(
+            (userBook) =>
+              userBook.book.title
+                ?.toLowerCase()
+                .includes(searchQuery.toLocaleLowerCase()) ||
+              getBookCreationYear(userBook).includes(searchQuery),
+          )
+        : [],
+    );
+  }, [searchQuery]);
 
   function renderBookEntries(decade: Decade): React.JSX.Element[] {
     let decadeBooks = userBooks.filter(

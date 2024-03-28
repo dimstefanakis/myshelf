@@ -27,13 +27,13 @@ function StatisticsView() {
       .select(
         `
         id,
-        book:books ( 
-          id, 
-          book_tags (*, 
+        book:books (
+          id,
+          book_tags (*,
             tags (name)
           )
         )
-      `
+      `,
       )
       .eq("user", user?.id ? user.id : "");
 
@@ -47,25 +47,25 @@ function StatisticsView() {
       const genreCounts = fetchedBooks.reduce(
         (acc: { [key: string]: number }, book: { [key: string]: any }) => {
           const tags = book?.book?.book_tags.map(
-            (tag: { [key: string]: any }) => tag?.tags?.name
+            (tag: { [key: string]: any }) => tag?.tags?.name,
           );
           tags.forEach((tag: string) => {
             acc[tag] = (acc[tag] || 0) + 1;
           });
           return acc;
         },
-        {}
+        {},
       );
 
       const totalGenreAssignments = Object.values(genreCounts).reduce(
         (total, count) => total + count,
-        0
+        0,
       );
       const dataForGenre = Object.keys(genreCounts).map((genre) => ({
         x: genre,
         y: (genreCounts[genre] / totalGenreAssignments) * 100,
         label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(
-          0
+          0,
         )}%`,
       }));
 
@@ -90,7 +90,7 @@ function StatisticsView() {
           acc[lang] = (acc[lang] || 0) + 1;
           return acc;
         },
-        {}
+        {},
       );
 
       const totalBooks = fetchedBooks.length;

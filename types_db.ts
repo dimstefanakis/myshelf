@@ -34,6 +34,50 @@ export interface Database {
   }
   public: {
     Tables: {
+      book_origins: {
+        Row: {
+          author_nationality_lat: string | null
+          author_nationality_long: string | null
+          country_published_lat: string | null
+          country_published_long: string | null
+          created_at: string
+          id: string
+          setting_origin_lat: string | null
+          setting_origin_long: string | null
+          user_book: string | null
+        }
+        Insert: {
+          author_nationality_lat?: string | null
+          author_nationality_long?: string | null
+          country_published_lat?: string | null
+          country_published_long?: string | null
+          created_at?: string
+          id?: string
+          setting_origin_lat?: string | null
+          setting_origin_long?: string | null
+          user_book?: string | null
+        }
+        Update: {
+          author_nationality_lat?: string | null
+          author_nationality_long?: string | null
+          country_published_lat?: string | null
+          country_published_long?: string | null
+          created_at?: string
+          id?: string
+          setting_origin_lat?: string | null
+          setting_origin_long?: string | null
+          user_book?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_origins_user_book_fkey"
+            columns: ["user_book"]
+            isOneToOne: false
+            referencedRelation: "users_books"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       book_tags: {
         Row: {
           book: string | null
@@ -99,6 +143,157 @@ export interface Database {
           title?: string | null
         }
         Relationships: []
+      }
+      goal_logs: {
+        Row: {
+          created_at: string
+          goal: string | null
+          id: string
+          unit_amount: number | null
+        }
+        Insert: {
+          created_at?: string
+          goal?: string | null
+          id?: string
+          unit_amount?: number | null
+        }
+        Update: {
+          created_at?: string
+          goal?: string | null
+          id?: string
+          unit_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_logs_goal_fkey"
+            columns: ["goal"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      goals: {
+        Row: {
+          created_at: string
+          id: string
+          time_type: Database["public"]["Enums"]["goal_time_type"] | null
+          type: Database["public"]["Enums"]["goal_type"] | null
+          unit_amount: number | null
+          user: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          time_type?: Database["public"]["Enums"]["goal_time_type"] | null
+          type?: Database["public"]["Enums"]["goal_type"] | null
+          unit_amount?: number | null
+          user?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          time_type?: Database["public"]["Enums"]["goal_time_type"] | null
+          type?: Database["public"]["Enums"]["goal_type"] | null
+          unit_amount?: number | null
+          user?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      habit_colors: {
+        Row: {
+          color_code: string | null
+          created_at: string
+          description: string | null
+          habit: string | null
+          id: string
+        }
+        Insert: {
+          color_code?: string | null
+          created_at?: string
+          description?: string | null
+          habit?: string | null
+          id?: string
+        }
+        Update: {
+          color_code?: string | null
+          created_at?: string
+          description?: string | null
+          habit?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_colors_habit_fkey"
+            columns: ["habit"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      habit_logs: {
+        Row: {
+          created_at: string
+          habit_color: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          habit_color?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          habit_color?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_logs_habit_color_fkey"
+            columns: ["habit_color"]
+            isOneToOne: false
+            referencedRelation: "habit_colors"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      habits: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          user: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          user?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          user?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habits_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       journals: {
         Row: {
@@ -304,7 +499,8 @@ export interface Database {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      goal_time_type: "daily" | "weekly" | "monthly" | "yearly"
+      goal_type: "minutes" | "pages" | "days" | "books"
     }
     CompositeTypes: {
       [_ in never]: never
