@@ -12,10 +12,10 @@ interface UserBook {
 }
 
 type MarkerType = {
-  id: any|null;
-  marker_type: string|null;
-  book_title: string|null;
-  country: string|null;
+  id: any | null;
+  marker_type: string | null;
+  book_title: string | null;
+  country: string | null;
   setting_origin_lat: number | null;
   setting_origin_long: number | null;
   author_nationality_lat: number | null;
@@ -31,10 +31,10 @@ const EditMarkers = () => {
 
   const fetchCountryName = async (
     latitude: number,
-    longitude: number
+    longitude: number,
   ): Promise<string> => {
     const response = await fetch(
-      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
     );
     const data = await response.json();
     return data.countryName || "Unknown";
@@ -51,7 +51,7 @@ const EditMarkers = () => {
     } else {
       // If the marker is successfully deleted from the database, remove it from the state as well
       setMarkers((currentMarkers) =>
-        currentMarkers.filter((marker) => marker.id !== id)
+        currentMarkers.filter((marker) => marker.id !== id),
       );
     }
   };
@@ -69,7 +69,7 @@ const EditMarkers = () => {
           country_published_lat,
           country_published_long,
           user_book: users_books(*, book: books(*) )
-          `
+          `,
       )
       .eq("user_book.user", user?.id || "");
 
@@ -98,7 +98,7 @@ const EditMarkers = () => {
 
         const country = await fetchCountryName(latitude, longitude);
         const bookId = books.find(
-          (book: UserBook) => book.book.id === marker.user_book?.book?.id
+          (book: UserBook) => book.book.id === marker.user_book?.book?.id,
         );
         return {
           ...marker,
@@ -109,7 +109,7 @@ const EditMarkers = () => {
       });
 
       const updatedMarkers = await Promise.all(markerPromises);
-      setMarkers(updatedMarkers.map((marker:any) => marker));
+      setMarkers(updatedMarkers.map((marker: any) => marker));
     }
   };
 
@@ -159,6 +159,8 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     maxWidth: "70%",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   markerContent: {
     flex: 1,
@@ -174,7 +176,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     backgroundColor: "red",
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 4,
   },
   removeButtonText: {
     color: "white",

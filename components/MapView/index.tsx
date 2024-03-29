@@ -1,15 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-  Modal,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  TextInput,
-  Button,
-} from "react-native";
+import { Modal, StyleSheet, TouchableOpacity } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import MapEvent from "react-native-maps";
+import { View, Button, TextInput, Text } from "../Themed";
 import { supabase } from "@/utils/supabase";
 import { useNavigation } from "expo-router";
 import useUser from "@/hooks/useUser";
@@ -44,10 +37,9 @@ export default function MapViewScreen({ navigation }: any) {
     nav.navigate("EditMarkers");
   };
 
-
   const fetchMarkers = async () => {
     if (!user.user?.id) {
-        console.log(user?.user?.id)
+      console.log(user?.user?.id);
       return;
     }
     let { data, error } = await supabase
@@ -62,7 +54,7 @@ export default function MapViewScreen({ navigation }: any) {
         country_published_lat,
         country_published_long,
         user_book: users_books(*, book: books(*) )
-      `
+      `,
       )
       .eq("user_book.user", user?.user?.id || "");
 
@@ -94,7 +86,6 @@ export default function MapViewScreen({ navigation }: any) {
           latitude = marker.setting_origin_lat;
           longitude = marker.setting_origin_long;
         }
-        
 
         return {
           type,
@@ -105,13 +96,12 @@ export default function MapViewScreen({ navigation }: any) {
         };
       });
 
-      setMarkers(markersData.map((marker:any) => marker));
+      setMarkers(markersData.map((marker: any) => marker));
     }
   };
 
   useEffect(() => {
-    if(user)
-    fetchMarkers();
+    if (user) fetchMarkers();
   }, [user]);
 
   return (
@@ -120,7 +110,7 @@ export default function MapViewScreen({ navigation }: any) {
         style={styles.editButton}
         onPress={() => handleEditMarker()}
       >
-        <Text style={styles.editButtonText}>Edit Marker</Text>
+        <Text style={styles.editButtonText}>Edit Markers</Text>
       </TouchableOpacity>
       <MapView style={styles.map} onPress={(e: any) => handleMapPress(e)}>
         {markers.map((marker) => (
@@ -151,9 +141,9 @@ const styles = StyleSheet.create({
     zIndex: 10,
     right: 20,
     top: 40,
-    backgroundColor: "blue",
+    backgroundColor: "black",
     padding: 10,
-    borderRadius: 20,
+    borderRadius: 4,
   },
   editButtonText: {
     color: "white",

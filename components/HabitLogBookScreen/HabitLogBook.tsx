@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Modal,
@@ -11,6 +9,7 @@ import {
 } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { View, Text } from "../Themed";
 import useUser from "@/hooks/useUser";
 import {
   startOfWeek,
@@ -64,7 +63,7 @@ const HabitLogBookComponent: React.FC = () => {
       getCreationDate();
       fetchHabits();
     }
-  }, [user, weekOffset]);
+  }, [user, weekOffset, userCreatedAt]);
 
   const getCreationDate = async () => {
     let { data, error } = await supabase
@@ -511,7 +510,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-start",
-    backgroundColor: "white",
+    // backgroundColor: "white",
   },
 
   centeredView: {
@@ -532,7 +531,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     margin: 20,
-    backgroundColor: "white",
+    // backgroundColor: "white",
     borderRadius: 20,
     padding: 10,
     shadowColor: "#000",
@@ -617,7 +616,7 @@ const styles = StyleSheet.create({
   },
   dayColumn: {
     width: "48%",
-    backgroundColor: "white",
+    // backgroundColor: "white",
     borderRadius: 10,
     padding: 17,
     marginBottom: 6,
