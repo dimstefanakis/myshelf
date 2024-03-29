@@ -111,7 +111,7 @@ export const MyUserContextProvider = (props: Props) => {
 
   useEffect(() => {
     if (session) {
-      getUsersBooks(session.access_token);
+      // getUsersBooks(session.access_token);
     }
   }, [session?.access_token]);
 
@@ -152,9 +152,9 @@ export const MyUserContextProvider = (props: Props) => {
       },
     );
 
-    // return () => {
-    //   authListener.subscription.unsubscribe();
-    // };
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [supabase, router]);
 
   const value = {

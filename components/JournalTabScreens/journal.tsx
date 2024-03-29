@@ -68,12 +68,12 @@ const JournalScreen = () => {
 
   return (
     <View style={{ height: "100%", alignItems: "center" }}>
-      {/* <TouchableOpacity
+      <TouchableOpacity
         style={styles.createJournalButton}
-        onPress={() => navigation.navigate("modalContent")}
+        onPress={() => nav.navigate("AddJournalEntryScreen")}
       >
         <Text style={styles.createButtonText}>Create New Journal</Text>
-      </TouchableOpacity> */}
+      </TouchableOpacity>
       {journal.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
@@ -124,41 +124,7 @@ const JournalScreen = () => {
                     />
                   </View>
                   <View style={styles.modalContainer}>
-                    <Modal
-                      animationType="slide"
-                      visible={modalVisible}
-                      onRequestClose={handleModal}
-                      presentationStyle="formSheet"
-                      style={{
-                        backgroundColor: "rgba(0, 0, 255, 0.7)",
-                        borderRadius: 20,
-                        borderWidth: 1,
-                        borderColor: "black",
-                        borderStyle: "solid",
-                      }}
-                    >
-                      <View
-                        style={{
-                          flex: 1,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: "80%",
-                            height: "80%",
-                          }}
-                        >
-                          <Image
-                            source={{
-                              uri: `http://127.0.0.1:54321/storage/v1/object/public/images/${journal.image_url}`,
-                            }}
-                            style={{ width: "100%", height: "100%" }}
-                          />
-                        </View>
-                      </View>
-                    </Modal>
+                    
                   </View>
                 </View>
                 <Text style={{ fontSize: 12, marginTop: 10 }}>
@@ -182,6 +148,7 @@ const styles = StyleSheet.create({
     width: 200,
     borderRadius: 10,
     marginVertical: 15,
+    backgroundColor: "#326E78",
   },
   createButtonText: {
     color: "white",
