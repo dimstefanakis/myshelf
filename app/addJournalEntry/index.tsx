@@ -29,7 +29,24 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
   const user = useUser();
   const { books } = useUserBooksStore();
 
-  const { image, id } = route.params;
+  const { id } = route.params || {}; 
+
+  const uploadData = async () => {
+    if (!journalData.title || !journalData.description) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    const { data, error } = await supabase.from("journals").insert([journalData]);
+
+    if (error) {
+      console.error("Error inserting data", error);
+      Alert.alert("Error", "Failed to insert journal data.");
+    } else {
+      Alert.alert("Success", "Journal entry created successfully.");
+      navigation.goBack();
+    }
+  }
 
   // if id exists then we are editing an existing journal entry
   useEffect(() => {
@@ -99,36 +116,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
     }
   };
 
-  const uploadData = async () => {
-    if (!image) {
-      Alert.alert("Error", "No image selected.");
-      return;
-    }
-
-    const base64 = await FileSystem.readAsStringAsync(image.uri, {
-      encoding: "base64",
-    });
-    const filePath = `journals/${new Date().getTime()}.jpg`;
-    const { error: uploadError } = await supabase.storage
-      .from("images")
-      .upload(filePath, decode(base64), { contentType: "image/jpg" });
-
-    if (uploadError) {
-      console.error("Error uploading file", uploadError);
-      Alert.alert("Error", "Failed to upload image.");
-    } else {
-      const { data, error } = await supabase
-        .from("journals")
-        .insert([{ ...journalData, image_url: filePath }]);
-      if (error) {
-        console.error("Error inserting data", error);
-        Alert.alert("Error", "Failed to insert journal data.");
-      } else {
-        Alert.alert("Success", "Journal entry created successfully.");
-        navigation.goBack();
-      }
-    }
-  };
+  
 
   return (
     <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>

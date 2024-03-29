@@ -6,6 +6,7 @@ import {
   StyleProp,
   ViewStyle,
   Pressable,
+  Modal,
 } from "react-native";
 // import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -27,6 +28,14 @@ const BookScreen: React.FC = () => {
     return item.users_book?.book?.cover_url ?? "default_thumbnail_url";
   };
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentItem, setCurrentItem] = useState<Note | null>(null);
+
+  const handleModal = (item: any) => {
+    setCurrentItem(item); // If item is provided, set it, otherwise null
+    setModalVisible(!modalVisible);
+  };
+
   const getNotes = async () => {
     let { data, error } = await supabase
       .from("notes")
@@ -37,16 +46,16 @@ const BookScreen: React.FC = () => {
       description,
       created_at,
       user,
+      image_url,
       users_book (*,
         book (
           *,
           google_api_data
         )
       )
-    `,
+    `
       )
       .eq("users_book.user", session?.user?.id || "");
-
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -70,7 +79,7 @@ const BookScreen: React.FC = () => {
         () => {
           console.log("Notes table changed");
           getNotes();
-        },
+        }
       )
       .subscribe();
 
@@ -105,22 +114,51 @@ const BookScreen: React.FC = () => {
               additionalStyle = { marginLeft: "auto", marginRight: 0 };
             } // Middle item naturally centers due to justifyContent
             return (
-              <Pressable
-                key={item.id.toString()}
-                style={[styles.bookItem, additionalStyle]}
-                onPress={() => {
-                  navigation.navigate("AddBookNoteEntryScreen", {
-                    id: item.id,
-                  });
-                }}
-              >
-                <Image
-                  source={{ uri: thumbnailUrl }}
-                  style={styles.bookImage}
-                />
-                <Text style={styles.bookTitle}>{item.title}</Text>
-                <Text style={styles.bookDescription}>{item.description}</Text>
-              </Pressable>
+              <>
+                <View style={[styles.bookItem, additionalStyle]}>
+                  <Pressable onPress={() => handleModal(item)}>
+                    <Image
+                      source={{
+                        uri: item.image_url?`http://127.0.0.1:54321/storage/v1/object/public/images/${item?.image_url}`:thumbnailUrl,
+                      }}
+                      style={styles.bookImage}
+                    />
+                  </Pressable>
+                  <Pressable
+                    key={item.id.toString()}
+                    onPress={() => {
+                      navigation.navigate("AddBookNoteEntryScreen", {
+                        id: item.id,
+                      });
+                    }}
+                  >
+                    <Text style={styles.bookTitle}>{item.title}</Text>
+                    <Text style={styles.bookDescription}>
+                      {item.description}
+                    </Text>
+                  </Pressable>
+                </View>
+                {currentItem && (
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                  >
+                    <View style={styles.centeredView}>
+                      <Pressable onPress={() => setModalVisible(false)}>
+                        <AntDesign name="close" size={24} color="black" />
+                      </Pressable>
+                      <Image
+                        source={{
+                          uri: `http://127.0.0.1:54321/storage/v1/object/public/images/${currentItem?.image_url}`,
+                        }}
+                        style={{ width: "90%", height: "90%" }}
+                      />
+                    </View>
+                  </Modal>
+                )}
+              </>
             );
           })}
         </ScrollView>
@@ -180,5 +218,26 @@ const styles = StyleSheet.create({
   },
   bookDescription: {
     textAlign: "center",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
