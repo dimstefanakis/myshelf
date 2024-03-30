@@ -119,32 +119,38 @@ const HabitLogBookComponent: React.FC = () => {
       const offset = calculateWeekOffset(userCreatedAt, today);
       setWeekOffset(offset);
       setMaxWeekOffset(offset);
+      fetchHabits();
     }
   }, [userCreatedAt]);
   const fetchHabits = async () => {
     if (!userCreatedAt) return;
-    const userWeekStart = getWeekStartFromDate(userCreatedAt);
-    const weekStart = add(userWeekStart, { weeks: weekOffset });
-    const weekStartString = format(weekStart, "yyyy-MM-dd");
-    const weekEndString = format(
-      add(weekStart, { weeks: 1, days: -1 }),
-      "yyyy-MM-dd"
-    );
+
     let { data: habitsData, error: habitsError } = await supabase
       .from("habits")
-      .select("*")
-      .gte("created_at", weekStartString)
-      .lte("created_at", weekEndString)
-      .order("created_at");
+      .select(
+        `
+        id,
+        name,
+        created_at,
+        habit_colors (
+          id,
+          color_code,
+          description,
+          habit_logs (id, created_at, habit_color)
+        )
+      `
+      )
+      .eq("user", user?.id)
+      .order("created_at", { ascending: false });
+
+    if (habitsError) {
+      console.error("Error fetching habits with colors:", habitsError);
+      return;
+    }
 
     let { data: colorsData, error: colorsError } = await supabase
       .from("habit_colors")
       .select("*");
-
-    if (habitsError) {
-      console.error("Error fetching habits:", habitsError);
-      return;
-    }
     const combinedHabits = habitsData?.map((habit) => {
       const colorEntry = colorsData?.find((color) => color.habit === habit.id);
       return {
@@ -153,9 +159,7 @@ const HabitLogBookComponent: React.FC = () => {
         weekOffset: getWeeksSinceCreation(userCreatedAt, habit.created_at),
       };
     });
-
     setHabits(combinedHabits);
-    // console.log("Fetched Habits:", combinedHabits);
   };
 
   const addHabit = async () => {
@@ -163,33 +167,52 @@ const HabitLogBookComponent: React.FC = () => {
       alert("Please enter a habit name");
       return;
     }
-    if (!selectedDay) {
-      alert("No day selected");
-      return;
-    }
-    const habitsForSelectedDay = habits.filter((habit) => {
-      return format(parseISO(habit.created_at), "yyyy-MM-dd") === selectedDay;
-    });
 
-    if (habitsForSelectedDay.length >= 5) {
-      alert("You can only have a maximum of 5 habits per day.");
-      return;
-    }
     let { data: insertedHabit, error: insertError } = await supabase
       .from("habits")
       .insert([
         {
           name: newHabit,
-          created_at: selectedDay,
           user: user?.id,
         },
       ]);
 
-    // console.log("Inserted Habit:", insertedHabit);
+    if (insertError) {
+      console.error("Error adding habit:", insertError);
+      return;
+    }
+
+    if (insertedHabit && insertedHabit.length > 0) {
+      const habitId = insertedHabit[0].id;
+      let { data: insertedColor, error: colorInsertError } = await supabase
+        .from("habit_colors")
+        .insert([
+          {
+            habit: habitId,
+            color_code: "#808080",
+            description: "Default gray",
+          },
+        ]);
+
+      if (colorInsertError) {
+        console.error("Error adding default color:", colorInsertError);
+        return;
+      }
+
+      if (insertedColor && insertedColor.length > 0) {
+        const colorId = insertedColor[0].id;
+        let { error: logError } = await supabase
+          .from("habit_logs")
+          .insert([{ habit_color: colorId }]);
+
+        if (logError) {
+          console.error("Error logging default color:", logError);
+        }
+      }
+    }
+
     setAddHabitModalVisible(false);
     setNewHabit("");
-
-    if (insertError) console.error("Error adding habit:", insertError);
     fetchHabits();
   };
 
@@ -221,14 +244,10 @@ const HabitLogBookComponent: React.FC = () => {
 
   const renderDayColumn = (dayDate: Date, habits: Habit[], index: number) => {
     const dayString = format(dayDate, "yyyy-MM-dd");
-    const dayHabits = habits.filter(
-      (habit) => format(parseISO(habit.created_at), "yyyy-MM-dd") === dayString
-    );
-
     return (
-      <View key={dayString} style={styles.dayColumn}>
+      <View key={index} style={styles.dayColumn}>
         <Text style={styles.dayHeader}>{format(dayDate, "EEE, d MMM")}</Text>
-        {dayHabits.map((habit) => {
+        {habits.map((habit) => {
           const date = parseISO(habit.created_at);
           const color = habit.color_code || "#808080";
 
@@ -276,43 +295,36 @@ const HabitLogBookComponent: React.FC = () => {
     });
   };
 
-  const updateHabitColor = async (
-    habitId: string | null,
-    colorCode: string
-  ) => {
+  const updateHabitColor = async (habitId, colorCode) => {
     if (!habitId) {
-      setColorPickerModalVisible(false);
+      console.error("Habit ID is missing");
       return;
     }
-    let updateSuccessful = false;
-    const { data, error: fetchError } = await supabase
+
+    let { data: color, error: colorError } = await supabase
       .from("habit_colors")
       .select("id")
-      .eq("habit", habitId)
+      .eq("color_code", colorCode)
       .single();
 
-    if (fetchError && fetchError.code !== "PGRST116") {
-      console.error("Error fetching habit color:", fetchError);
-    } else if (data) {
-      const { error: updateError } = await supabase
-        .from("habit_colors")
-        .update({ color_code: colorCode })
-        .eq("habit", habitId);
-      updateSuccessful = !updateError;
-    } else {
-      const { error: insertError } = await supabase
-        .from("habit_colors")
-        .insert({ habit: habitId, color_code: colorCode });
-      updateSuccessful = !insertError;
+    if (colorError || !color) {
+      console.error("Error finding color ID:", colorError);
+      return;
     }
 
-    setColorPickerModalVisible(false);
-    if (updateSuccessful) {
+    let { error: logError } = await supabase
+      .from("habit_logs")
+      .insert([{ habit_color: color.id }]);
+
+    if (logError) {
+      console.error("Error inserting new habit log:", logError);
+    } else {
       setHabits((currentHabits) =>
         currentHabits.map((habit) =>
           habit.id === habitId ? { ...habit, color_code: colorCode } : habit
         )
       );
+      setColorPickerModalVisible(false);
     }
   };
 
@@ -339,59 +351,67 @@ const HabitLogBookComponent: React.FC = () => {
           <AntDesign name="questioncircleo" size={20} color="#4C7288" />
         </TouchableOpacity>
         <Modal
-          animationType="slide"
           transparent={true}
           visible={modalVisible}
           onRequestClose={() => {
             setModalVisible(!modalVisible);
           }}
         >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <AntDesign
-                name="closecircleo"
-                size={24}
-                color="black"
-                style={{ textAlign: "right" }}
-                onPress={() => setModalVisible(!modalVisible)}
-              />
+          <TouchableWithoutFeedback
+            onPress={() => setModalVisible(!modalVisible)}
+          >
+            <View
+              style={[
+                styles.centeredView,
+                { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+              ]}
+            >
+              <View style={styles.modalView}>
+                <AntDesign
+                  name="closecircleo"
+                  size={24}
+                  color="black"
+                  style={{ textAlign: "right" }}
+                  onPress={() => setModalVisible(!modalVisible)}
+                />
 
-              <Text style={styles.modalText}>Colour Guide</Text>
-              <View style={styles.colorGuide}>
-                <View
-                  style={[
-                    styles.colorIndicator,
-                    { backgroundColor: "#FB3231" },
-                  ]}
-                />
-                <Text style={styles.colorDescription}>
-                  No I didn't read bad stress many distractions
-                </Text>
-              </View>
-              <View style={styles.colorGuide}>
-                <View
-                  style={[
-                    styles.colorIndicator,
-                    { backgroundColor: "#FFC82C" },
-                  ]}
-                />
-                <Text style={styles.colorDescription}>
-                  Medium reading medium stress medium distractions
-                </Text>
-              </View>
-              <View style={styles.colorGuide}>
-                <View
-                  style={[
-                    styles.colorIndicator,
-                    { backgroundColor: "#41BF00" },
-                  ]}
-                />
-                <Text style={styles.colorDescription}>
-                  Yes I read no stress no distractions
-                </Text>
+                <Text style={styles.modalText}>Colour Guide</Text>
+                <View style={styles.colorGuide}>
+                  <View
+                    style={[
+                      styles.colorIndicator,
+                      { backgroundColor: "#FB3231" },
+                    ]}
+                  />
+                  <Text style={styles.colorDescription}>
+                    No I didn't read bad stress many distractions
+                  </Text>
+                </View>
+                <View style={styles.colorGuide}>
+                  <View
+                    style={[
+                      styles.colorIndicator,
+                      { backgroundColor: "#FFC82C" },
+                    ]}
+                  />
+                  <Text style={styles.colorDescription}>
+                    Medium reading medium stress medium distractions
+                  </Text>
+                </View>
+                <View style={styles.colorGuide}>
+                  <View
+                    style={[
+                      styles.colorIndicator,
+                      { backgroundColor: "#41BF00" },
+                    ]}
+                  />
+                  <Text style={styles.colorDescription}>
+                    Yes I read no stress no distractions
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
+          </TouchableWithoutFeedback>
         </Modal>
       </View>
       <Modal
@@ -400,33 +420,35 @@ const HabitLogBookComponent: React.FC = () => {
       >
         <View style={styles.centeredView}>
           <TextInput
-            placeholder="New Habit"
+            placeholder="Habit name"
             value={newHabit}
             onChangeText={setNewHabit}
             style={{
               height: 40,
               borderColor: "gray",
-              width: "30%",
+              width: "40%",
               textAlign: "center",
               borderWidth: 1,
               marginBottom: 20,
+              borderRadius: 25,
             }}
           />
           <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
             <TouchableOpacity
-              style={{ backgroundColor: "red", padding: 10 }}
+              style={styles.cancelButton}
               onPress={() => {
                 setAddHabitModalVisible(false);
                 setNewHabit("");
               }}
             >
-              <Text style={{ color: "white" }}>Cancel</Text>
+              <Text style={{ color: "black", textAlign: "center" }}>
+                Cancel
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={addHabit}
-              style={{ backgroundColor: "blue", padding: 10 }}
-            >
-              <Text style={{ color: "white" }}>Submit</Text>
+            <TouchableOpacity onPress={addHabit} style={styles.submitButton}>
+              <Text style={{ color: "white", textAlign: "center" }}>
+                Submit
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -445,31 +467,33 @@ const HabitLogBookComponent: React.FC = () => {
           })}
         </View>
       </ScrollView>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={colorPickerModalVisible}
-      >
+      <Modal transparent={true} visible={colorPickerModalVisible}>
         <TouchableWithoutFeedback onPress={closeModal}>
-          <View style={styles.centeredView}>
-            <View style={styles.colorPickerModalView}>
-              {["#FFC82C", "#41BF00", "#FB3231"].map((colorCode) => (
-                <TouchableOpacity
-                  key={colorCode}
-                  style={[
-                    styles.colorPickerOption,
-                    { backgroundColor: colorCode },
-                  ]}
-                  onPress={() => updateHabitColor(selectedHabitId, colorCode)}
-                />
-              ))}
+          <View
+            style={[
+              styles.centeredView,
+              { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+            ]}
+          >
+            <View style={styles.modalView}>
+              <View style={styles.colorPickerModalView}>
+                {["#FB3231", "#FFC82C", "#41BF00"].map((colorCode) => (
+                  <TouchableOpacity
+                    key={colorCode}
+                    style={[
+                      styles.colorPickerOption,
+                      { backgroundColor: colorCode },
+                    ]}
+                    onPress={() => updateHabitColor(selectedHabitId, colorCode)}
+                  />
+                ))}
+              </View>
             </View>
           </View>
         </TouchableWithoutFeedback>
       </Modal>
       <Modal
         visible={editHabitModalVisible}
-        style={{ width: 50 }}
         onRequestClose={() => setEditHabitModalVisible(false)}
       >
         <View style={styles.centeredView}>
@@ -480,24 +504,24 @@ const HabitLogBookComponent: React.FC = () => {
             style={{
               height: 40,
               borderColor: "gray",
-              width: "30%",
+              width: "40%",
               textAlign: "center",
               borderWidth: 1,
               marginBottom: 20,
+              borderRadius: 25,
             }}
           />
           <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
             <TouchableOpacity
               onPress={() => setEditHabitModalVisible(false)}
-              style={{ backgroundColor: "red", padding: 10 }}
+              style={styles.cancelButton}
             >
-              <Text style={{ color: "white" }}>Cancel</Text>
+              <Text style={{ color: "black", textAlign: "center" }}>
+                Cancel
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={updateHabit}
-              style={{ backgroundColor: "blue", padding: 10 }}
-            >
-              <Text style={{ color: "white" }}>Save Changes</Text>
+            <TouchableOpacity onPress={updateHabit} style={styles.submitButton}>
+              <Text style={{ color: "white", textAlign: "center" }}>Save</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -518,7 +542,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 22,
   },
   scrollViewStyle: {
     width: "100%",
@@ -547,7 +570,7 @@ const styles = StyleSheet.create({
   colorGuide: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
+    marginVertical: 8,
   },
   colorIndicator: {
     width: 24,
@@ -564,7 +587,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   modalText: {
-    marginBottom: 15,
+    marginBottom: 10,
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 18,
@@ -649,6 +672,18 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 14,
     color: "#B1B7C0",
+  },
+  submitButton: {
+    backgroundColor: "black",
+    padding: 10,
+    borderRadius: 25,
+    width: "20%",
+  },
+  cancelButton: {
+    backgroundColor: "#ddd",
+    padding: 10,
+    borderRadius: 25,
+    width: "20%",
   },
 });
 
