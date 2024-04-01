@@ -18,7 +18,7 @@ const data = [
   },
   {
     title: "Map",
-    // image: require("./../../assets/images/map.jpg"),
+    image: require("./../../assets/images/map.jpg"),
   },
   {
     title: "Chronology",
