@@ -10,6 +10,7 @@ import AddQuoteEntryScreen from "../addQuoteEntry";
 import MapScreen from "../gridNavigation/map";
 import AddMarker from "../addMarker";
 import EditMarkers from "@/components/EditMarker";
+import StatisticsScreen from "../gridNavigation/statistics";
 
 const Stack = createNativeStackNavigator();
 
@@ -65,8 +66,16 @@ export default function HomeStack() {
       <Stack.Screen
         name="EditMarkers"
         component={EditMarkers}
-        options={{ presentation: "modal", headerShown: false}}
-          />
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="Statistics"
+        component={StatisticsScreen}
+        options={{
+          title: "Statistics",
+          headerShown: true,
+        }}
+      />
     </Stack.Navigator>
   );
 }
