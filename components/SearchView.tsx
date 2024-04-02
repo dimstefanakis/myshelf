@@ -3,23 +3,22 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { Image } from "expo-image";
 import { useDebounceValue } from "usehooks-ts";
 import {
-  StyleSheet,
   TouchableNativeFeedback,
   NativeSyntheticEvent,
   TextInputChangeEventData,
   NativeScrollEvent,
-  FlatList,
+  ActivityIndicator,
 } from "react-native";
 
 import { Text, TextInput, View, ScrollView } from "@/components/Themed";
 import type { Book } from "@/constants/BookTypes";
+import { isLoaded } from "expo-font";
 
 export default function Search({ addAction }: { addAction?: string }) {
   const [search, setSearch] = useDebounceValue("", 500);
   const [results, setResults] = useState<Book[] | []>([]);
   const [bookIndex, setBookIndex] = useState<number>(0)
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [hasMore, setHasMore] = useState<boolean>(true)
   function handleChange(event: NativeSyntheticEvent<TextInputChangeEventData>) {
     setSearch(event.nativeEvent.text);
   }
@@ -35,7 +34,7 @@ export default function Search({ addAction }: { addAction?: string }) {
   }
 
   async function fetchMoreBooks() {
-    // if (!hasMore) return;
+    setIsLoading(true)
     const resp = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${search}&startIndex=${bookIndex}&maxResults=10`)
     const respData = await resp.json() 
     if (bookIndex === 0) { 
@@ -50,7 +49,7 @@ export default function Search({ addAction }: { addAction?: string }) {
       )
     }
     setBookIndex(prevState => prevState + 10)
-    // setHasMore(results.length < respData.totalItems)
+    setIsLoading(false)
   }
 
   async function getBookResults(text: string) {
@@ -65,7 +64,6 @@ export default function Search({ addAction }: { addAction?: string }) {
   useEffect(() => {
     if (search) {
       setBookIndex(0)
-      setHasMore(true)
       getBookResults(search);
     }
   }, [search]);
@@ -73,7 +71,7 @@ export default function Search({ addAction }: { addAction?: string }) {
   return (
     <ScrollView
     onMomentumScrollEnd={handleScroll}
-    scrollEventThrottle={10}
+    scrollEventThrottle={1}
       style={{
         flex: 1,
       }}
@@ -105,6 +103,7 @@ export default function Search({ addAction }: { addAction?: string }) {
           <SearchResult key={book.id} book={book} action={addAction || ""} />
         ))}
       </View>
+      { isLoading && <ActivityIndicator size="large" color={"black"}/> }
     </ScrollView>
   );
 }
