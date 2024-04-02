@@ -18,7 +18,7 @@ const data = [
   },
   {
     title: "Map",
-    image: require("./../../assets/images/map.png"),
+    image: require("./../../assets/images/map.jpg"),
   },
   {
     title: "Chronology",
@@ -29,7 +29,7 @@ const data = [
     image: require("./../../assets/images/goals.jpg"),
   },
   {
-    title: "Community",
+    title: "Statistics",
     image: require("./../../assets/images/placeholder.jpg"),
   },
 ];
@@ -41,6 +41,7 @@ export type RootStackParamList = {
   Search: undefined;
   HabitLogBook: undefined;
   GoalTracker: undefined;
+  Statistics: undefined;
 };
 function HomepageContainers() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -61,6 +62,9 @@ function HomepageContainers() {
         break;
       case "GoalTracker":
         navigation.navigate("GoalTracker");
+        break;
+      case "Statistics":
+        navigation.navigate("Statistics");
         break;
     }
   };
