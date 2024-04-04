@@ -26,7 +26,7 @@ export default function TabTwoScreen() {
           <Feather name="settings" size={24} color="white" />
         </TouchableOpacity>
       </View> */}
-      <View style={styles.rewardsSection}>
+      {/* <View style={styles.rewardsSection}>
         <Text
           style={{
             textAlign: "left",
@@ -65,7 +65,7 @@ export default function TabTwoScreen() {
             </Text>
           </Button>
         </View>
-      </View>
+      </View> */}
       <View>
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuItemText}>Manage Account</Text>
@@ -91,10 +91,10 @@ export default function TabTwoScreen() {
             color="#788490"
           />
         </TouchableOpacity>
-        <Image
+        {/* <Image
           source={require("./../../assets/images/waterstone_plus_banner.png")}
           style={styles.waterstonesPlusImage}
-        />
+        /> */}
       </View>
     </ScrollView>
   );
