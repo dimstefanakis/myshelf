@@ -30,7 +30,7 @@ const data = [
   },
   {
     title: "Statistics",
-    image: require("./../../assets/images/placeholder.jpg"),
+    image: require("./../../assets/images/stats-min.jpeg"),
   },
 ];
 export type RootStackParamList = {

@@ -98,7 +98,7 @@ export default function Login() {
               color: "white",
             }}
           >
-            Submit
+            Login
           </Text>
         </Button>
         <Text style={{ marginTop: 10, marginBottom: 10, textAlign: "center" }}>
