@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Session } from "@supabase/supabase-js";
+import { ActivityIndicator } from "react-native";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { useRouter, Redirect } from "expo-router";
 import { View, Text, Button, TextInput } from "@/components/Themed";
@@ -13,6 +14,7 @@ type Inputs = {
 };
 
 export default function Login() {
+  const [loading, setLoading] = useState(false);
   const { user, session } = useUser();
   const router = useRouter();
   const {
@@ -22,6 +24,7 @@ export default function Login() {
   } = useForm<Inputs>();
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    setLoading(true);
     const {
       data: { session },
       error,
@@ -29,6 +32,7 @@ export default function Login() {
       email: data.email,
       password: data.password,
     });
+    setLoading(false);
     if (error) {
       alert(error.message);
     }
@@ -92,14 +96,22 @@ export default function Login() {
           rules={{ required: true }}
         />
         {errors.password && <Text>This is required.</Text>}
-        <Button onPress={handleSubmit(onSubmit)} style={{ marginTop: 10 }}>
-          <Text
-            style={{
-              color: "white",
-            }}
-          >
-            Login
-          </Text>
+        <Button
+          disabled={loading}
+          onPress={handleSubmit(onSubmit)}
+          style={{ marginTop: 10, display: "flex", flexDirection: "row" }}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text
+              style={{
+                color: "white",
+              }}
+            >
+              Login
+            </Text>
+          )}
         </Button>
         <Text style={{ marginTop: 10, marginBottom: 10, textAlign: "center" }}>
           Or

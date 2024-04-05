@@ -343,7 +343,7 @@ const HabitLogBookComponent: React.FC = () => {
           >
             <MaterialIcons name="navigate-before" size={24} color="#4C7288" />
           </TouchableOpacity>
-          <Text style={styles.weekText}>Week {weekOffset}</Text>
+          <Text style={styles.weekText}>Week {weekOffset + 1}</Text>
 
           <TouchableOpacity
             onPress={goToNextWeek}

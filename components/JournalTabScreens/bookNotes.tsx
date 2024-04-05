@@ -10,14 +10,13 @@ import {
 } from "react-native";
 // import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useRouter } from "expo-router";
+import { useRouter, useNavigation } from "expo-router";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
 import type { Note } from "@/store/journalStore";
 import { Button, View, ScrollView, Text } from "@/components/Themed";
 import { AntDesign } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
 
 const BookScreen: React.FC = () => {
   const { session } = useUser();
@@ -53,7 +52,7 @@ const BookScreen: React.FC = () => {
           google_api_data
         )
       )
-    `
+    `,
       )
       .eq("users_book.user", session?.user?.id || "");
     if (error) {
@@ -79,7 +78,7 @@ const BookScreen: React.FC = () => {
         () => {
           console.log("Notes table changed");
           getNotes();
-        }
+        },
       )
       .subscribe();
 
@@ -119,7 +118,9 @@ const BookScreen: React.FC = () => {
                   <Pressable onPress={() => handleModal(item)}>
                     <Image
                       source={{
-                        uri: item.image_url?`http://127.0.0.1:54321/storage/v1/object/public/images/${item?.image_url}`:thumbnailUrl,
+                        uri: item.image_url
+                          ? `http://127.0.0.1:54321/storage/v1/object/public/images/${item?.image_url}`
+                          : thumbnailUrl,
                       }}
                       style={styles.bookImage}
                     />
@@ -163,7 +164,27 @@ const BookScreen: React.FC = () => {
           })}
         </ScrollView>
       ) : (
-        <Text>No notes to display</Text>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: "#326E78",
+              marginBottom: 20,
+            }}
+          >
+            No notes yet!
+          </Text>
+          <Button onPress={() => navigation.navigate("AddBookNoteEntryScreen")}>
+            <Text style={{ color: "white" }}>Create a new note</Text>
+          </Button>
+        </View>
       )}
     </View>
   );

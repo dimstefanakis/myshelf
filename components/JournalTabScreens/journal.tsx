@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { Image } from "react-native-elements";
 import { Modal } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { View, Text, ScrollView } from "../Themed";
+import { View, Text, Button, ScrollView } from "../Themed";
 import { useJournalStore } from "@/store/journalStore";
 import useUser from "@/hooks/useUser";
 import type { Journal } from "@/store/journalStore";
@@ -121,7 +121,27 @@ const JournalScreen = () => {
           })}
         </ScrollView>
       ) : (
-        <Text>No data</Text>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: "#326E78",
+              marginBottom: 20,
+            }}
+          >
+            No entries yet!
+          </Text>
+          <Button onPress={() => nav.navigate("AddJournalEntryScreen")}>
+            <Text style={{ color: "white" }}>Create a new one</Text>
+          </Button>
+        </View>
       )}
     </View>
   );
