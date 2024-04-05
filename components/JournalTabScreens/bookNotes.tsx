@@ -22,6 +22,9 @@ const BookScreen: React.FC = () => {
   const { session } = useUser();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { notes, setNotes } = useJournalStore();
+  const [imageUrls, setImageUrls] = useState({}); // State to hold image URLs
+
+  
 
   const getThumbnailUrl = (item: Note): string => {
     return item.users_book?.book?.cover_url ?? "default_thumbnail_url";
@@ -34,6 +37,28 @@ const BookScreen: React.FC = () => {
     setCurrentItem(item); // If item is provided, set it, otherwise null
     setModalVisible(!modalVisible);
   };
+
+  const getPublicUrl = (filePath:any) => {
+    if (!filePath) return "default_thumbnail_url";
+  
+    const { data } = supabase
+      .storage
+      .from('images')
+      .getPublicUrl(filePath);
+  
+  
+    return data.publicUrl;
+  };
+  
+
+  const loadImageUrls = async (notes:any) => {
+    const urls = await Promise.all(notes.map(async (note:any) => ({
+      [note.id]:  getPublicUrl(note.image_url)
+    })));
+  
+    setImageUrls(urls.reduce((acc, url) => ({...acc, ...url}), {}));
+  };
+  
 
   const getNotes = async () => {
     let { data, error } = await supabase
@@ -92,6 +117,12 @@ const BookScreen: React.FC = () => {
     }
   }, [session?.user?.id]);
 
+  useEffect(() => {
+    if (notes.length) {
+      loadImageUrls(notes);
+    }
+  }, [notes]);
+
   return (
     <View style={styles.container}>
       {notes.length > 0 ? (
@@ -102,6 +133,7 @@ const BookScreen: React.FC = () => {
         >
           {notes.map((item, index) => {
             const thumbnailUrl = getThumbnailUrl(item);
+            console.log(imageUrls)
             // Calculate dynamic styling for alignment
             const remainder = (index + 1) % 3; // Determine position in the row
             let additionalStyle: StyleProp<ViewStyle> = {};
@@ -118,9 +150,7 @@ const BookScreen: React.FC = () => {
                   <Pressable onPress={() => handleModal(item)}>
                     <Image
                       source={{
-                        uri: item.image_url
-                          ? `http://127.0.0.1:54321/storage/v1/object/public/images/${item?.image_url}`
-                          : thumbnailUrl,
+                        uri: imageUrls[item.id]
                       }}
                       style={styles.bookImage}
                     />
@@ -152,7 +182,7 @@ const BookScreen: React.FC = () => {
                       </Pressable>
                       <Image
                         source={{
-                          uri: `http://127.0.0.1:54321/storage/v1/object/public/images/${currentItem?.image_url}`,
+                          uri: imageUrls[currentItem.id]
                         }}
                         style={{ width: "90%", height: "90%" }}
                       />
