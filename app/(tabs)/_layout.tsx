@@ -14,7 +14,7 @@ import useUser from "@/hooks/useUser";
 import Search from "./search";
 import HomeStack from "../navigators/gridNavigator";
 import ChronologyScreen from "../gridNavigation/chronology";
-import StatisticsScreen from "./statistics";
+import StatisticsScreen from "../gridNavigation/statistics";
 import ProfileScreen from "./profile";
 import MyShelfScreen from "./myshelf";
 
@@ -65,17 +65,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <MaterialCommunityIcons name="bookshelf" size={24} color={color} />
           ),
-        }}
-      />
-      <Tab.Screen
-        name="Statistics"
-        component={StatisticsScreen}
-        options={{
-          title: "Statistics",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="stats-chart-sharp" size={24} color={color} />
-          ),
-          // tabBarButton: () => null,
         }}
       />
       <Tab.Screen

@@ -484,6 +484,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     justifyContent: "center",
     position: "relative",
+    overflow: "hidden",
   },
   timeline: {
     height: 2,

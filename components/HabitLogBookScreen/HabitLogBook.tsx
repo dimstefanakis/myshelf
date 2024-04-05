@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Modal,
@@ -11,6 +9,7 @@ import {
 } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { View, Text } from "../Themed";
 import useUser from "@/hooks/useUser";
 import {
   startOfWeek,
@@ -19,6 +18,7 @@ import {
   parseISO,
   differenceInCalendarWeeks,
 } from "date-fns";
+import { Database } from "@/types_db";
 
 interface Habit {
   weekOffset: number;
@@ -32,19 +32,22 @@ interface HabitWithDate extends Habit {
   dayString: string;
 }
 
+type HabitColor = Database["public"]["Tables"]["habit_colors"]["Row"];
+
 const HabitLogBookComponent: React.FC = () => {
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [maxWeekOffset, setMaxWeekOffset] = useState<number>(0);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [habitColors, setHabitColors] = useState<HabitColor[]>([]);
   const [newHabit, setNewHabit] = useState<string>("");
   const [addHabitModalVisible, setAddHabitModalVisible] =
     useState<boolean>(false);
   const [colorPickerModalVisible, setColorPickerModalVisible] =
     useState<boolean>(false);
-  const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null);
   const [userCreatedAt, setUserCreatedAt] = useState<string | null>(null);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [editHabitModalVisible, setEditHabitModalVisible] =
     useState<boolean>(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
@@ -64,7 +67,7 @@ const HabitLogBookComponent: React.FC = () => {
       getCreationDate();
       fetchHabits();
     }
-  }, [user, weekOffset]);
+  }, [user, weekOffset, userCreatedAt]);
 
   const getCreationDate = async () => {
     let { data, error } = await supabase
@@ -132,14 +135,20 @@ const HabitLogBookComponent: React.FC = () => {
     );
     let { data: habitsData, error: habitsError } = await supabase
       .from("habits")
-      .select("*")
-      .gte("created_at", weekStartString)
-      .lte("created_at", weekEndString)
+      .select("*, habit_colors(*)")
       .order("created_at");
 
     let { data: colorsData, error: colorsError } = await supabase
       .from("habit_colors")
       .select("*");
+
+    setHabitColors(colorsData || []);
+
+    let { data: habitLogsData, error: habitLogsError } = await supabase
+      .from("habit_logs")
+      .select("*, habit_color(*, habit(*))")
+      .gte("created_at", weekStartString)
+      .lte("created_at", weekEndString);
 
     if (habitsError) {
       console.error("Error fetching habits:", habitsError);
@@ -149,6 +158,10 @@ const HabitLogBookComponent: React.FC = () => {
       const colorEntry = colorsData?.find((color) => color.habit === habit.id);
       return {
         ...habit,
+        logs:
+          habitLogsData?.filter(
+            (log) => log.habit_color.habit.id === habit.id,
+          ) || [],
         color_code: colorEntry ? colorEntry.color_code : "#808080", // Default gray color
         weekOffset: getWeeksSinceCreation(userCreatedAt, habit.created_at),
       };
@@ -163,16 +176,8 @@ const HabitLogBookComponent: React.FC = () => {
       alert("Please enter a habit name");
       return;
     }
-    if (!selectedDay) {
-      alert("No day selected");
-      return;
-    }
-    const habitsForSelectedDay = habits.filter((habit) => {
-      return format(parseISO(habit.created_at), "yyyy-MM-dd") === selectedDay;
-    });
-
-    if (habitsForSelectedDay.length >= 5) {
-      alert("You can only have a maximum of 5 habits per day.");
+    if (habits.length >= 5) {
+      alert("You can only have a maximum of 5 habits.");
       return;
     }
     let { data: insertedHabit, error: insertError } = await supabase
@@ -180,14 +185,23 @@ const HabitLogBookComponent: React.FC = () => {
       .insert([
         {
           name: newHabit,
-          created_at: selectedDay,
           user: user?.id,
         },
-      ]);
+      ])
+      .select("*")
+      .single();
 
-    // console.log("Inserted Habit:", insertedHabit);
+    const defaultColors = ["#FD3232", "#FDBD5B", "#44BD00"];
+
+    for (const color of defaultColors) {
+      await supabase.from("habit_colors").insert([
+        {
+          habit: insertedHabit?.id,
+          color_code: color,
+        },
+      ]);
+    }
     setAddHabitModalVisible(false);
-    setNewHabit("");
 
     if (insertError) console.error("Error adding habit:", insertError);
     fetchHabits();
@@ -214,23 +228,29 @@ const HabitLogBookComponent: React.FC = () => {
     }
   };
 
-  const openColorPicker = (habitId: string) => {
-    setSelectedHabitId(habitId);
+  const openColorPicker = (habit: Habit, dayDate: Date) => {
+    setSelectedDay(dayDate);
+    setSelectedHabit(habit);
     setColorPickerModalVisible(true);
   };
 
   const renderDayColumn = (dayDate: Date, habits: Habit[], index: number) => {
     const dayString = format(dayDate, "yyyy-MM-dd");
-    const dayHabits = habits.filter(
-      (habit) => format(parseISO(habit.created_at), "yyyy-MM-dd") === dayString,
-    );
+    // const dayHabits = habits.filter(
+    //   (habit) => format(parseISO(habit.created_at), "yyyy-MM-dd") === dayString,
+    // );
 
     return (
       <View key={dayString} style={styles.dayColumn}>
         <Text style={styles.dayHeader}>{format(dayDate, "EEE, d MMM")}</Text>
-        {dayHabits.map((habit) => {
+        {habits.map((habit) => {
           const date = parseISO(habit.created_at);
-          const color = habit.color_code || "#808080";
+          // const color = habit.color_code || "#808080";
+          const color =
+            habit.logs.find(
+              (log) =>
+                format(parseISO(log.created_at), "yyyy-MM-dd") === dayString,
+            )?.habit_color.color_code || "#808080";
 
           return (
             <View key={habit.id} style={styles.habitContainer}>
@@ -240,7 +260,7 @@ const HabitLogBookComponent: React.FC = () => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.habitIndicator, { backgroundColor: color }]}
-                  onPress={() => openColorPicker(habit.id)}
+                  onPress={() => openColorPicker(habit, dayDate)}
                 ></TouchableOpacity>
               </View>
             </View>
@@ -249,7 +269,6 @@ const HabitLogBookComponent: React.FC = () => {
         <TouchableOpacity
           onPress={() => {
             setAddHabitModalVisible(true);
-            setSelectedDay(dayString);
             setNewHabit("");
           }}
           style={styles.addButton}
@@ -289,30 +308,28 @@ const HabitLogBookComponent: React.FC = () => {
       .from("habit_colors")
       .select("id")
       .eq("habit", habitId)
+      .eq("color_code", colorCode)
       .single();
 
-    if (fetchError && fetchError.code !== "PGRST116") {
-      console.error("Error fetching habit color:", fetchError);
-    } else if (data) {
-      const { error: updateError } = await supabase
-        .from("habit_colors")
-        .update({ color_code: colorCode })
-        .eq("habit", habitId);
-      updateSuccessful = !updateError;
-    } else {
-      const { error: insertError } = await supabase
-        .from("habit_colors")
-        .insert({ habit: habitId, color_code: colorCode });
-      updateSuccessful = !insertError;
-    }
+    const { data: insertHabitLog, error: insertError } = await supabase
+      .from("habit_logs")
+      .insert([
+        {
+          habit_color: data?.id,
+          created_at: selectedDay,
+        },
+      ]);
+    console.log("Inserted Habit Log:", insertHabitLog, insertError);
+    updateSuccessful = !insertError;
 
     setColorPickerModalVisible(false);
     if (updateSuccessful) {
-      setHabits((currentHabits) =>
-        currentHabits.map((habit) =>
-          habit.id === habitId ? { ...habit, color_code: colorCode } : habit,
-        ),
-      );
+      // setHabits((currentHabits) =>
+      //   currentHabits.map((habit) =>
+      //     habit.id === habitId ? { ...habit, color_code: colorCode } : habit,
+      //   ),
+      // );
+      fetchHabits();
     }
   };
 
@@ -326,7 +343,7 @@ const HabitLogBookComponent: React.FC = () => {
           >
             <MaterialIcons name="navigate-before" size={24} color="#4C7288" />
           </TouchableOpacity>
-          <Text style={styles.weekText}>Week {weekOffset}</Text>
+          <Text style={styles.weekText}>Week {weekOffset + 1}</Text>
 
           <TouchableOpacity
             onPress={goToNextWeek}
@@ -453,14 +470,16 @@ const HabitLogBookComponent: React.FC = () => {
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.centeredView}>
             <View style={styles.colorPickerModalView}>
-              {["#FFC82C", "#41BF00", "#FB3231"].map((colorCode) => (
+              {selectedHabit?.habit_colors.map((habitColor) => (
                 <TouchableOpacity
-                  key={colorCode}
+                  key={habitColor.id}
                   style={[
                     styles.colorPickerOption,
-                    { backgroundColor: colorCode },
+                    { backgroundColor: habitColor.color_code || "white" },
                   ]}
-                  onPress={() => updateHabitColor(selectedHabitId, colorCode)}
+                  onPress={() =>
+                    updateHabitColor(selectedHabit?.id, habitColor.color_code)
+                  }
                 />
               ))}
             </View>
@@ -511,7 +530,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-start",
-    backgroundColor: "white",
+    // backgroundColor: "white",
   },
 
   centeredView: {
@@ -532,7 +551,7 @@ const styles = StyleSheet.create({
   },
   modalView: {
     margin: 20,
-    backgroundColor: "white",
+    // backgroundColor: "white",
     borderRadius: 20,
     padding: 10,
     shadowColor: "#000",
@@ -617,7 +636,7 @@ const styles = StyleSheet.create({
   },
   dayColumn: {
     width: "48%",
-    backgroundColor: "white",
+    // backgroundColor: "white",
     borderRadius: 10,
     padding: 17,
     marginBottom: 6,

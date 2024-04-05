@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "waterstones",
+    "name": "MyShelf - Your Reading Tracker",
     "slug": "myshelf",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -12,20 +12,28 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.senec.myshelf",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
+        "NSAppTransportSecurity": {
+          "NSExceptionDomains": {
+            "books.google.com": {
+              "NSIncludesSubdomains": true,
+              "NSExceptionAllowsInsecureHTTPLoads": true
+            }
+          }
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "package": "com.senec.myshelf"
     },
     "web": {
       "bundler": "metro",
@@ -46,11 +54,6 @@
     "experiments": {
       "typedRoutes": true
     },
-    "permissions": [
-      "CAMERA",
-      "CAMERA_ROLL",
-      "AUDIO_RECORDING"
-    ],
     "extra": {
       "router": {
         "origin": false

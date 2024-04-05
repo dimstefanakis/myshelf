@@ -7,6 +7,8 @@ import {
   TouchableNativeFeedback,
   NativeSyntheticEvent,
   TextInputChangeEventData,
+  NativeScrollEvent,
+  FlatList,
 } from "react-native";
 
 import { Text, TextInput, View, ScrollView } from "@/components/Themed";
@@ -15,14 +17,53 @@ import type { Book } from "@/constants/BookTypes";
 export default function Search({ addAction }: { addAction?: string }) {
   const [search, setSearch] = useDebounceValue("", 500);
   const [results, setResults] = useState<Book[] | []>([]);
-
+  const [bookIndex, setBookIndex] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasMore, setHasMore] = useState<boolean>(true);
   function handleChange(event: NativeSyntheticEvent<TextInputChangeEventData>) {
     setSearch(event.nativeEvent.text);
   }
 
+  async function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    const scrollPosition = event.nativeEvent.contentOffset.y;
+    const scrollViewHeight = event.nativeEvent.layoutMeasurement.height;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const isScrolledToBottom = scrollViewHeight + scrollPosition;
+    if (isScrolledToBottom >= contentHeight - 50) {
+      fetchMoreBooks();
+    }
+  }
+
+  async function fetchMoreBooks() {
+    // if (!hasMore) return;
+    const resp = await fetch(
+      `https://www.googleapis.com/books/v1/volumes?q=${search}&startIndex=${bookIndex}&maxResults=10`,
+    );
+    const respData = await resp.json();
+    if (respData && respData.items) {
+      if (bookIndex === 0) {
+        setResults(respData.items || []);
+      } else {
+        // In Google's realm, where books reside,
+        // Duplicates lurk, where queries bide.
+        // Array operations, heavy and keen,
+        // To purge the clones, in code's serene scene.
+        setResults((prevState) => [
+          ...prevState,
+          ...respData.items.filter(
+            (book: any) =>
+              !prevState.some((prevBook) => prevBook.id === book.id),
+          ),
+        ]);
+      }
+      setBookIndex((prevState) => prevState + 10);
+    }
+    // setHasMore(results.length < respData.totalItems)
+  }
+
   async function getBookResults(text: string) {
     const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${text}`,
+      `https://www.googleapis.com/books/v1/volumes?q=${text}&startIndex=0&maxResults=10`,
     );
     const data = await response.json();
     setResults(data.items);
@@ -30,12 +71,16 @@ export default function Search({ addAction }: { addAction?: string }) {
 
   useEffect(() => {
     if (search) {
+      setBookIndex(0);
+      setHasMore(true);
       getBookResults(search);
     }
   }, [search]);
 
   return (
     <ScrollView
+      onMomentumScrollEnd={handleScroll}
+      scrollEventThrottle={10}
       style={{
         flex: 1,
       }}

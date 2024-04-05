@@ -111,12 +111,6 @@ export const MyUserContextProvider = (props: Props) => {
 
   useEffect(() => {
     if (session) {
-      // getUsersBooks(session.access_token);
-    }
-  }, [session?.access_token]);
-
-  useEffect(() => {
-    if (session) {
       listenToUserBooks();
     }
   }, [session?.access_token]);

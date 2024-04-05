@@ -7,7 +7,7 @@ import {
   MaterialCommunityIcons,
   Ionicons,
 } from "@expo/vector-icons";
-import { Dimensions, Pressable } from "react-native";
+import { Dimensions, Pressable, ActivityIndicator } from "react-native";
 import Toast from "react-native-root-toast";
 import { supabase } from "@/utils/supabase";
 import { View, Text, Button, ScrollView } from "@/components/Themed";
@@ -18,6 +18,7 @@ export default function BookList() {
   const router = useRouter();
   const { user } = useUser();
   const { books } = useUserBooksStore();
+  const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const localSearchParams = useLocalSearchParams();
   const type = localSearchParams.type;
@@ -27,11 +28,12 @@ export default function BookList() {
   const bookImageHeight = bookImageWidth * 1.5;
 
   async function onAddToCompletedPile(id: string) {
+    setLoading(true);
     const { data, error } = await supabase
       .from("users_books")
       .update({ status: "completed" })
       .eq("id", id);
-
+    setLoading(false);
     if (error) {
       let toast = Toast.show(
         "There was an error adding to your completed pile",
@@ -53,6 +55,39 @@ export default function BookList() {
         hideOnPress: true,
         delay: 0,
       });
+    }
+  }
+  async function onAddToCurrentlyReading(id: string) {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("users_books")
+      .update({ status: "currently_reading" })
+      .eq("id", id);
+    setLoading(false);
+    if (error) {
+      let toast = Toast.show(
+        "There was an error adding to your currently reading pile",
+        {
+          duration: Toast.durations.SHORT,
+          position: Toast.positions.BOTTOM,
+          shadow: true,
+          animation: true,
+          hideOnPress: true,
+          delay: 0,
+        },
+      );
+    } else {
+      let toast = Toast.show(
+        "Successfully added to your currently reading pile",
+        {
+          duration: Toast.durations.SHORT,
+          position: Toast.positions.BOTTOM,
+          shadow: true,
+          animation: true,
+          hideOnPress: true,
+          delay: 0,
+        },
+      );
     }
   }
 
@@ -103,31 +138,56 @@ export default function BookList() {
                 </Text>
                 {type === "future_reading" && (
                   <Button
+                    onPress={() => onAddToCurrentlyReading(userBook.id)}
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 6,
+                      marginTop: 10,
+                      width: "100%",
+                    }}
+                  >
+                    {loading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Text
+                        style={{
+                          color: "white",
+                          textAlign: "center",
+                          fontWeight: "500",
+                          fontSize: 12,
+                        }}
+                      >
+                        Move to reading pile
+                      </Text>
+                    )}
+                  </Button>
+                )}
+                {type === "currently_reading" && (
+                  <Button
                     onPress={() => onAddToCompletedPile(userBook.id)}
                     style={{
                       paddingHorizontal: 16,
                       paddingVertical: 6,
                       marginTop: 10,
+                      width: "100%",
                     }}
                   >
-                    <Text
-                      style={{
-                        color: "white",
-                        textAlign: "center",
-                        fontWeight: "500",
-                        fontSize: 12,
-                      }}
-                    >
-                      Move to finished pile
-                    </Text>
+                    {loading ? (
+                      <ActivityIndicator size="small" color="white" />
+                    ) : (
+                      <Text
+                        style={{
+                          color: "white",
+                          textAlign: "center",
+                          fontWeight: "500",
+                          fontSize: 12,
+                        }}
+                      >
+                        Move to finished pile
+                      </Text>
+                    )}
                   </Button>
                 )}
-                {/* <Button
-            title="View"
-            onPress={()=>{
-              router.push('/book', {id: book.id});
-            }}
-          /> */}
               </View>
             );
           })}

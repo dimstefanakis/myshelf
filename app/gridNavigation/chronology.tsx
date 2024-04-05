@@ -1,5 +1,6 @@
 import { View, Text, TextInput } from "@/components/Themed";
-import useUser, { UserBook } from "@/hooks/useUser";
+import useUser from "@/hooks/useUser";
+import { UserBook } from "@/store/userBooksStore";
 import { useUserBooksStore } from "@/store/userBooksStore";
 import { EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
@@ -52,7 +53,7 @@ function calculateOffset(creationYear: string): DimensionValue {
 }
 
 export default function ChronologyScreen() {
-  const numberOfDecades = 4;
+  const numberOfDecades = 12;
   const [decades, setDecades] = useState<Decade[]>([]);
   const [searchQuery, setSearchQuert] = useState<string>("");
   const { user, session, loading } = useUser();
@@ -126,20 +127,20 @@ export default function ChronologyScreen() {
           {/* <EvilIcons name="search" size={25} /> */}
           <TextInput
             // style={styles.input}
-            placeholder="Search here"
+            placeholder="Search"
             onChangeText={handleInputChange}
             value={searchQuery}
             keyboardType="default"
           />
         </View>
-        <Pressable style={styles.addButton}>
+        {/* <Pressable style={styles.addButton}>
           <EvilIcons size={25} name="plus" />
           <Text
             style={{ color: "black", alignSelf: "center", textAlign: "center" }}
           >
             Add
           </Text>
-        </Pressable>
+        </Pressable> */}
       </View>
       <ScrollView
         style={{
@@ -226,12 +227,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   inputContainer: {
-    width: "65%",
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     // backgroundColor: "wheat",
     // borderWidth: 1,
-    marginRight: 15,
+    // marginRight: 15,
     height: 40,
   },
   // input: {
