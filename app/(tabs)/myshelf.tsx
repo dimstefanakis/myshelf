@@ -136,6 +136,7 @@ function Shelves() {
     <View style={{ width: "100%" }}>
       {shelves.map((shelf) => (
         <View
+          key={shelf.id}
           style={{
             minWidth: "100%",
             alignItems: "flex-start",

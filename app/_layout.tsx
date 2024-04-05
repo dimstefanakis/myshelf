@@ -5,6 +5,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { AppState } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { Stack, Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -75,6 +76,7 @@ function RootLayoutNav({ user }: { user: any }) {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar style="auto" backgroundColor="#F5F1EE" />
       <ThemeProvider
         // value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         value={DefaultTheme}
