@@ -107,7 +107,7 @@ export const MyUserContextProvider = (props: Props) => {
 
   useEffect(() => {
     getUser();
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (session) {

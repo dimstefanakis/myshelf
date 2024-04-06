@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RootSiblingParent } from "react-native-root-siblings";
 import useUser, { MyUserContextProvider } from "@/hooks/useUser";
+import { useUserBooksStore, UserBook } from "@/store/userBooksStore";
 import { supabase } from "@/utils/supabase";
 import { useColorScheme } from "@/components/useColorScheme";
 
@@ -47,11 +48,29 @@ export default function Root() {
 
 export function RootLayout() {
   const { user, loading, initialLoaded } = useUser();
+  const { setBooks } = useUserBooksStore();
 
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
   });
+
+  const getUsersBooks = async (user_id: any) => {
+    const data = await supabase
+      .from("users_books")
+      .select("*, book(*)")
+      .eq("user", user_id);
+    if (data?.data) {
+      setBooks(data.data as unknown as UserBook[]);
+    }
+    return data;
+  };
+
+  useEffect(() => {
+    if (user) {
+      getUsersBooks(user.id);
+    }
+  }, [user]);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {

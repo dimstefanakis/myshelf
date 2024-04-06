@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Modal, StyleSheet, TouchableOpacity } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import MapEvent from "react-native-maps";
+import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { View, Button, TextInput, Text } from "../Themed";
 import { supabase } from "@/utils/supabase";
 import { useNavigation } from "expo-router";
@@ -16,8 +17,16 @@ interface MarkerType {
   title?: string;
 }
 
+type Geometry = {
+  location: {
+    lat: number;
+    lng: number;
+  };
+};
+
 export default function MapViewScreen({ navigation }: any) {
   const nav = useNavigation<any>();
+  const mapRef = useRef<MapView>(null);
   const user = useUser();
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
@@ -28,9 +37,24 @@ export default function MapViewScreen({ navigation }: any) {
       latitude,
       longitude,
     });
-    console.log("latitude", latitude);
-    console.log("longitude", longitude);
   };
+
+  const handleAutoComplete = (data: Geometry) => {
+    const { lat, lng } = data.location;
+    // navigate to addMarker
+    nav.navigate("AddMarker", {
+      latitude: lat,
+      longitude: lng,
+    });
+  };
+
+  useEffect(() => {
+    const unsubscribe = nav.addListener("focus", () => {
+      fetchMarkers();
+    });
+
+    return unsubscribe;
+  }, [nav]);
 
   const handleEditMarker = () => {
     // navigate to editMarker
@@ -39,7 +63,6 @@ export default function MapViewScreen({ navigation }: any) {
 
   const fetchMarkers = async () => {
     if (!user.user?.id) {
-      console.log(user?.user?.id);
       return;
     }
     let { data, error } = await supabase
@@ -112,7 +135,36 @@ export default function MapViewScreen({ navigation }: any) {
       >
         <Text style={styles.editButtonText}>Edit Markers</Text>
       </TouchableOpacity>
-      <MapView style={styles.map} onPress={(e: any) => handleMapPress(e)}>
+      <View style={styles.searchContainer}>
+        <GooglePlacesAutocomplete
+          placeholder="Search"
+          fetchDetails
+          onPress={(data, details = null) => {
+            // 'details' is provided when fetchDetails = true
+            if (details?.geometry) {
+              mapRef?.current?.animateToRegion({
+                latitude: details.geometry.location.lat,
+                longitude: details.geometry.location.lng,
+                latitudeDelta: 0.1,
+                longitudeDelta: 0.1,
+              });
+              setTimeout(() => {
+                handleAutoComplete(details.geometry);
+              }, 1000);
+            }
+          }}
+          query={{
+            key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
+            language: "en",
+          }}
+        />
+      </View>
+      <MapView
+        onRegionChangeComplete={(region, { isGesture }) => {}}
+        ref={mapRef}
+        style={styles.map}
+        onPress={(e: any) => handleMapPress(e)}
+      >
         {markers.map((marker) => (
           <Marker
             key={marker.key}
@@ -132,6 +184,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  searchContainer: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    right: 20,
+    zIndex: 10,
+    // height: 500,
+    backgroundColor: "transparent",
+  },
   map: {
     width: "100%",
     height: "100%",
@@ -140,7 +201,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     zIndex: 10,
     right: 20,
-    top: 40,
+    bottom: 40,
     backgroundColor: "black",
     padding: 10,
     borderRadius: 4,
