@@ -198,7 +198,8 @@ function GoalTrackerScreen() {
         </Button>
         <EditGoals tab={selectedTab} />
       </View>
-      <StreakChallenge week={2} days={7} markers={markers} />
+      <View style={{ flex: 1 }}></View>
+      {/* <StreakChallenge week={2} days={7} markers={markers} /> */}
     </View>
   );
 }
