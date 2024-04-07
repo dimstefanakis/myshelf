@@ -149,19 +149,25 @@ export interface Database {
           created_at: string
           goal: string | null
           id: string
+          type: string | null
           unit_amount: number | null
+          user: string | null
         }
         Insert: {
           created_at?: string
           goal?: string | null
           id?: string
+          type?: string | null
           unit_amount?: number | null
+          user?: string | null
         }
         Update: {
           created_at?: string
           goal?: string | null
           id?: string
+          type?: string | null
           unit_amount?: number | null
+          user?: string | null
         }
         Relationships: [
           {
@@ -169,6 +175,13 @@ export interface Database {
             columns: ["goal"]
             isOneToOne: false
             referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_logs_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]
