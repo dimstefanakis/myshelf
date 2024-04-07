@@ -14,10 +14,10 @@ function TopNavBar() {
       }}
     >
       <Image
-        source={require("../assets/images/alogo.png")}
-        style={{ width: 50, height: 90 }}
+        source={require("../assets/images/myshelf_logo.png")}
+        style={{ width: 140, height: 70 }}
       />
-      <Text style={{ fontSize: 20, color: "black" }}>
+      <Text style={{ fontSize: 16, color: "#326E78", marginVertical: 10 }}>
         Explore and visualise your reading!
       </Text>
     </View>

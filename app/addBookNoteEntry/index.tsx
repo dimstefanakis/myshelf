@@ -3,9 +3,14 @@ import React, { useEffect } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 import { Text, TextInput, Button } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
+import { useUserBooksStore } from "@/store/userBooksStore";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase";
+import * as FileSystem from "expo-file-system";
+import { decode } from "base64-arraybuffer";
+import { set } from "react-hook-form";
+import { Alert } from "react-native";
 
 const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   const [bookData, setBookData] = useState({
@@ -21,9 +26,44 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
 
   const navigation = useNavigation();
   const user = useUser();
-  const { id } = route.params ?? {};
-
+  const { books } = useUserBooksStore();
+  const { image, id } = route.params ?? {};
+  console.log("image", books);
   // if id exists then we are editing an existing book entry
+  const uploadData = async () => {
+   
+    if (!image) {
+      // upload the data without the image
+      const { data, error } = await supabase
+        .from("notes")
+        .insert([{ ...bookData, image_url: "" }]);
+      if (error) {
+        console.error("Error inserting data", error);
+        return;
+      }
+      navigation.goBack();
+    }
+    const base64 = await FileSystem.readAsStringAsync(image.uri, {
+      encoding: "base64",
+    });
+    const filePath = `booknotes/${new Date().getTime()}.jpg`;
+    const { error: uploadError } = await supabase.storage
+      .from("images")
+      .upload(filePath, decode(base64), { contentType: "image/jpg" });
+
+    if (uploadError) {
+      console.error("Error uploading file", uploadError);
+    } else {
+      const { data, error } = await supabase
+        .from("notes")
+        .insert([{ ...bookData, image_url: filePath ? filePath : "" }]);
+      if (error) {
+        console.error("Error inserting data", error);
+      } else {
+        navigation.goBack();
+      }
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -32,7 +72,7 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
           .from("notes")
           .select("*")
           .eq("id", id || "")
-          .single(); 
+          .single();
 
         if (error) {
           console.error("Error fetching data:", error);
@@ -76,13 +116,14 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   };
 
   useEffect(() => {
-    if (user?.user?.books?.length && !bookData.users_book) {
+    if (books?.length && !bookData.users_book) {
       setBookData((prevData) => ({
         ...prevData,
-        users_book: user?.user?.books[0]?.id || "",
+        users_book: books[0]?.id || "",
       }));
     }
-  }, [user]);
+    console.log(books);
+  }, [user, books]);
 
   const handleChange = (name: string, value: any) => {
     if (id) {
@@ -138,16 +179,16 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
       ) : (
         <>
           <SelectDropdown
-            data={user?.user?.books.map((book) => book.book.title) || []}
+            data={books.map((book) => book.book.title) || []}
             onSelect={(selectedItem, index) => {
-              handleChange("users_book", user?.user?.books[index].id);
+              handleChange("users_book", books[index].id);
             }}
             buttonTextAfterSelection={(selectedItem) => selectedItem}
             rowTextForSelection={(item) => item}
             buttonStyle={styles.dropdown1BtnStyle}
             defaultButtonText="Select a book"
           />
-          <Button onPress={handleSubmit} style={styles.Touchable}>
+          <Button onPress={uploadData} style={styles.Touchable}>
             <Text style={{ color: "white" }}>Create Note</Text>
           </Button>
         </>

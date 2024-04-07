@@ -7,19 +7,93 @@ import {
   VictoryLabel,
   VictoryPie,
 } from "victory-native";
-import { View, Text, ScrollView } from "@/components/Themed";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useRouter, useNavigation } from "expo-router";
+import { View, Text, Button, ScrollView } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import languages from "../languages";
+import { useUserBooksStore } from "@/store/userBooksStore";
+
+interface GoogleApiData {
+  volumeInfo?: {
+    categories?: string[];
+  };
+}
+
+function isGoogleApiData(obj: any): obj is GoogleApiData {
+  return obj && typeof obj === "object" && "volumeInfo" in obj;
+}
 
 function StatisticsView() {
   const { user } = useUser();
+  const { books } = useUserBooksStore();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [booksLanguage, setBooksLanguage] = useState<any[]>([]);
   const [booksGenre, setBooksGenre] = useState<any[]>([]);
+  const [fictionData, setFictionData] = useState<any[]>([]);
+  const [nonFictionData, setNonFictionData] = useState<any[]>([]);
 
-  const fictionData = [{ bookType: "Fiction", percentage: 92 }];
+  const getBooksFictionNonFiction = async () => {
+    let { data: fetchedBooks, error } = await supabase
+      .from("books")
+      .select("google_api_data");
 
-  const nonFictionData = [{ bookType: "Non-fiction", percentage: 8 }];
+    if (error) {
+      console.error("Error fetching data:", error);
+      return;
+    }
+
+    let fictionCount = 0;
+    let nonFictionCount = 0;
+    const customRound = (value: number) => {
+      const decimalPart = value - Math.floor(value);
+      if (decimalPart >= 0.6) {
+        return Math.ceil(value);
+      } else {
+        return Math.round(value);
+      }
+    };
+    if (fetchedBooks) {
+      fetchedBooks.forEach((book) => {
+        if (isGoogleApiData(book.google_api_data)) {
+          const categories = book.google_api_data.volumeInfo?.categories;
+          const containsFiction = categories?.some((category: string) =>
+            category.toLowerCase().includes("fiction"),
+          );
+          const containsNonfiction = categories?.some((category: string) =>
+            category.toLowerCase().includes("nonfiction"),
+          );
+
+          if (containsFiction && !containsNonfiction) {
+            fictionCount++;
+          } else {
+            nonFictionCount++;
+          }
+        } else {
+          nonFictionCount++;
+        }
+      });
+      const totalCount = fictionCount + nonFictionCount;
+      const fictionPercentage = customRound((fictionCount / totalCount) * 100);
+      const nonFictionPercentage = customRound(
+        (nonFictionCount / totalCount) * 100,
+      );
+
+      setFictionData([{ bookType: "Fiction", percentage: fictionPercentage }]);
+      setNonFictionData([
+        { bookType: "Non-fiction", percentage: nonFictionPercentage },
+      ]);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.id) {
+      getBooksLanguage();
+      getBooksGenre();
+      getBooksFictionNonFiction();
+    }
+  }, [user?.id, books]);
 
   const getBooksGenre = async () => {
     let { data: fetchedBooks, error } = await supabase
@@ -27,13 +101,13 @@ function StatisticsView() {
       .select(
         `
         id,
-        book:books ( 
-          id, 
-          book_tags (*, 
+        book:books (
+          id,
+          book_tags (*,
             tags (name)
           )
         )
-      `
+      `,
       )
       .eq("user", user?.id ? user.id : "");
 
@@ -42,30 +116,29 @@ function StatisticsView() {
       return;
     }
 
-    console.log(fetchedBooks);
     if (fetchedBooks) {
       const genreCounts = fetchedBooks.reduce(
         (acc: { [key: string]: number }, book: { [key: string]: any }) => {
           const tags = book?.book?.book_tags.map(
-            (tag: { [key: string]: any }) => tag?.tags?.name
+            (tag: { [key: string]: any }) => tag?.tags?.name,
           );
           tags.forEach((tag: string) => {
             acc[tag] = (acc[tag] || 0) + 1;
           });
           return acc;
         },
-        {}
+        {},
       );
 
       const totalGenreAssignments = Object.values(genreCounts).reduce(
         (total, count) => total + count,
-        0
+        0,
       );
       const dataForGenre = Object.keys(genreCounts).map((genre) => ({
         x: genre,
         y: (genreCounts[genre] / totalGenreAssignments) * 100,
         label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(
-          0
+          0,
         )}%`,
       }));
 
@@ -90,7 +163,7 @@ function StatisticsView() {
           acc[lang] = (acc[lang] || 0) + 1;
           return acc;
         },
-        {}
+        {},
       );
 
       const totalBooks = fetchedBooks.length;
@@ -128,8 +201,25 @@ function StatisticsView() {
     </View>
   );
 
-  return (
-    <ScrollView style={{ backgroundColor: "white" }}>
+  return books.length == 0 ? (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
+      }}
+    >
+      <Text>Add books to your library to see statistics here!</Text>
+      <Button
+        onPress={() => navigation.navigate("Search")}
+        style={{ marginTop: 20 }}
+      >
+        <Text style={{ color: "white" }}>Add books</Text>
+      </Button>
+    </View>
+  ) : (
+    <ScrollView>
       <View style={styles.container}>
         <View style={styles.graphContainer}>
           <Text style={styles.title}>Genres</Text>

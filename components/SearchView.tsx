@@ -27,9 +27,9 @@ export default function Search({ addAction }: { addAction?: string }) {
     const scrollPosition = event.nativeEvent.contentOffset.y;
     const scrollViewHeight = event.nativeEvent.layoutMeasurement.height;
     const contentHeight = event.nativeEvent.contentSize.height;
-    const isScrolledToBottom = scrollViewHeight + scrollPosition
-    if (isScrolledToBottom >= (contentHeight - 50)) {
-      fetchMoreBooks()
+    const isScrolledToBottom = scrollViewHeight + scrollPosition;
+    if (isScrolledToBottom >= contentHeight - 50) {
+      fetchMoreBooks();
     }
   }
 
@@ -60,10 +60,9 @@ export default function Search({ addAction }: { addAction?: string }) {
     setResults(data.items);
   }
 
-
   useEffect(() => {
     if (search) {
-      setBookIndex(0)
+      setBookIndex(0);
       getBookResults(search);
     }
   }, [search]);

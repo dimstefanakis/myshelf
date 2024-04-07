@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { Image } from "react-native-elements";
 import { Modal } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { View, Text, ScrollView } from "../Themed";
+import { View, Text, Button, ScrollView } from "../Themed";
 import { useJournalStore } from "@/store/journalStore";
 import useUser from "@/hooks/useUser";
 import type { Journal } from "@/store/journalStore";
@@ -68,12 +68,6 @@ const JournalScreen = () => {
 
   return (
     <View style={{ height: "100%", alignItems: "center" }}>
-      {/* <TouchableOpacity
-        style={styles.createJournalButton}
-        onPress={() => navigation.navigate("modalContent")}
-      >
-        <Text style={styles.createButtonText}>Create New Journal</Text>
-      </TouchableOpacity> */}
       {journal.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
@@ -116,50 +110,8 @@ const JournalScreen = () => {
                         })
                       }
                     />
-                    <AntDesign
-                      name="eye"
-                      size={15}
-                      color="black"
-                      onPress={handleModal}
-                    />
                   </View>
-                  <View style={styles.modalContainer}>
-                    <Modal
-                      animationType="slide"
-                      visible={modalVisible}
-                      onRequestClose={handleModal}
-                      presentationStyle="formSheet"
-                      style={{
-                        backgroundColor: "rgba(0, 0, 255, 0.7)",
-                        borderRadius: 20,
-                        borderWidth: 1,
-                        borderColor: "black",
-                        borderStyle: "solid",
-                      }}
-                    >
-                      <View
-                        style={{
-                          flex: 1,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: "80%",
-                            height: "80%",
-                          }}
-                        >
-                          <Image
-                            source={{
-                              uri: `http://127.0.0.1:54321/storage/v1/object/public/images/${journal.image_url}`,
-                            }}
-                            style={{ width: "100%", height: "100%" }}
-                          />
-                        </View>
-                      </View>
-                    </Modal>
-                  </View>
+                  <View style={styles.modalContainer}></View>
                 </View>
                 <Text style={{ fontSize: 12, marginTop: 10 }}>
                   {journal.description}
@@ -169,7 +121,27 @@ const JournalScreen = () => {
           })}
         </ScrollView>
       ) : (
-        <Text>No data</Text>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: "#326E78",
+              marginBottom: 20,
+            }}
+          >
+            No entries yet!
+          </Text>
+          <Button onPress={() => nav.navigate("AddJournalEntryScreen")}>
+            <Text style={{ color: "white" }}>Create a new one</Text>
+          </Button>
+        </View>
       )}
     </View>
   );
@@ -182,6 +154,7 @@ const styles = StyleSheet.create({
     width: 200,
     borderRadius: 10,
     marginVertical: 15,
+    backgroundColor: "#326E78",
   },
   createButtonText: {
     color: "white",

@@ -171,7 +171,8 @@ export default function BookModalScreen() {
     <View style={styles.container}>
       <Image
         source={{ uri: book?.volumeInfo.imageLinks?.thumbnail }}
-        style={{ width: 128, height: 192 }}
+        style={{ width: 256, height: 384 }}
+        contentFit="contain"
         placeholder={blurhash}
         transition={1000}
       />
@@ -180,7 +181,7 @@ export default function BookModalScreen() {
       <Text style={styles.author}>{book?.volumeInfo.authors?.[0]}</Text>
       {/* release year */}
       <Text style={styles.description}>
-        {getReleaseYear(book?.volumeInfo.publishedDate || "")}
+        Published: {getReleaseYear(book?.volumeInfo.publishedDate || "")}
       </Text>
 
       {/* <Link to="BookList">
@@ -192,22 +193,17 @@ export default function BookModalScreen() {
           marginTop: 20,
           display: "flex",
           flexDirection: "row",
+          width: 200,
         }}
       >
-        {addingBook && (
-          <ActivityIndicator
-            size="small"
-            color="white"
-            style={{
-              marginRight: 10,
-              marginLeft: -10,
-            }}
-          />
+        {addingBook ? (
+          <ActivityIndicator size="small" color="white" />
+        ) : (
+          <Text style={{ color: "white", fontWeight: "700" }}>
+            {/* @ts-ignore */}
+            Add to {action ? actionTypes[action] : "future reading"}
+          </Text>
         )}
-        <Text style={{ color: "white", fontWeight: "700" }}>
-          {/* @ts-ignore */}
-          Add to {action ? actionTypes[action] : "future reading"}
-        </Text>
       </Button>
       <StatusBar style="auto" />
     </View>
@@ -224,6 +220,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 10,
   },
   author: {
     fontSize: 16,
@@ -231,5 +229,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
+    marginTop: 10,
   },
 });

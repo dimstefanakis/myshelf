@@ -4,33 +4,73 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { AppState } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RootSiblingParent } from "react-native-root-siblings";
-
+import useUser, { MyUserContextProvider } from "@/hooks/useUser";
+import { useUserBooksStore, UserBook } from "@/store/userBooksStore";
+import { supabase } from "@/utils/supabase";
 import { useColorScheme } from "@/components/useColorScheme";
+
+AppState.addEventListener("change", (state) => {
+  if (state === "active") {
+    supabase.auth.startAutoRefresh();
+  } else {
+    supabase.auth.stopAutoRefresh();
+  }
+});
 
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from "expo-router";
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: "(tabs)",
-};
+// export const unstable_settings = {
+//   // Ensure that reloading on `/modal` keeps a back button present.
+//   initialRouteName: "(tabs)",
+// };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+export default function Root() {
+  return (
+    <MyUserContextProvider>
+      <RootLayout />
+    </MyUserContextProvider>
+  );
+}
+
+export function RootLayout() {
+  const { user, loading, initialLoaded } = useUser();
+  const { setBooks } = useUserBooksStore();
+
   const [loaded, error] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
   });
+
+  const getUsersBooks = async (user_id: any) => {
+    const data = await supabase
+      .from("users_books")
+      .select("*, book(*)")
+      .eq("user", user_id);
+    if (data?.data) {
+      setBooks(data.data as unknown as UserBook[]);
+    }
+    return data;
+  };
+
+  useEffect(() => {
+    if (user) {
+      getUsersBooks(user.id);
+    }
+  }, [user]);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -38,56 +78,55 @@ export default function RootLayout() {
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
+    if (loaded && initialLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, initialLoaded]);
 
-  if (!loaded) {
+  if (!loaded || !initialLoaded) {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return <RootLayoutNav user={user} />;
 }
 
-function RootLayoutNav() {
+function RootLayoutNav({ user }: { user: any }) {
   const colorScheme = useColorScheme();
 
   return (
-    <RootSiblingParent>
-      <SafeAreaView style={{ flex: 1 }}>
-        <ThemeProvider
-          // value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-          value={DefaultTheme}
-        >
-          <Stack>
-            <Stack.Screen
-              name="(tabs)"
-              options={{ headerShown: false, title: "" }}
-            />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="signup" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="book/[id]"
-              options={{ presentation: "modal", headerShown: false }}
-            />
-            <Stack.Screen
-              name="bookList/[type]"
-              options={{
-                title: "Books",
-              }}
-            />
-            <Stack.Screen
-              name="searchModal/[action]"
-              options={{
-                presentation: "modal",
-                headerShown: false,
-              }}
-            />
-          </Stack>
-        </ThemeProvider>
-      </SafeAreaView>
-    </RootSiblingParent>
+    <SafeAreaView style={{ flex: 1 }}>
+      <StatusBar style="auto" backgroundColor="#F5F1EE" />
+      <ThemeProvider
+        // value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        value={DefaultTheme}
+      >
+        <Stack initialRouteName={user ? "(tabs)" : "login"}>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false, title: "" }}
+          />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+          <Stack.Screen name="signup" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="book/[id]"
+            options={{ presentation: "modal", headerShown: false }}
+          />
+          <Stack.Screen
+            name="bookList/[type]"
+            options={{
+              title: "Books",
+            }}
+          />
+          <Stack.Screen
+            name="searchModal/[action]"
+            options={{
+              presentation: "modal",
+              headerShown: false,
+            }}
+          />
+        </Stack>
+      </ThemeProvider>
+    </SafeAreaView>
   );
 }

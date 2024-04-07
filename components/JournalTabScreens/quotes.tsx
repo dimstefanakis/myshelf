@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
-import { View, Text, ScrollView } from "../Themed";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "expo-router";
+import { View, Text, Button, ScrollView } from "../Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
@@ -57,6 +59,7 @@ const QuoteCard = ({
 const QuotesScreen = () => {
   const { session } = useUser();
   const { quotes, setQuotes } = useJournalStore();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
   const getData = async () => {
     let { data, error } = await supabase
@@ -109,7 +112,29 @@ const QuotesScreen = () => {
     }
   }
 
-  return (
+  return quotes.length == 0 ? (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 20,
+          fontWeight: "bold",
+          color: "#326E78",
+          marginBottom: 20,
+        }}
+      >
+        No quotes yet!
+      </Text>
+      <Button onPress={() => navigation.navigate("AddQuoteEntryScreen")}>
+        <Text style={{ color: "white" }}>Create a new quote</Text>
+      </Button>
+    </View>
+  ) : (
     <ScrollView contentContainerStyle={styles.contentContainer}>
       <View style={styles.quotesContainer}>
         {quotes.map((quote, index) => (

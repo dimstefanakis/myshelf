@@ -7,6 +7,10 @@ import AddJournalEntryScreen from "../addJournalEntry";
 import AddBookNoteEntryScreen from "../addBookNoteEntry";
 import HabitLogBook from "../gridNavigation/habitLogBook";
 import AddQuoteEntryScreen from "../addQuoteEntry";
+import MapScreen from "../gridNavigation/map";
+import AddMarker from "../addMarker";
+import EditMarkers from "@/components/EditMarker";
+import StatisticsScreen from "../gridNavigation/statistics";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +27,11 @@ export default function HomeStack() {
         name="Journal"
         component={JournalLanding}
         options={{ headerShown: true, headerTitle: "Journal" }}
+      />
+      <Stack.Screen
+        name="Map"
+        component={MapScreen}
+        options={{ headerShown: true, headerTitle: "Map" }}
       />
       <Stack.Screen
         name="HabitLogBook"
@@ -45,9 +54,27 @@ export default function HomeStack() {
         options={{ presentation: "modal", headerShown: false }}
       />
       <Stack.Screen
+        name="AddMarker"
+        component={AddMarker}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
         name="GoalTracker"
         component={GoalTrackerScreen}
         options={{ headerShown: true, headerTitle: "Goal Tracker" }}
+      />
+      <Stack.Screen
+        name="EditMarkers"
+        component={EditMarkers}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="Statistics"
+        component={StatisticsScreen}
+        options={{
+          title: "Statistics",
+          headerShown: true,
+        }}
       />
     </Stack.Navigator>
   );

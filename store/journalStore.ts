@@ -6,6 +6,7 @@ export type Note = Database["public"]["Tables"]["notes"]["Row"] & {
   users_book: Database["public"]["Tables"]["users_books"]["Row"] & {
     book: Database["public"]["Tables"]["books"]["Row"];
   };
+  
 };
 export type Quote = Database["public"]["Tables"]["quotes"]["Row"] & {
   users_book: Database["public"]["Tables"]["users_books"]["Row"] & {

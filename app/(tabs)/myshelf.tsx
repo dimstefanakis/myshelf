@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { StyleSheet, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
+import { useUserBooksStore } from "@/store/userBooksStore";
 import { supabase } from "@/utils/supabase";
 
 // import EditScreenInfo from '@/components/topNavBar';
@@ -23,14 +24,17 @@ const shelves = [
   {
     id: "currently_reading",
     title: "Currently Reading",
+    image: require("./../../assets/images/currently_reading.png"),
   },
   {
     id: "completed",
     title: "Completed",
+    image: require("./../../assets/images/completed.png"),
   },
   {
     id: "future_reading",
     title: "To Read",
+    image: require("./../../assets/images/to_read.png"),
   },
   {
     id: "for_studies",
@@ -98,19 +102,28 @@ function Gallery() {
         >
           <Text style={styles.galleryItemButtonText}>Currently reading</Text>
         </Button>
-        <View style={styles.placeholderBox}></View>
+        <Image
+          style={{ width: 150, height: 150, marginLeft: 20 }}
+          source={require("./../../assets/images/currently_reading.png")}
+        />
       </View>
       <View style={styles.galleryItem}>
         <Button style={styles.galleryItemButton} onPress={onCompletedPress}>
           <Text style={styles.galleryItemButtonText}>Completed books</Text>
         </Button>
-        <View style={styles.placeholderBox}></View>
+        <Image
+          style={{ width: 150, height: 150, marginLeft: 20 }}
+          source={require("./../../assets/images/completed.png")}
+        />
       </View>
       <View style={styles.galleryItem}>
         <Button style={styles.galleryItemButton} onPress={onToReadPress}>
           <Text style={styles.galleryItemButtonText}>Books to read</Text>
         </Button>
-        <View style={styles.placeholderBox}></View>
+        <Image
+          style={{ width: 150, height: 150, marginLeft: 20 }}
+          source={require("./../../assets/images/to_read.png")}
+        />
       </View>
     </View>
   );
@@ -118,10 +131,12 @@ function Gallery() {
 
 function Shelves() {
   const { user } = useUser();
+  const { books } = useUserBooksStore();
   return (
     <View style={{ width: "100%" }}>
       {shelves.map((shelf) => (
         <View
+          key={shelf.id}
           style={{
             minWidth: "100%",
             alignItems: "flex-start",
@@ -150,7 +165,7 @@ function Shelves() {
             style={{ height: "17%" }}
             contentContainerStyle={{ minWidth: "100%" }}
           >
-            {user?.books
+            {books
               ?.filter((book) => book.status === shelf.id)
               .map((user_book) => {
                 return (
@@ -216,6 +231,9 @@ const styles = StyleSheet.create({
     color: "white",
   },
   galleryItemButton: {
+    backgroundColor: "#7EB0B8",
+    height: 50,
+    borderRadius: 10,
     width: "45%",
     paddingHorizontal: 0,
   },

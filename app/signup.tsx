@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Session } from "@supabase/supabase-js";
+import { ActivityIndicator } from "react-native";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { useRouter, Redirect } from "expo-router";
 import { View, Text, Button, TextInput } from "@/components/Themed";
@@ -12,6 +13,7 @@ type Inputs = {
 };
 
 export default function Signup() {
+  const [loading, setLoading] = useState(false);
   const { user, session } = useUser();
   const router = useRouter();
   const {
@@ -21,11 +23,12 @@ export default function Signup() {
   } = useForm<Inputs>();
 
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    setLoading(true);
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
     });
-
+    setLoading(false);
     if (error) {
       console.log("error", error);
       return;
@@ -89,15 +92,22 @@ export default function Signup() {
           rules={{ required: true }}
         />
         {errors.password && <Text>This is required.</Text>}
-
-        <Button onPress={handleSubmit(onSubmit)} style={{ marginTop: 10 }}>
-          <Text
-            style={{
-              color: "white",
-            }}
-          >
-            Signup
-          </Text>
+        <Button
+          disabled={loading}
+          onPress={handleSubmit(onSubmit)}
+          style={{ marginTop: 10 }}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text
+              style={{
+                color: "white",
+              }}
+            >
+              Signup
+            </Text>
+          )}
         </Button>
       </View>
     </View>

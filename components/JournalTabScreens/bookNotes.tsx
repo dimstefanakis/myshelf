@@ -6,26 +6,59 @@ import {
   StyleProp,
   ViewStyle,
   Pressable,
+  Modal,
 } from "react-native";
 // import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useRouter } from "expo-router";
+import { useRouter, useNavigation } from "expo-router";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
 import type { Note } from "@/store/journalStore";
 import { Button, View, ScrollView, Text } from "@/components/Themed";
 import { AntDesign } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
 
 const BookScreen: React.FC = () => {
   const { session } = useUser();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { notes, setNotes } = useJournalStore();
+  const [imageUrls, setImageUrls] = useState({}); // State to hold image URLs
+
+  
 
   const getThumbnailUrl = (item: Note): string => {
     return item.users_book?.book?.cover_url ?? "default_thumbnail_url";
   };
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentItem, setCurrentItem] = useState<Note | null>(null);
+
+  const handleModal = (item: any) => {
+    setCurrentItem(item); // If item is provided, set it, otherwise null
+    setModalVisible(!modalVisible);
+  };
+
+  const getPublicUrl = (filePath:any) => {
+    if (!filePath) return "default_thumbnail_url";
+  
+    const { data } = supabase
+      .storage
+      .from('images')
+      .getPublicUrl(filePath);
+  
+  
+    return data.publicUrl;
+  };
+  
+
+  const loadImageUrls = async (notes:any) => {
+    const urls = await Promise.all(notes.map(async (note:any) => ({
+      [note.id]:  getPublicUrl(note.image_url)
+    })));
+  
+    setImageUrls(urls.reduce((acc, url) => ({...acc, ...url}), {}));
+  };
+  
 
   const getNotes = async () => {
     let { data, error } = await supabase
@@ -37,6 +70,7 @@ const BookScreen: React.FC = () => {
       description,
       created_at,
       user,
+      image_url,
       users_book (*,
         book (
           *,
@@ -46,7 +80,6 @@ const BookScreen: React.FC = () => {
     `,
       )
       .eq("users_book.user", session?.user?.id || "");
-
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -84,6 +117,12 @@ const BookScreen: React.FC = () => {
     }
   }, [session?.user?.id]);
 
+  useEffect(() => {
+    if (notes.length) {
+      loadImageUrls(notes);
+    }
+  }, [notes]);
+
   return (
     <View style={styles.container}>
       {notes.length > 0 ? (
@@ -94,6 +133,7 @@ const BookScreen: React.FC = () => {
         >
           {notes.map((item, index) => {
             const thumbnailUrl = getThumbnailUrl(item);
+            console.log(imageUrls)
             // Calculate dynamic styling for alignment
             const remainder = (index + 1) % 3; // Determine position in the row
             let additionalStyle: StyleProp<ViewStyle> = {};
@@ -105,27 +145,76 @@ const BookScreen: React.FC = () => {
               additionalStyle = { marginLeft: "auto", marginRight: 0 };
             } // Middle item naturally centers due to justifyContent
             return (
-              <Pressable
-                key={item.id.toString()}
-                style={[styles.bookItem, additionalStyle]}
-                onPress={() => {
-                  navigation.navigate("AddBookNoteEntryScreen", {
-                    id: item.id,
-                  });
-                }}
-              >
-                <Image
-                  source={{ uri: thumbnailUrl }}
-                  style={styles.bookImage}
-                />
-                <Text style={styles.bookTitle}>{item.title}</Text>
-                <Text style={styles.bookDescription}>{item.description}</Text>
-              </Pressable>
+              <>
+                <View style={[styles.bookItem, additionalStyle]}>
+                  <Pressable onPress={() => handleModal(item)}>
+                    <Image
+                      source={{
+                        uri: imageUrls[item.id]
+                      }}
+                      style={styles.bookImage}
+                    />
+                  </Pressable>
+                  <Pressable
+                    key={item.id.toString()}
+                    onPress={() => {
+                      navigation.navigate("AddBookNoteEntryScreen", {
+                        id: item.id,
+                      });
+                    }}
+                  >
+                    <Text style={styles.bookTitle}>{item.title}</Text>
+                    <Text style={styles.bookDescription}>
+                      {item.description}
+                    </Text>
+                  </Pressable>
+                </View>
+                {currentItem && (
+                  <Modal
+                    animationType="slide"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                  >
+                    <View style={styles.centeredView}>
+                      <Pressable onPress={() => setModalVisible(false)}>
+                        <AntDesign name="close" size={24} color="black" />
+                      </Pressable>
+                      <Image
+                        source={{
+                          uri: imageUrls[currentItem.id]
+                        }}
+                        style={{ width: "90%", height: "90%" }}
+                      />
+                    </View>
+                  </Modal>
+                )}
+              </>
             );
           })}
         </ScrollView>
       ) : (
-        <Text>No notes to display</Text>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: "#326E78",
+              marginBottom: 20,
+            }}
+          >
+            No notes yet!
+          </Text>
+          <Button onPress={() => navigation.navigate("AddBookNoteEntryScreen")}>
+            <Text style={{ color: "white" }}>Create a new note</Text>
+          </Button>
+        </View>
       )}
     </View>
   );
@@ -180,5 +269,26 @@ const styles = StyleSheet.create({
   },
   bookDescription: {
     textAlign: "center",
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });

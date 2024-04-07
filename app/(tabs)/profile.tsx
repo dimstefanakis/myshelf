@@ -1,14 +1,17 @@
 import { Button, View, Text, ScrollView } from "@/components/Themed";
-import React from "react";
+import React, { useEffect } from "react";
+import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 import { Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { supabase } from "@/utils/supabase";
 
 export default function TabTwoScreen() {
+  const router = useRouter();
   const handleSignout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) console.log("Error logging out:", error.message);
+    supabase.auth.signOut();
   };
+
   return (
     <ScrollView style={styles.container}>
       {/* <View style={styles.header}>
@@ -23,7 +26,7 @@ export default function TabTwoScreen() {
           <Feather name="settings" size={24} color="white" />
         </TouchableOpacity>
       </View> */}
-      <View style={styles.rewardsSection}>
+      {/* <View style={styles.rewardsSection}>
         <Text
           style={{
             textAlign: "left",
@@ -62,7 +65,7 @@ export default function TabTwoScreen() {
             </Text>
           </Button>
         </View>
-      </View>
+      </View> */}
       <View>
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuItemText}>Manage Account</Text>
@@ -88,10 +91,10 @@ export default function TabTwoScreen() {
             color="#788490"
           />
         </TouchableOpacity>
-        <Image
+        {/* <Image
           source={require("./../../assets/images/waterstone_plus_banner.png")}
           style={styles.waterstonesPlusImage}
-        />
+        /> */}
       </View>
     </ScrollView>
   );
