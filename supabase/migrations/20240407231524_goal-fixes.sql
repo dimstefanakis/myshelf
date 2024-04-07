@@ -24,6 +24,3 @@ as permissive
 for select
 to public
 using (("user" = auth.uid()));
-
-
-

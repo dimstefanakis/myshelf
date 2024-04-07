@@ -24,7 +24,9 @@ type Geometry = {
   };
 };
 
-export default function MapViewScreen({ navigation }: any) {
+
+
+export default function MapViewScreen({ navigation, sortCategory }: any) {
   const nav = useNavigation<any>();
   const mapRef = useRef<MapView>(null);
   const user = useUser();
@@ -77,7 +79,7 @@ export default function MapViewScreen({ navigation }: any) {
         country_published_lat,
         country_published_long,
         user_book: users_books(*, book: books(*) )
-      `,
+      `
       )
       .eq("user_book.user", user?.user?.id || "");
 
@@ -87,54 +89,85 @@ export default function MapViewScreen({ navigation }: any) {
     }
 
     if (data) {
-      const markersData = data.map((marker) => {
-        let type, latitude, longitude;
+      const markersData = data
+        .map((marker) => {
+          let type, latitude, longitude;
 
-        if (
-          marker.author_nationality_lat !== null &&
-          marker.author_nationality_long !== null
-        ) {
-          type = "Author National";
-          latitude = marker.author_nationality_lat;
-          longitude = marker.author_nationality_long;
-        } else if (
-          marker.country_published_lat !== null &&
-          marker.country_published_long !== null
-        ) {
-          type = "Country Published";
-          latitude = marker.country_published_lat;
-          longitude = marker.country_published_long;
-        } else {
-          type = "Setting Origin";
-          latitude = marker.setting_origin_lat;
-          longitude = marker.setting_origin_long;
-        }
+          if (
+            sortCategory === "author_nationality" &&
+            marker.author_nationality_lat &&
+            marker.author_nationality_long
+          ) {
+            type = "Author National";
+            latitude = marker.author_nationality_lat;
+            longitude = marker.author_nationality_long;
+          } else if (
+            sortCategory === "country_published" &&
+            marker.country_published_lat &&
+            marker.country_published_long
+          ) {
+            type = "Country Published";
+            latitude = marker.country_published_lat;
+            longitude = marker.country_published_long;
+          } else if (
+            sortCategory === "setting_origin" &&
+            marker.setting_origin_lat &&
+            marker.setting_origin_long
+          ) {
+            type = "Setting Origin";
+            latitude = marker.setting_origin_lat;
+            longitude = marker.setting_origin_long;
+          } else if (!sortCategory) {
+            type =
+              marker.setting_origin_lat && marker.setting_origin_long
+                ? "Setting Origin"
+                : marker.author_nationality_lat &&
+                  marker.author_nationality_long
+                ? "Author National"
+                : marker.country_published_lat && marker.country_published_long
+                ? "Country Published"
+                : null;
+            latitude =
+              marker.setting_origin_lat ||
+              marker.author_nationality_lat ||
+              marker.country_published_lat;
+            longitude =
+              marker.setting_origin_long ||
+              marker.author_nationality_long ||
+              marker.country_published_long;
+          }
 
-        return {
-          type,
-          latitude,
-          longitude,
-          key: marker.id.toString(),
-          title: marker.user_book?.book?.title,
-        };
-      });
+          return type
+            ? {
+                type,
+                latitude,
+                longitude,
+                key: marker.id.toString(),
+                title: marker.user_book?.book?.title,
+              }
+            : null;
+        })
+        .filter((marker) => marker !== null);
 
-      setMarkers(markersData.map((marker: any) => marker));
+      setMarkers(markersData);
     }
   };
 
   useEffect(() => {
-    if (user) fetchMarkers();
-  }, [user]);
+    fetchMarkers();
+  }, [user, sortCategory]);
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={() => handleEditMarker()}
-      >
+        {markers.length>0&&(
+
+            <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => handleEditMarker()}
+            >
         <Text style={styles.editButtonText}>Edit Markers</Text>
       </TouchableOpacity>
+        )}
       <View style={styles.searchContainer}>
         <GooglePlacesAutocomplete
           placeholder="Search"
@@ -177,6 +210,7 @@ export default function MapViewScreen({ navigation }: any) {
         ))}
       </MapView>
     </View>
+
   );
 }
 
