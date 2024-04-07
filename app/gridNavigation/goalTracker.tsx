@@ -53,8 +53,6 @@ function GoalTrackerScreen() {
     const unitAmount =
       goals.find((goal) => goal.time_type === selectedTab.value)?.unit_amount ||
       0;
-
-    console.log("unitAmount", unitAmount);
   }
 
   async function getGoals() {
@@ -122,7 +120,6 @@ function GoalTrackerScreen() {
             .map((goal, i) => {
               const percentage =
                 ((goal.progress[0].sum ?? 0) / (goal.unit_amount ?? 1)) * 100;
-              console.log("Goal", goal, goal.goal_logs);
               return (
                 <View
                   key={i + 1}
