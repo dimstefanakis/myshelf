@@ -199,10 +199,30 @@ function GoalTrackerScreen() {
     setGoalLogs(combinedGoals);
   }
 
+  async function listenToLogUpdates() {
+    const channel = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "goal_logs",
+        },
+        () => {
+          fetchGoals();
+        },
+      )
+      .subscribe();
+
+    return channel;
+  }
+
   useEffect(() => {
     if (user?.id) {
       fetchGoals();
       getGoalProgress();
+      listenToLogUpdates();
     }
   }, [user]);
 
@@ -213,11 +233,13 @@ function GoalTrackerScreen() {
           flexDirection: "row",
           justifyContent: "space-evenly",
           marginBottom: 30,
+          paddingTop: 10,
           width: "100%",
         }}
       >
         {tabs.map((tab) => (
           <Button
+            key={tab.value}
             onPress={() => setSelectedTab(tab)}
             style={{
               width: width / tabs.length - 3,
@@ -481,6 +503,7 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                 >
                   {goalTabs.map((goal) => (
                     <Button
+                      key={goal.value}
                       style={{
                         marginTop: 20,
                         backgroundColor:
