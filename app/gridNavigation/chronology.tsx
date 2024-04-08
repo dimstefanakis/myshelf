@@ -159,10 +159,9 @@ export default function ChronologyScreen() {
               flexDirection: "column",
               alignSelf: "center",
               width: "20%",
-              backgroundColor: "white",
             }}
           >
-            <View style={{ backgroundColor: "white" }}>
+            <View>
               <Text style={styles.decadeText}>{decade.representation}</Text>
               <View style={styles.line} />
             </View>
@@ -222,7 +221,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "white",
     maxWidth: Dimensions.get("window").width - 30,
     marginTop: 10,
   },
@@ -272,7 +270,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   container: {
-    backgroundColor: "white",
     padding: 0,
     margin: 0,
     flex: 1,

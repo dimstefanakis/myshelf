@@ -4,12 +4,14 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { AppState } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import { AppState, StatusBar } from "react-native";
+// import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { Stack, Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import { View } from "@/components/Themed";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RootSiblingParent } from "react-native-root-siblings";
 import useUser, { MyUserContextProvider } from "@/hooks/useUser";
@@ -80,6 +82,7 @@ export function RootLayout() {
   useEffect(() => {
     if (loaded && initialLoaded) {
       SplashScreen.hideAsync();
+      // StatusBar.setHidden(true);
     }
   }, [loaded, initialLoaded]);
 
@@ -91,11 +94,13 @@ export function RootLayout() {
 }
 
 function RootLayoutNav({ user }: { user: any }) {
+  const insets = useSafeAreaInsets();
+
   const colorScheme = useColorScheme();
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <StatusBar style="auto" backgroundColor="#F5F1EE" />
+    <View style={{ flex: 1, paddingTop: insets.top }}>
+      <StatusBar hidden />
       <ThemeProvider
         // value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         value={DefaultTheme}
@@ -127,6 +132,6 @@ function RootLayoutNav({ user }: { user: any }) {
           />
         </Stack>
       </ThemeProvider>
-    </SafeAreaView>
+    </View>
   );
 }

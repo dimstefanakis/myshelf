@@ -11,17 +11,31 @@ import MapScreen from "../gridNavigation/map";
 import AddMarker from "../addMarker";
 import EditMarkers from "@/components/EditMarker";
 import StatisticsScreen from "../gridNavigation/statistics";
+import Colors from "@/constants/Colors";
 
 const Stack = createNativeStackNavigator();
 
 export default function HomeStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, title: "" }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        title: "",
+        headerStyle: {
+          backgroundColor: Colors.light.background,
+        },
+        headerShadowVisible: false, // applied here
+        headerBackTitleVisible: false,
+      }}
+    >
       <Stack.Screen name="GridItems" component={HomepageContainers} />
       <Stack.Screen
         name="Chronology"
         component={ChronologyScreen}
-        options={{ headerShown: true, headerTitle: "Chronology" }}
+        options={{
+          headerShown: true,
+          headerTitle: "Chronology",
+        }}
       />
       <Stack.Screen
         name="Journal"
