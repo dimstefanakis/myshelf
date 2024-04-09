@@ -5,7 +5,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { AppState, StatusBar } from "react-native";
-// import { StatusBar } from "expo-status-bar";
+import Colors from "@/constants/Colors";
 import { useFonts } from "expo-font";
 import { Stack, Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -121,6 +121,11 @@ function RootLayoutNav({ user }: { user: any }) {
             name="bookList/[type]"
             options={{
               title: "Books",
+              headerStyle: {
+                backgroundColor: Colors.light.background,
+              },
+              headerShadowVisible: false, // applied here
+              headerBackTitleVisible: false,
             }}
           />
           <Stack.Screen
