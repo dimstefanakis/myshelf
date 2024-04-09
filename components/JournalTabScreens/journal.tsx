@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { TouchableOpacity, StyleSheet } from "react-native";
+import { TouchableOpacity, StyleSheet, TextInput } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useRouter } from "expo-router";
 import { Image } from "react-native-elements";
 import { Modal } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { View, Text, Button, ScrollView } from "../Themed";
-import { useJournalStore } from "@/store/journalStore";
+import { useJournalStore, Journal } from "@/store/journalStore";
 import useUser from "@/hooks/useUser";
-import type { Journal } from "@/store/journalStore";
 import { useNavigation } from "expo-router";
-
+import type { Database } from "@/types_db";
 interface NavigationProp<T> {
   navigate: (screen: keyof T, params?: any) => void;
 }
@@ -22,17 +21,18 @@ const JournalScreen = () => {
   const { session } = useUser();
   const { journal, setJournal } = useJournalStore();
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const nav = useNavigation<NavigationProp<RootStackParamList>>();
   const getData = async () => {
     let { data, error } = await supabase
       .from("journals")
-      .select("*, users_book(*)")
+      .select("*, users_book(book(*), *)  ")
       .eq("users_book.user", session?.user?.id || "");
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
-    setJournal(data as Journal[]);
+    setJournal(data as unknown as Journal[]);
   };
 
   async function listenToJournalUpdates() {
@@ -44,11 +44,10 @@ const JournalScreen = () => {
           event: "*",
           schema: "public",
           table: "journals",
-          // filter: `users_book.user=eq.${session?.user?.id}`,
         },
         () => {
           getData();
-        },
+        }
       )
       .subscribe();
 
@@ -66,80 +65,63 @@ const JournalScreen = () => {
     setModalVisible(!modalVisible);
   };
 
+  const filteredJournal = journal.filter(
+    (entry) =>
+      entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.users_book?.book.title
+        ?.toLowerCase()
+        ?.includes(searchQuery.toLowerCase())
+  );
+
   return (
     <View style={{ height: "100%", alignItems: "center" }}>
-      {journal.length > 0 ? (
-        <ScrollView
-          style={styles.scrollView}
-          // contentContainerStyle={{ paddingVertical: 30 }}
-          // scrollEventThrottle={20}
-        >
-          {journal.map((journal, index) => {
-            return (
-              <View key={index} style={styles.journalEntry}>
-                <View style={styles.dateAndTitle}>
-                  <Text>
-                    <Text style={styles.createdAt}>
-                      {new Date(journal.created_at).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        },
-                      )}
-                    </Text>
-                    <Text> - </Text>
-                    <Text style={styles.createdAt}>{journal.title}</Text>
+      {/* Search Bar */}
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search"
+        onChangeText={(text) => setSearchQuery(text)}
+        value={searchQuery}
+      />
+      {filteredJournal.length > 0 ? (
+        <ScrollView style={styles.scrollView}>
+          {filteredJournal.map((entry, index) => (
+            <View key={index} style={styles.journalEntry}>
+              <View style={styles.dateAndTitle}>
+                <Text>
+                  <Text style={styles.createdAt}>
+                    {new Date(entry.created_at).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
                   </Text>
-                  <View
-                    style={{
-                      paddingHorizontal: 10,
-                      display: "flex",
-                      flexDirection: "row",
-                    }}
-                  >
-                    <AntDesign
-                      name="edit"
-                      size={15}
-                      color="black"
-                      style={{ marginRight: 12 }}
-                      onPress={() =>
-                        nav.navigate("AddJournalEntryScreen", {
-                          id: journal.id,
-                        })
-                      }
-                    />
-                  </View>
-                  <View style={styles.modalContainer}></View>
-                </View>
-                <Text style={{ fontSize: 12, marginTop: 10 }}>
-                  {journal.description}
+                  <Text> - </Text>
+                  <Text style={styles.createdAt}>{entry.title}</Text>
                 </Text>
+                <View style={styles.iconContainer}>
+                  <AntDesign
+                    name="edit"
+                    size={15}
+                    color="black"
+                    style={{ marginRight: 12 }}
+                    onPress={() =>
+                      nav.navigate("AddJournalEntryScreen", { id: entry.id })
+                    }
+                  />
+                </View>
               </View>
-            );
-          })}
+              <Text style={{ fontSize: 12, marginTop: 10 }}>
+                {entry.description}
+              </Text>
+            </View>
+          ))}
         </ScrollView>
       ) : (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: "#326E78",
-              marginBottom: 20,
-            }}
-          >
-            No entries yet!
-          </Text>
+        <View style={styles.noEntriesContainer}>
+          <Text style={styles.noEntriesText}>No entries yet!</Text>
           <Button onPress={() => nav.navigate("AddJournalEntryScreen")}>
-            <Text style={{ color: "white" }}>Create a new one</Text>
+            <Text style={styles.buttonText}>Create a new one</Text>
           </Button>
         </View>
       )}
@@ -148,19 +130,6 @@ const JournalScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  createJournalButton: {
-    padding: 10,
-    alignItems: "center",
-    width: 200,
-    borderRadius: 10,
-    marginVertical: 15,
-    backgroundColor: "#326E78",
-  },
-  createButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
   scrollView: {
     width: "100%",
     paddingBottom: 50,
@@ -169,33 +138,44 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     borderBottomWidth: 1,
-    margin: 0,
     borderBottomColor: "#ddd",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
   },
   dateAndTitle: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
   },
   createdAt: {
     color: "#326E78",
     fontWeight: "bold",
     fontSize: 12,
   },
-  modalContainer: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   iconContainer: {
-    display: "flex",
     flexDirection: "row",
-    alignItems: "center",
+  },
+  noEntriesContainer: {
+    flex: 1,
     justifyContent: "center",
+    alignItems: "center",
+  },
+  noEntriesText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#326E78",
+    marginBottom: 20,
+  },
+  buttonText: {
+    color: "white",
+  },
+  searchBar: {
+    width: "90%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
     paddingHorizontal: 10,
+    marginBottom: 10,
+    marginTop: 10,
+    height: 40,
   },
 });
 

@@ -11,6 +11,7 @@ import MapScreen from "../gridNavigation/map";
 import AddMarker from "../addMarker";
 import EditMarkers from "@/components/EditMarker";
 import StatisticsScreen from "../gridNavigation/statistics";
+import { Platform } from "react-native";
 
 const Stack = createNativeStackNavigator();
 
@@ -41,17 +42,29 @@ export default function HomeStack() {
       <Stack.Screen
         name="AddJournalEntryScreen"
         component={AddJournalEntryScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{
+          presentation: "modal",
+          headerShown: Platform.OS === "android",
+          headerTitle: "Journal",
+        }}
       />
       <Stack.Screen
         name="AddBookNoteEntryScreen"
         component={AddBookNoteEntryScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{
+          presentation: "modal",
+          headerShown: Platform.OS === "android",
+          headerTitle: "Book note",
+        }}
       />
       <Stack.Screen
         name="AddQuoteEntryScreen"
         component={AddQuoteEntryScreen}
-        options={{ presentation: "modal", headerShown: false }}
+        options={{
+          presentation: "modal",
+          headerShown: Platform.OS === "android",
+          headerTitle: "Quote",
+        }}
       />
       <Stack.Screen
         name="AddMarker"

@@ -31,7 +31,6 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   console.log("image", books);
   // if id exists then we are editing an existing book entry
   const uploadData = async () => {
-   
     if (!image) {
       // upload the data without the image
       const { data, error } = await supabase
@@ -237,7 +236,7 @@ const styles = StyleSheet.create({
     backgroundColor: "red",
     padding: 10,
     alignItems: "center",
-    width: 200,
+    width: "40%",
     borderRadius: 10,
     marginVertical: 10,
   },
