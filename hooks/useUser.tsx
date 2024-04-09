@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import type { Database } from "@/types_db";
 import type { UserBook } from "@/store/userBooksStore";
 
-type User = {
+export type User = {
   books: UserBook[];
 } & Session["user"];
 

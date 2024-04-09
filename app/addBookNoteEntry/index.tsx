@@ -1,18 +1,21 @@
-import { View, StyleSheet, TouchableOpacity } from "react-native";
-import React, { useEffect } from "react";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 import { Text, TextInput, Button } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 import { useUserBooksStore } from "@/store/userBooksStore";
 import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
 import { supabase } from "@/utils/supabase";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
-import { set } from "react-hook-form";
-import { Alert } from "react-native";
 
 const AddBookNoteEntryScreen = ({ route, nav }: any) => {
+  const [loading, setLoading] = useState(false);
   const [bookData, setBookData] = useState({
     title: "",
     description: "",
@@ -28,20 +31,24 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   const user = useUser();
   const { books } = useUserBooksStore();
   const { image, id } = route.params ?? {};
-  console.log("image", books);
   // if id exists then we are editing an existing book entry
   const uploadData = async () => {
+    setLoading(true);
+
     if (!image) {
       // upload the data without the image
       const { data, error } = await supabase
         .from("notes")
         .insert([{ ...bookData, image_url: "" }]);
       if (error) {
+        setLoading(false);
         console.error("Error inserting data", error);
         return;
       }
+      setLoading(false);
       navigation.goBack();
     }
+
     const base64 = await FileSystem.readAsStringAsync(image.uri, {
       encoding: "base64",
     });
@@ -53,12 +60,14 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
     if (uploadError) {
       console.error("Error uploading file", uploadError);
     } else {
+      setLoading(false);
       const { data, error } = await supabase
         .from("notes")
         .insert([{ ...bookData, image_url: filePath ? filePath : "" }]);
       if (error) {
         console.error("Error inserting data", error);
       } else {
+        setLoading(false);
         navigation.goBack();
       }
     }
@@ -85,6 +94,7 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   }, [id]);
 
   const updateBookNoteEntry = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("notes")
       .update({
@@ -97,11 +107,13 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
       console.error("Error updating data:", error);
       return;
     }
+    setLoading(false);
     console.log("Data updated:", data);
     navigation.goBack();
   };
 
   const deleteBookNoteEntry = async () => {
+    setLoading(true);
     const { error } = await supabase
       .from("notes")
       .delete()
@@ -111,6 +123,7 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
       console.error("Error deleting data:", error);
       return;
     }
+    setLoading(false);
     navigation.goBack();
   };
 
@@ -121,7 +134,6 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
         users_book: books[0]?.id || "",
       }));
     }
-    console.log(books);
   }, [user, books]);
 
   const handleChange = (name: string, value: any) => {
@@ -169,10 +181,18 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
       {id ? (
         <>
           <Button onPress={updateBookNoteEntry} style={styles.Touchable}>
-            <Text style={{ color: "white" }}>Update Note</Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: "white" }}>Update Note</Text>
+            )}
           </Button>
           <Button onPress={deleteBookNoteEntry} style={styles.deleteButton}>
-            <Text style={{ color: "white" }}>Delete Note</Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: "white" }}>Delete Note</Text>
+            )}
           </Button>
         </>
       ) : (
@@ -188,7 +208,11 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
             defaultButtonText="Select a book"
           />
           <Button onPress={uploadData} style={styles.Touchable}>
-            <Text style={{ color: "white" }}>Create Note</Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: "white" }}>Create Note</Text>
+            )}
           </Button>
         </>
       )}

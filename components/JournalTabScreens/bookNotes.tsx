@@ -38,8 +38,8 @@ const BookScreen: React.FC = () => {
     setModalVisible(!modalVisible);
   };
 
-  const getPublicUrl = (filePath: any) => {
-    if (!filePath) return "default_thumbnail_url";
+  const getPublicUrl = (filePath: any, coverUrl: string) => {
+    if (!filePath) return coverUrl;
 
     const { data } = supabase.storage.from("images").getPublicUrl(filePath);
 
@@ -49,8 +49,8 @@ const BookScreen: React.FC = () => {
   const loadImageUrls = async (notes: any) => {
     const urls = await Promise.all(
       notes.map(async (note: any) => ({
-        [note.id]: getPublicUrl(note.image_url),
-      }))
+        [note.id]: getPublicUrl(note.image_url, note.users_book.book.cover_url),
+      })),
     );
 
     setImageUrls(urls.reduce((acc, url) => ({ ...acc, ...url }), {}));
@@ -145,7 +145,8 @@ const BookScreen: React.FC = () => {
           {filteredBookNotes.map((item, index) => {
             const thumbnailUrl = getThumbnailUrl(item);
             console.log(imageUrls);
-            const remainder = (index + 1) % 3; 
+            // Calculate dynamic styling for alignment
+            const remainder = (index + 1) % 3; // Determine position in the row
             let additionalStyle: StyleProp<ViewStyle> = {};
             if (remainder === 1) {
               additionalStyle = { marginRight: "auto", marginLeft: 0 };
@@ -159,7 +160,7 @@ const BookScreen: React.FC = () => {
                   <Pressable onPress={() => handleModal(item)}>
                     <Image
                       source={{
-                        uri: imageUrls[item.id],
+                        uri: imageUrls[item.id],,
                       }}
                       style={styles.bookImage}
                     />
@@ -191,7 +192,7 @@ const BookScreen: React.FC = () => {
                       </Pressable>
                       <Image
                         source={{
-                          uri: imageUrls[currentItem.id],
+                          uri: imageUrls[currentItem.id],,
                         }}
                         style={{ width: "90%", height: "90%" }}
                       />
@@ -261,23 +262,25 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
   },
   bookItem: {
-    width: "30%",
+    width: "32%",
     padding: 10,
     alignItems: "center",
     marginBottom: 20,
     marginHorizontal: "1.5%",
   },
   bookImage: {
-    width: 100,
+    width: 70,
     height: 100,
     marginBottom: 10,
   },
   bookTitle: {
-    fontSize: 20,
+    fontSize: 16,
+    marginBottom: 6,
     fontWeight: "bold",
   },
   bookDescription: {
-    textAlign: "center",
+    textAlign: "left",
+    fontSize: 9,
   },
   centeredView: {
     flex: 1,

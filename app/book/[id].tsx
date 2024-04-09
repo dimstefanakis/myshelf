@@ -17,6 +17,7 @@ import { supabase } from "@/utils/supabase";
 
 import { Text, View, Button } from "@/components/Themed";
 import type { Book } from "@/constants/BookTypes";
+import { UserBook, useUserBooksStore } from "@/store/userBooksStore";
 
 const actionTypes = {
   currently_reading: "currently reading",
@@ -26,6 +27,8 @@ const actionTypes = {
 
 export default function BookModalScreen() {
   const router = useRouter();
+  const { setBooks } = useUserBooksStore();
+  const [coverUrl, setCoverUrl] = useState<string>("");
   const [addingBook, setAddingBook] = useState(false);
   const [book, setBook] = useState<Book | null>(null);
   const localSearchParams = useLocalSearchParams();
@@ -35,6 +38,17 @@ export default function BookModalScreen() {
 
   const blurhash =
     "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
+
+  const getUsersBooks = async (user_id: any) => {
+    const data = await supabase
+      .from("users_books")
+      .select("*, book(*)")
+      .eq("user", user_id);
+    if (data?.data) {
+      setBooks(data.data as unknown as UserBook[]);
+    }
+    return data;
+  };
 
   async function getBookById() {
     const response = await fetch(
@@ -157,12 +171,14 @@ export default function BookModalScreen() {
         },
       ]);
     }
+    getUsersBooks(session.user.id);
     setAddingBook(false);
     router.back();
   }
 
   useEffect(() => {
     getBookById().then((data) => {
+      setCoverUrl(`${data?.volumeInfo.imageLinks?.thumbnail}&fife=w800`);
       setBook(data);
     });
   }, [bookId]);
@@ -170,7 +186,9 @@ export default function BookModalScreen() {
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: book?.volumeInfo.imageLinks?.thumbnail }}
+        source={{
+          uri: coverUrl,
+        }}
         style={{ width: 256, height: 384 }}
         contentFit="contain"
         placeholder={blurhash}
