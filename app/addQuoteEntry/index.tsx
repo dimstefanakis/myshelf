@@ -1,4 +1,4 @@
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import React, { useEffect } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 import { Text, TextInput, Button } from "@/components/Themed";
@@ -9,6 +9,7 @@ import { useState } from "react";
 import { supabase } from "@/utils/supabase";
 
 const AddQuoteEntryScreen = () => {
+  const [loading, setLoading] = useState(false);
   const [quoteData, setQuoteData] = useState({
     title: "",
     author: "",
@@ -35,6 +36,7 @@ const AddQuoteEntryScreen = () => {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("quotes")
       .insert([{ ...quoteData }]);
@@ -42,6 +44,7 @@ const AddQuoteEntryScreen = () => {
       console.error("Error inserting data", error);
       return;
     }
+    setLoading(false);
     navigation.goBack();
   };
 
@@ -71,7 +74,11 @@ const AddQuoteEntryScreen = () => {
         defaultButtonText="Select a book"
       />
       <Button onPress={handleSubmit} style={styles.Touchable}>
-        <Text style={{ color: "white" }}>Create Quote</Text>
+        {loading ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={{ color: "white" }}>Create Quote</Text>
+        )}
       </Button>
     </View>
   );

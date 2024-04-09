@@ -4423,11 +4423,6 @@ expo-font@~11.10.3:
   dependencies:
     fontfaceobserver "^2.1.0"
 
-expo-google-places-autocomplete@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/expo-google-places-autocomplete/-/expo-google-places-autocomplete-1.1.1.tgz#009c8378b46d5d4d513328926ffb0e58368325e6"
-  integrity sha512-2eqBw1Y1bBb8z2fhQy4nbuxLAXEKqH6bdGMdtrslZLvVYK0n6grw+bwaU+B0KM4mCz5/N2vxGvZVYDAE/0Z/cA==
-
 expo-image-loader@~4.6.0:
   version "4.6.0"
   resolved "https://registry.npmjs.org/expo-image-loader/-/expo-image-loader-4.6.0.tgz"
