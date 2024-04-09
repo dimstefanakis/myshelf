@@ -160,7 +160,7 @@ const BookScreen: React.FC = () => {
                   <Pressable onPress={() => handleModal(item)}>
                     <Image
                       source={{
-                        uri: imageUrls[item.id],,
+                        uri: imageUrls[item.id],
                       }}
                       style={styles.bookImage}
                     />
@@ -192,7 +192,7 @@ const BookScreen: React.FC = () => {
                       </Pressable>
                       <Image
                         source={{
-                          uri: imageUrls[currentItem.id],,
+                          uri: imageUrls[currentItem.id],
                         }}
                         style={{ width: "90%", height: "90%" }}
                       />
