@@ -22,6 +22,13 @@ export default function Search({ addAction }: { addAction?: string }) {
   function handleChange(event: NativeSyntheticEvent<TextInputChangeEventData>) {
     setSearch(event.nativeEvent.text);
   }
+  
+  function chooseUlr(): string {
+    const isbnCode: number = Number(search)
+    return !isNaN(isbnCode) && (search.length === 10 || search.length === 13) ? 
+      `https://www.googleapis.com/books/v1/volumes?q=isbn:${search}&startIndex=${bookIndex}&maxResults=10`:
+      `https://www.googleapis.com/books/v1/volumes?q=${search}&startIndex=${bookIndex}&maxResults=10`
+  }
 
   async function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
     const scrollPosition = event.nativeEvent.contentOffset.y;
@@ -37,9 +44,7 @@ export default function Search({ addAction }: { addAction?: string }) {
 
   async function fetchMoreBooks() {
     setIsLoading(true);
-    const resp = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${search}&startIndex=${bookIndex}&maxResults=10`,
-    );
+    const resp = await fetch(chooseUlr());
     const respData = await resp.json();
     if (bookIndex === 0) {
       setResults(respData.items || []);
@@ -59,18 +64,16 @@ export default function Search({ addAction }: { addAction?: string }) {
     setIsLoading(false);
   }
 
-  async function getBookResults(text: string) {
-    const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=${text}&startIndex=0&maxResults=10`,
-    );
+  async function getBookResults() {
+    const response = await fetch(chooseUlr())
     const data = await response.json();
-    setResults(data.items);
+    setResults(data.items || []);
   }
 
   useEffect(() => {
     if (search) {
       setBookIndex(0);
-      getBookResults(search);
+      getBookResults();
     }
   }, [search]);
 
