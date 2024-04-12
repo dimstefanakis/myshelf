@@ -55,7 +55,7 @@ const HabitLogBookComponent: React.FC = () => {
   const { user } = useUser();
   const getWeeksSinceCreation = (
     userCreatedAt: string,
-    habitCreatedAt: string,
+    habitCreatedAt: string
   ): number => {
     const start = new Date(userCreatedAt);
     const end = new Date(habitCreatedAt);
@@ -90,7 +90,7 @@ const HabitLogBookComponent: React.FC = () => {
       const maxWeekOffset = differenceInCalendarWeeks(
         startOfWeek(now, { weekStartsOn }),
         startOfWeek(createdAt, { weekStartsOn }),
-        { weekStartsOn },
+        { weekStartsOn }
       );
       setMaxWeekOffset(maxWeekOffset);
     }
@@ -111,7 +111,7 @@ const HabitLogBookComponent: React.FC = () => {
     const offset = differenceInCalendarWeeks(
       normalizedCurrentDate,
       normalizedCreationDate,
-      { weekStartsOn: 1 },
+      { weekStartsOn: 1 }
     );
 
     return offset;
@@ -131,7 +131,7 @@ const HabitLogBookComponent: React.FC = () => {
     const weekStartString = format(weekStart, "yyyy-MM-dd");
     const weekEndString = format(
       add(weekStart, { weeks: 1, days: -1 }),
-      "yyyy-MM-dd",
+      "yyyy-MM-dd"
     );
     let { data: habitsData, error: habitsError } = await supabase
       .from("habits")
@@ -160,7 +160,7 @@ const HabitLogBookComponent: React.FC = () => {
         ...habit,
         logs:
           habitLogsData?.filter(
-            (log) => log.habit_color.habit.id === habit.id,
+            (log) => log.habit_color.habit.id === habit.id
           ) || [],
         color_code: colorEntry ? colorEntry.color_code : "#808080", // Default gray color
         weekOffset: getWeeksSinceCreation(userCreatedAt, habit.created_at),
@@ -249,7 +249,7 @@ const HabitLogBookComponent: React.FC = () => {
           const color =
             habit.logs.find(
               (log) =>
-                format(parseISO(log.created_at), "yyyy-MM-dd") === dayString,
+                format(parseISO(log.created_at), "yyyy-MM-dd") === dayString
             )?.habit_color.color_code || "#808080";
 
           return (
@@ -297,7 +297,7 @@ const HabitLogBookComponent: React.FC = () => {
 
   const updateHabitColor = async (
     habitId: string | null,
-    colorCode: string,
+    colorCode: string
   ) => {
     if (!habitId) {
       setColorPickerModalVisible(false);
@@ -356,59 +356,67 @@ const HabitLogBookComponent: React.FC = () => {
           <AntDesign name="questioncircleo" size={20} color="#4C7288" />
         </TouchableOpacity>
         <Modal
-          animationType="slide"
           transparent={true}
           visible={modalVisible}
           onRequestClose={() => {
             setModalVisible(!modalVisible);
           }}
         >
-          <View style={styles.centeredView}>
-            <View style={styles.modalView}>
-              <AntDesign
-                name="closecircleo"
-                size={24}
-                color="black"
-                style={{ textAlign: "right" }}
-                onPress={() => setModalVisible(!modalVisible)}
-              />
+          <TouchableWithoutFeedback
+            onPress={() => setModalVisible(!modalVisible)}
+          >
+            <View
+              style={[
+                styles.centeredView,
+                { backgroundColor: "rgba(0, 0, 0, 0.5)" },
+              ]}
+            >
+              <View style={styles.modalView}>
+                <AntDesign
+                  name="closecircleo"
+                  size={24}
+                  color="black"
+                  style={{ textAlign: "right" }}
+                  onPress={() => setModalVisible(!modalVisible)}
+                />
 
-              <Text style={styles.modalText}>Colour Guide</Text>
-              <View style={styles.colorGuide}>
-                <View
-                  style={[
-                    styles.colorIndicator,
-                    { backgroundColor: "#FB3231" },
-                  ]}
-                />
-                <Text style={styles.colorDescription}>
-                  No I didn't read bad stress many distractions
-                </Text>
-              </View>
-              <View style={styles.colorGuide}>
-                <View
-                  style={[
-                    styles.colorIndicator,
-                    { backgroundColor: "#FFC82C" },
-                  ]}
-                />
-                <Text style={styles.colorDescription}>
-                  Medium reading medium stress medium distractions
-                </Text>
-              </View>
-              <View style={styles.colorGuide}>
-                <View
-                  style={[
-                    styles.colorIndicator,
-                    { backgroundColor: "#41BF00" },
-                  ]}
-                />
-                <Text style={styles.colorDescription}>
-                  Yes I read no stress no distractions
-                </Text>
+                <Text style={styles.modalText}>Colour Guide</Text>
+                <View style={styles.colorGuide}>
+                  <View
+                    style={[
+                      styles.colorIndicator,
+                      { backgroundColor: "#FB3231" },
+                    ]}
+                  />
+                  <Text style={styles.colorDescription}>
+                    No I didn't read bad stress many distractions
+                  </Text>
+                </View>
+                <View style={styles.colorGuide}>
+                  <View
+                    style={[
+                      styles.colorIndicator,
+                      { backgroundColor: "#FFC82C" },
+                    ]}
+                  />
+                  <Text style={styles.colorDescription}>
+                    Medium reading medium stress medium distractions
+                  </Text>
+                </View>
+                <View style={styles.colorGuide}>
+                  <View
+                    style={[
+                      styles.colorIndicator,
+                      { backgroundColor: "#41BF00" },
+                    ]}
+                  />
+                  <Text style={styles.colorDescription}>
+                    Yes I read no stress no distractions
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
+          </TouchableWithoutFeedback>
         </Modal>
       </View>
       <Modal
@@ -417,33 +425,35 @@ const HabitLogBookComponent: React.FC = () => {
       >
         <View style={styles.centeredView}>
           <TextInput
-            placeholder="New Habit"
+            placeholder="Habit name"
             value={newHabit}
             onChangeText={setNewHabit}
             style={{
               height: 40,
               borderColor: "gray",
-              width: "30%",
+              width: "40%",
               textAlign: "center",
               borderWidth: 1,
               marginBottom: 20,
+              borderRadius: 25,
             }}
           />
           <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
             <TouchableOpacity
-              style={{ backgroundColor: "red", padding: 10 }}
+              style={styles.cancelButton}
               onPress={() => {
                 setAddHabitModalVisible(false);
                 setNewHabit("");
               }}
             >
-              <Text style={{ color: "white" }}>Cancel</Text>
+              <Text style={{ color: "black", textAlign: "center" }}>
+                Cancel
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={addHabit}
-              style={{ backgroundColor: "blue", padding: 10 }}
-            >
-              <Text style={{ color: "white" }}>Submit</Text>
+            <TouchableOpacity onPress={addHabit} style={styles.submitButton}>
+              <Text style={{ color: "white", textAlign: "center" }}>
+                Submit
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -462,11 +472,7 @@ const HabitLogBookComponent: React.FC = () => {
           })}
         </View>
       </ScrollView>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={colorPickerModalVisible}
-      >
+      <Modal transparent={true} visible={colorPickerModalVisible}>
         <TouchableWithoutFeedback onPress={closeModal}>
           <View style={styles.centeredView}>
             <View style={styles.colorPickerModalView}>
@@ -488,7 +494,6 @@ const HabitLogBookComponent: React.FC = () => {
       </Modal>
       <Modal
         visible={editHabitModalVisible}
-        style={{ width: 50 }}
         onRequestClose={() => setEditHabitModalVisible(false)}
       >
         <View style={styles.centeredView}>
@@ -499,24 +504,24 @@ const HabitLogBookComponent: React.FC = () => {
             style={{
               height: 40,
               borderColor: "gray",
-              width: "30%",
+              width: "40%",
               textAlign: "center",
               borderWidth: 1,
               marginBottom: 20,
+              borderRadius: 25,
             }}
           />
           <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
             <TouchableOpacity
               onPress={() => setEditHabitModalVisible(false)}
-              style={{ backgroundColor: "red", padding: 10 }}
+              style={styles.cancelButton}
             >
-              <Text style={{ color: "white" }}>Cancel</Text>
+              <Text style={{ color: "black", textAlign: "center" }}>
+                Cancel
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={updateHabit}
-              style={{ backgroundColor: "blue", padding: 10 }}
-            >
-              <Text style={{ color: "white" }}>Save Changes</Text>
+            <TouchableOpacity onPress={updateHabit} style={styles.submitButton}>
+              <Text style={{ color: "white", textAlign: "center" }}>Save</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -537,7 +542,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 22,
   },
   scrollViewStyle: {
     width: "100%",
@@ -566,7 +570,7 @@ const styles = StyleSheet.create({
   colorGuide: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
+    marginVertical: 8,
   },
   colorIndicator: {
     width: 24,
@@ -583,10 +587,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   modalText: {
-    marginBottom: 15,
+    marginBottom: 10,
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 18,
+    color: "#B1B7C0",
   },
 
   colorPickerModalView: {
@@ -668,6 +673,18 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 14,
     color: "#B1B7C0",
+  },
+  submitButton: {
+    backgroundColor: "black",
+    padding: 10,
+    borderRadius: 25,
+    width: "20%",
+  },
+  cancelButton: {
+    backgroundColor: "#ddd",
+    padding: 10,
+    borderRadius: 25,
+    width: "20%",
   },
 });
 
