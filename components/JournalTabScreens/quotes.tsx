@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "expo-router";
+import { Entypo } from "@expo/vector-icons";
 import { View, Text, Button, ScrollView } from "../Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
@@ -60,11 +61,62 @@ const QuoteCard = ({
   );
 };
 
+function QuotesMenu({
+  navigation,
+  filterLiked,
+  setFilterLiked,
+}: {
+  navigation: NativeStackNavigationProp<any>;
+  filterLiked: boolean;
+  setFilterLiked: (value: boolean) => void;
+}) {
+  function navigateToQuoteEntry() {
+    navigation.navigate("AddQuoteEntryScreen");
+  }
+
+  return (
+    <View style={{ flexDirection: "row" }}>
+      <TouchableOpacity
+        onPress={() => {
+          setFilterLiked(!filterLiked);
+        }}
+        style={{ marginRight: 10 }}
+      >
+        <Entypo
+          name={filterLiked ? "heart" : "heart-outlined"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          navigateToQuoteEntry();
+        }}
+      >
+        <Entypo name="plus" size={24} color="black" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 const QuotesScreen = () => {
   const { session } = useUser();
+  const [showLiked, setShowLiked] = useState(false);
   const { quotes, setQuotes } = useJournalStore();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <QuotesMenu
+          navigation={navigation}
+          filterLiked={showLiked}
+          setFilterLiked={setShowLiked}
+        />
+      ),
+    });
+  }, [navigation, showLiked, setShowLiked]);
 
   const getData = async () => {
     let { data, error } = await supabase
@@ -119,7 +171,7 @@ const QuotesScreen = () => {
   const filteredQuotes = quotes.filter(
     (entry) =>
       entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       entry.users_book?.book.title
         ?.toLowerCase()
         ?.includes(searchQuery.toLowerCase())
@@ -158,16 +210,24 @@ const QuotesScreen = () => {
       </View>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <View style={styles.quotesContainer}>
-          {filteredQuotes.map((quote, index) => (
-            <QuoteCard
-              key={index}
-              quote={quote.title}
-              author={getAuthor(quote)}
-              work={quote.users_book.book.title}
-              quoteId={quote.id}
-              defaultLiked={!!quote.liked}
-            />
-          ))}
+          {filteredQuotes
+            .filter((quote) => {
+              if (showLiked) {
+                return quote.liked;
+              } else {
+                return true;
+              }
+            })
+            .map((quote, index) => (
+              <QuoteCard
+                key={quote.id}
+                quote={quote.title}
+                author={getAuthor(quote)}
+                work={quote.users_book.book.title}
+                quoteId={quote.id}
+                defaultLiked={quote.liked}
+              />
+            ))}
         </View>
       </ScrollView>
     </>
@@ -175,7 +235,7 @@ const QuotesScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {alignItems: "center", justifyContent: "center" },
+  container: { alignItems: "center", justifyContent: "center" },
   contentContainer: {
     padding: 16,
   },
