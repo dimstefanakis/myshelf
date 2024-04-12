@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useLayoutEffect, useEffect } from "react";
 import { StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "expo-router";
+import { Entypo } from "@expo/vector-icons";
 import { View, Text, Button, ScrollView } from "../Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
@@ -56,10 +57,61 @@ const QuoteCard = ({
   );
 };
 
+function QuotesMenu({
+  navigation,
+  filterLiked,
+  setFilterLiked,
+}: {
+  navigation: NativeStackNavigationProp<any>;
+  filterLiked: boolean;
+  setFilterLiked: (value: boolean) => void;
+}) {
+  function navigateToQuoteEntry() {
+    navigation.navigate("AddQuoteEntryScreen");
+  }
+
+  return (
+    <View style={{ flexDirection: "row" }}>
+      <TouchableOpacity
+        onPress={() => {
+          setFilterLiked(!filterLiked);
+        }}
+        style={{ marginRight: 10 }}
+      >
+        <Entypo
+          name={filterLiked ? "heart" : "heart-outlined"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          navigateToQuoteEntry();
+        }}
+      >
+        <Entypo name="plus" size={24} color="black" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 const QuotesScreen = () => {
   const { session } = useUser();
+  const [showLiked, setShowLiked] = useState(false);
   const { quotes, setQuotes } = useJournalStore();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <QuotesMenu
+          navigation={navigation}
+          filterLiked={showLiked}
+          setFilterLiked={setShowLiked}
+        />
+      ),
+    });
+  }, [navigation, showLiked, setShowLiked]);
 
   const getData = async () => {
     let { data, error } = await supabase
@@ -137,16 +189,24 @@ const QuotesScreen = () => {
   ) : (
     <ScrollView contentContainerStyle={styles.contentContainer}>
       <View style={styles.quotesContainer}>
-        {quotes.map((quote, index) => (
-          <QuoteCard
-            key={index}
-            quote={quote.title}
-            author={getAuthor(quote)}
-            work={quote.users_book.book.title}
-            quoteId={quote.id}
-            defaultLiked={!!quote.liked}
-          />
-        ))}
+        {quotes
+          .filter((quote) => {
+            if (showLiked) {
+              return quote.liked;
+            } else {
+              return true;
+            }
+          })
+          .map((quote, index) => (
+            <QuoteCard
+              key={quote.id}
+              quote={quote.title}
+              author={getAuthor(quote)}
+              work={quote.users_book.book.title}
+              quoteId={quote.id}
+              defaultLiked={quote.liked}
+            />
+          ))}
       </View>
     </ScrollView>
   );

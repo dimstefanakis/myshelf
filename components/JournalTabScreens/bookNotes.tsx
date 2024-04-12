@@ -144,6 +144,7 @@ const BookScreen: React.FC = () => {
                   <Pressable onPress={() => handleModal(item)}>
                     <Image
                       source={{
+                        // @ts-ignore
                         uri: imageUrls[item.id],
                       }}
                       style={styles.bookImage}
@@ -158,7 +159,7 @@ const BookScreen: React.FC = () => {
                     }}
                   >
                     <Text style={styles.bookTitle}>{item.title}</Text>
-                    <Text style={styles.bookDescription}>
+                    <Text style={styles.bookDescription} numberOfLines={4}>
                       {item.description}
                     </Text>
                   </Pressable>
@@ -176,6 +177,7 @@ const BookScreen: React.FC = () => {
                       </Pressable>
                       <Image
                         source={{
+                          // @ts-ignore
                           uri: imageUrls[currentItem.id],
                         }}
                         style={{ width: "90%", height: "90%" }}
