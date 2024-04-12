@@ -59,7 +59,7 @@ const JournalLanding = ({ navigation }: any) => {
     navigation.navigate("AddJournalEntryScreen");
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const titles = ["Journal", "Book Notes", "Quotes"];
     const headerColors = ["#ff9999", "#99ccff", "#99ff99"];
 
@@ -84,25 +84,17 @@ const JournalLanding = ({ navigation }: any) => {
                 </TouchableOpacity>
               </View>
             )
-          : pageIndex === 0 || pageIndex === 2
+          : pageIndex === 0
             ? () => (
                 <TouchableOpacity
                   onPress={() => {
-                    if (pageIndex == 0) {
-                      navigateToJournalEntry();
-                    } else {
-                      navigateToQuoteEntry();
-                    }
+                    navigateToJournalEntry();
                   }}
                 >
                   <Entypo name="plus" size={24} color="black" />
                 </TouchableOpacity>
               )
             : null,
-      // headerStyle: {
-      //   backgroundColor: headerColors[pageIndex],
-      // },
-      // headerTintColor: "black",
     });
   }, [pageIndex, navigation]);
 
@@ -133,6 +125,37 @@ const JournalLanding = ({ navigation }: any) => {
     </View>
   );
 };
+
+function QuotesMenu({ navigation }) {
+  const [filterLiked, setFilterLiked] = useState(false);
+  function navigateToQuoteEntry() {
+    navigation.navigate("AddQuoteEntryScreen");
+  }
+
+  return (
+    <View style={{ flexDirection: "row" }}>
+      <TouchableOpacity
+        onPress={() => {
+          setFilterLiked(!filterLiked);
+        }}
+        style={{ marginRight: 10 }}
+      >
+        <Entypo
+          name={filterLiked ? "heart" : "heart-outlined"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          navigateToQuoteEntry();
+        }}
+      >
+        <Entypo name="plus" size={24} color="black" />
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   header: {

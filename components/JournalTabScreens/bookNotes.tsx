@@ -7,6 +7,7 @@ import {
   ViewStyle,
   Pressable,
   Modal,
+  TextInput,
 } from "react-native";
 // import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -23,6 +24,7 @@ const BookScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { notes, setNotes } = useJournalStore();
   const [imageUrls, setImageUrls] = useState({}); // State to hold image URLs
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getThumbnailUrl = (item: Note): string => {
     return item.users_book?.book?.cover_url ?? "default_thumbnail_url";
@@ -71,7 +73,7 @@ const BookScreen: React.FC = () => {
           google_api_data
         )
       )
-    `,
+    `
       )
       .eq("users_book.user", session?.user?.id || "");
     if (error) {
@@ -97,7 +99,7 @@ const BookScreen: React.FC = () => {
         () => {
           console.log("Notes table changed");
           getNotes();
-        },
+        }
       )
       .subscribe();
 
@@ -117,33 +119,48 @@ const BookScreen: React.FC = () => {
     }
   }, [notes]);
 
+  const filteredBookNotes = notes.filter(
+    (entry) =>
+      entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.users_book?.book.title
+        ?.toLowerCase()
+        ?.includes(searchQuery.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search"
+        onChangeText={(text) => setSearchQuery(text)}
+        value={searchQuery}
+      />
       {notes.length > 0 ? (
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.booksContainer}
           scrollEventThrottle={20}
         >
-          {notes.map((item, index) => {
+          {filteredBookNotes.map((item, index) => {
             const thumbnailUrl = getThumbnailUrl(item);
             console.log(imageUrls);
             // Calculate dynamic styling for alignment
             const remainder = (index + 1) % 3; // Determine position in the row
             let additionalStyle: StyleProp<ViewStyle> = {};
             if (remainder === 1) {
-              // First item in a row
               additionalStyle = { marginRight: "auto", marginLeft: 0 };
             } else if (remainder === 0) {
-              // Last item in a row
+           
               additionalStyle = { marginLeft: "auto", marginRight: 0 };
-            } // Middle item naturally centers due to justifyContent
+            } 
             return (
               <>
                 <View style={[styles.bookItem, additionalStyle]}>
                   <Pressable onPress={() => handleModal(item)}>
                     <Image
                       source={{
+                        // @ts-ignore
                         uri: imageUrls[item.id],
                       }}
                       style={styles.bookImage}
@@ -158,7 +175,7 @@ const BookScreen: React.FC = () => {
                     }}
                   >
                     <Text style={styles.bookTitle}>{item.title}</Text>
-                    <Text style={styles.bookDescription}>
+                    <Text style={styles.bookDescription} numberOfLines={4}>
                       {item.description}
                     </Text>
                   </Pressable>
@@ -176,6 +193,7 @@ const BookScreen: React.FC = () => {
                       </Pressable>
                       <Image
                         source={{
+                          // @ts-ignore
                           uri: imageUrls[currentItem.id],
                         }}
                         style={{ width: "90%", height: "90%" }}
@@ -286,5 +304,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  searchBar: {
+    width: "90%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    marginTop: 10,
+    height: 40,
   },
 });

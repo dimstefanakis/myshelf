@@ -4,9 +4,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Share,
+  TextInput,
 } from "react-native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "expo-router";
+import { Entypo } from "@expo/vector-icons";
 import { View, Text, Button, ScrollView } from "../Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
@@ -55,7 +57,7 @@ const QuoteCard = ({
       </Text>
       <View style={styles.likeButtonContainer}>
         <TouchableOpacity style={styles.likeButton} onPress={onShare}>
-          <FontAwesome6 name="share-square" size={18} color="black" />
+          <FontAwesome6 name="share-square" size={12} color="#a0a0a0" />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.likeButton}
@@ -72,10 +74,62 @@ const QuoteCard = ({
   );
 };
 
+function QuotesMenu({
+  navigation,
+  filterLiked,
+  setFilterLiked,
+}: {
+  navigation: NativeStackNavigationProp<any>;
+  filterLiked: boolean;
+  setFilterLiked: (value: boolean) => void;
+}) {
+  function navigateToQuoteEntry() {
+    navigation.navigate("AddQuoteEntryScreen");
+  }
+
+  return (
+    <View style={{ flexDirection: "row" }}>
+      <TouchableOpacity
+        onPress={() => {
+          setFilterLiked(!filterLiked);
+        }}
+        style={{ marginRight: 10 }}
+      >
+        <Entypo
+          name={filterLiked ? "heart" : "heart-outlined"}
+          size={24}
+          color="black"
+        />
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          navigateToQuoteEntry();
+        }}
+      >
+        <Entypo name="plus" size={24} color="black" />
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 const QuotesScreen = () => {
   const { session } = useUser();
+  const [showLiked, setShowLiked] = useState(false);
   const { quotes, setQuotes } = useJournalStore();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <QuotesMenu
+          navigation={navigation}
+          filterLiked={showLiked}
+          setFilterLiked={setShowLiked}
+        />
+      ),
+    });
+  }, [navigation, showLiked, setShowLiked]);
 
   const getData = async () => {
     let { data, error } = await supabase
@@ -127,7 +181,14 @@ const QuotesScreen = () => {
       return "Unknown";
     }
   }
-
+  const filteredQuotes = quotes.filter(
+    (entry) =>
+      entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.users_book?.book.title
+        ?.toLowerCase()
+        ?.includes(searchQuery.toLowerCase())
+  );
   return quotes.length == 0 ? (
     <View
       style={{
@@ -151,26 +212,44 @@ const QuotesScreen = () => {
       </Button>
     </View>
   ) : (
-    <ScrollView contentContainerStyle={styles.contentContainer}>
-      <View style={styles.quotesContainer}>
-        {quotes.map((quote, index) => (
-          <QuoteCard
-            key={index}
-            quote={quote.title}
-            author={getAuthor(quote)}
-            work={quote.users_book.book.title}
-            quoteId={quote.id}
-            defaultLiked={!!quote.liked}
-            message={undefined}
-          />
-        ))}
+    <>
+      <View style={styles.container}>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search"
+          onChangeText={(text) => setSearchQuery(text)}
+          value={searchQuery}
+        />
       </View>
-    </ScrollView>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={styles.quotesContainer}>
+          {filteredQuotes
+            .filter((quote) => {
+              if (showLiked) {
+                return quote.liked;
+              } else {
+                return true;
+              }
+            })
+            .map((quote, index) => (
+              <QuoteCard
+                key={quote.id}
+                quote={quote.title}
+                author={getAuthor(quote)}
+                work={quote.users_book.book.title}
+                quoteId={quote.id}
+                defaultLiked={quote.liked}
+                message={undefined}
+              />
+            ))}
+        </View>
+      </ScrollView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: { alignItems: "center", justifyContent: "center" },
   contentContainer: {
     padding: 16,
   },
@@ -214,6 +293,9 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     alignSelf: "flex-end",
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   likeButtonText: {
     fontSize: 14,
@@ -223,6 +305,16 @@ const styles = StyleSheet.create({
   likeButtonTextLiked: {
     fontSize: 14,
     color: "#ff6b6b",
+  },
+  searchBar: {
+    width: "90%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 10,
+    marginTop: 10,
+    height: 40,
   },
 });
 
