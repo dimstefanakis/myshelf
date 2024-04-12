@@ -3,6 +3,7 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  Share,
   TextInput,
 } from "react-native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -13,6 +14,7 @@ import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
 import type { Quote } from "@/store/journalStore";
+import { FontAwesome6 } from "@expo/vector-icons";
 
 const QuoteCard = ({
   quote,
@@ -26,6 +28,7 @@ const QuoteCard = ({
   work: string | null;
   quoteId: string;
   defaultLiked: boolean | null;
+  message: any;
 }) => {
   const [liked, setLiked] = useState(defaultLiked);
 
@@ -39,6 +42,13 @@ const QuoteCard = ({
   useEffect(() => {
     toggleQuote();
   }, [liked]);
+
+  const onShare = async () => {
+    await Share.share({
+      message: quote + "\n- " + author + ", " + work,
+    });
+  };
+
   return (
     <View style={styles.quoteCard}>
       <Text style={styles.quoteText}>{quote}</Text>
@@ -46,6 +56,9 @@ const QuoteCard = ({
         {author}, {work}
       </Text>
       <View style={styles.likeButtonContainer}>
+        <TouchableOpacity style={styles.likeButton} onPress={onShare}>
+          <FontAwesome6 name="share-square" size={12} color="#a0a0a0" />
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.likeButton}
           onPress={() => setLiked(!liked)}
@@ -226,6 +239,7 @@ const QuotesScreen = () => {
                 work={quote.users_book.book.title}
                 quoteId={quote.id}
                 defaultLiked={quote.liked}
+                message={undefined}
               />
             ))}
         </View>
@@ -270,12 +284,18 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   likeButtonContainer: {
+    display: "flex",
     flex: 1,
     justifyContent: "flex-end",
     backgroundColor: "transparent",
+    flexDirection: "row",
+    gap: 10,
   },
   likeButton: {
     alignSelf: "flex-end",
+    height: 20,
+    alignItems: "center",
+    justifyContent: "center",
   },
   likeButtonText: {
     fontSize: 14,
