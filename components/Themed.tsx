@@ -8,6 +8,7 @@ import {
   View as DefaultView,
   TextInput as DefaultTextInput,
   ScrollView as DefaultScrollView,
+  ActivityIndicator,
 } from "react-native";
 
 import Colors from "@/constants/Colors";
@@ -32,6 +33,8 @@ export type ScrollViewProps = ThemeProps & DefaultScrollView["props"];
 export type ButtonProps = ThemeProps &
   PressableProps & {
     style?: StyleProp<ViewStyle>;
+  } & {
+    isLoading?: boolean;
   };
 export type InputProps = ThemeProps & TextInputProps;
 
@@ -97,7 +100,7 @@ export function Button(props: ButtonProps) {
         style,
       ]}
       {...otherProps}
-    />
+    ></Pressable>
   );
 }
 

@@ -1,5 +1,7 @@
 import { View, Text, TextInput } from "@/components/Themed";
-import useUser, { UserBook } from "@/hooks/useUser";
+import useUser from "@/hooks/useUser";
+import { UserBook } from "@/store/userBooksStore";
+import { useUserBooksStore } from "@/store/userBooksStore";
 import { EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
@@ -51,10 +53,11 @@ function calculateOffset(creationYear: string): DimensionValue {
 }
 
 export default function ChronologyScreen() {
-  const numberOfDecades = 4;
+  const numberOfDecades = 12;
   const [decades, setDecades] = useState<Decade[]>([]);
   const [searchQuery, setSearchQuert] = useState<string>("");
   const { user, session, loading } = useUser();
+  const { books } = useUserBooksStore();
   const [userBooks, setUserBooks] = useState<UserBook[]>([]);
 
   const handleInputChange = (text: string) => {
@@ -63,17 +66,22 @@ export default function ChronologyScreen() {
 
   useEffect(() => {
     setDecades(generateDecades(numberOfDecades));
-    setUserBooks(user?.books ? user.books : []);
-  }, [loading]);
+    setUserBooks(books ? books : []);
+  }, [loading, books]);
 
   useEffect(() => {
     setUserBooks(
-      user?.books ?
-        user.books
-          .filter(userBook => userBook.book.title?.toLowerCase().includes(searchQuery.toLocaleLowerCase()) || getBookCreationYear(userBook).includes(searchQuery))
-        : []
-    )
-  }, [searchQuery])
+      books
+        ? books.filter(
+            (userBook) =>
+              userBook.book.title
+                ?.toLowerCase()
+                .includes(searchQuery.toLocaleLowerCase()) ||
+              getBookCreationYear(userBook).includes(searchQuery),
+          )
+        : [],
+    );
+  }, [searchQuery]);
 
   function renderBookEntries(decade: Decade): React.JSX.Element[] {
     let decadeBooks = userBooks.filter(
@@ -119,20 +127,20 @@ export default function ChronologyScreen() {
           {/* <EvilIcons name="search" size={25} /> */}
           <TextInput
             // style={styles.input}
-            placeholder="Search here"
+            placeholder="Search"
             onChangeText={handleInputChange}
             value={searchQuery}
             keyboardType="default"
           />
         </View>
-        <Pressable style={styles.addButton}>
+        {/* <Pressable style={styles.addButton}>
           <EvilIcons size={25} name="plus" />
           <Text
             style={{ color: "black", alignSelf: "center", textAlign: "center" }}
           >
             Add
           </Text>
-        </Pressable>
+        </Pressable> */}
       </View>
       <ScrollView
         style={{
@@ -151,10 +159,9 @@ export default function ChronologyScreen() {
               flexDirection: "column",
               alignSelf: "center",
               width: "20%",
-              backgroundColor: "white",
             }}
           >
-            <View style={{ backgroundColor: "white" }}>
+            <View>
               <Text style={styles.decadeText}>{decade.representation}</Text>
               <View style={styles.line} />
             </View>
@@ -214,17 +221,16 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: "white",
     maxWidth: Dimensions.get("window").width - 30,
     marginTop: 10,
   },
   inputContainer: {
-    width: "65%",
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     // backgroundColor: "wheat",
     // borderWidth: 1,
-    marginRight: 15,
+    // marginRight: 15,
     height: 40,
   },
   // input: {
@@ -264,7 +270,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   container: {
-    backgroundColor: "white",
     padding: 0,
     margin: 0,
     flex: 1,

@@ -7,22 +7,45 @@ import AddJournalEntryScreen from "../addJournalEntry";
 import AddBookNoteEntryScreen from "../addBookNoteEntry";
 import HabitLogBook from "../gridNavigation/habitLogBook";
 import AddQuoteEntryScreen from "../addQuoteEntry";
+import MapScreen from "../gridNavigation/map";
+import AddMarker from "../addMarker";
+import EditMarkers from "@/components/EditMarker";
+import StatisticsScreen from "../gridNavigation/statistics";
+import Colors from "@/constants/Colors";
 
 const Stack = createNativeStackNavigator();
 
 export default function HomeStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, title: "" }}>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        title: "",
+        headerStyle: {
+          backgroundColor: Colors.light.background,
+        },
+        headerShadowVisible: false, // applied here
+        headerBackTitleVisible: false,
+      }}
+    >
       <Stack.Screen name="GridItems" component={HomepageContainers} />
       <Stack.Screen
         name="Chronology"
         component={ChronologyScreen}
-        options={{ headerShown: true, headerTitle: "Chronology" }}
+        options={{
+          headerShown: true,
+          headerTitle: "Chronology",
+        }}
       />
       <Stack.Screen
         name="Journal"
         component={JournalLanding}
         options={{ headerShown: true, headerTitle: "Journal" }}
+      />
+      <Stack.Screen
+        name="Map"
+        component={MapScreen}
+        options={{ headerShown: true, headerTitle: "Map" }}
       />
       <Stack.Screen
         name="HabitLogBook"
@@ -45,9 +68,27 @@ export default function HomeStack() {
         options={{ presentation: "modal", headerShown: false }}
       />
       <Stack.Screen
+        name="AddMarker"
+        component={AddMarker}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
         name="GoalTracker"
         component={GoalTrackerScreen}
         options={{ headerShown: true, headerTitle: "Goal Tracker" }}
+      />
+      <Stack.Screen
+        name="EditMarkers"
+        component={EditMarkers}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="Statistics"
+        component={StatisticsScreen}
+        options={{
+          title: "Statistics",
+          headerShown: true,
+        }}
       />
     </Stack.Navigator>
   );

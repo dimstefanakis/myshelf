@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Alert, Image } from "react-native";
+import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import SelectDropdown from "react-native-select-dropdown";
 import { Button, Text, TextInput } from "@/components/Themed";
 import { supabase } from "@/utils/supabase";
 import useUser from "@/hooks/useUser";
-import * as FileSystem from "expo-file-system";
-import { decode } from "base64-arraybuffer";
-import { set } from "react-hook-form";
+import { useUserBooksStore } from "@/store/userBooksStore";
 
 const AddJournalEntryScreen = ({ route, navigation }: any) => {
+  const [loading, setLoading] = useState(false);
   const [journalData, setJournalData] = useState<{
     title: string;
     users_book: string;
@@ -26,8 +25,29 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
   }>({ id: "", title: null, description: null });
 
   const user = useUser();
+  const { books } = useUserBooksStore();
 
-  const { image, id } = route.params;
+  const { id } = route.params || {};
+
+  const uploadData = async () => {
+    if (!journalData.title || !journalData.description) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("journals")
+      .insert([journalData]);
+
+    if (error) {
+      console.error("Error inserting data", error);
+      Alert.alert("Error", "Failed to insert journal data.");
+    } else {
+      setLoading(false);
+      navigation.goBack();
+    }
+  };
 
   // if id exists then we are editing an existing journal entry
   useEffect(() => {
@@ -37,7 +57,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
           .from("journals")
           .select("*")
           .eq("id", id || "")
-          .single(); 
+          .single();
 
         if (error) {
           console.error("Error fetching data:", error);
@@ -50,6 +70,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
   }, [id]);
 
   const updateJournalEntry = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("journals")
       .update({
@@ -62,11 +83,12 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
       console.error("Error updating data:", error);
       return;
     }
-    console.log("Data updated successfully");
+    setLoading(false);
     navigation.goBack();
   };
 
   const deleteJournalEntry = async () => {
+    setLoading(true);
     const { error } = await supabase
       .from("journals")
       .delete()
@@ -76,55 +98,24 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
       console.error("Error deleting data:", error);
       return;
     }
-    console.log("Data deleted successfully");
+    setLoading(false);
     navigation.goBack();
   };
 
   useEffect(() => {
-    if (user?.user?.books?.length && !journalData.users_book) {
+    if (books?.length && !journalData.users_book) {
       setJournalData((prevData) => ({
         ...prevData,
-        users_book: user?.user?.books[0]?.id || "",
+        users_book: books[0]?.id || "",
       }));
     }
-  }, [user]);
+  }, [user, books]);
 
   const handleChange = (name: string, value: any) => {
     if (id) {
       setJournalToEdit({ ...journalToEdit, [name]: value });
     } else {
       setJournalData({ ...journalData, [name]: value });
-    }
-  };
-
-  const uploadData = async () => {
-    if (!image) {
-      Alert.alert("Error", "No image selected.");
-      return;
-    }
-
-    const base64 = await FileSystem.readAsStringAsync(image.uri, {
-      encoding: "base64",
-    });
-    const filePath = `journals/${new Date().getTime()}.jpg`;
-    const { error: uploadError } = await supabase.storage
-      .from("images")
-      .upload(filePath, decode(base64), { contentType: "image/jpg" });
-
-    if (uploadError) {
-      console.error("Error uploading file", uploadError);
-      Alert.alert("Error", "Failed to upload image.");
-    } else {
-      const { data, error } = await supabase
-        .from("journals")
-        .insert([{ ...journalData, image_url: filePath }]);
-      if (error) {
-        console.error("Error inserting data", error);
-        Alert.alert("Error", "Failed to insert journal data.");
-      } else {
-        Alert.alert("Success", "Journal entry created successfully.");
-        navigation.goBack();
-      }
     }
   };
 
@@ -155,18 +146,26 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
       {id ? (
         <>
           <Button style={styles.submitButton} onPress={updateJournalEntry}>
-            <Text style={{ color: "white" }}>Update</Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: "white" }}>Update</Text>
+            )}
           </Button>
           <Button style={styles.deleteButton} onPress={deleteJournalEntry}>
-            <Text style={{ color: "white" }}>Delete</Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: "white" }}>Delete</Text>
+            )}
           </Button>
         </>
       ) : (
         <>
           <SelectDropdown
-            data={user?.user?.books.map((book) => book.book.title) || []}
+            data={books.map((book) => book.book.title) || []}
             onSelect={(selectedItem, index) => {
-              handleChange("users_book", user?.user?.books[index].id);
+              handleChange("users_book", books[index].id);
             }}
             buttonTextAfterSelection={(selectedItem) => selectedItem}
             rowTextForSelection={(item) => item}
@@ -174,7 +173,11 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
             defaultButtonText="Select a book"
           />
           <Button style={styles.submitButton} onPress={uploadData}>
-            <Text style={{ color: "white" }}>Add</Text>
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text style={{ color: "white" }}>Add</Text>
+            )}
           </Button>
         </>
       )}

@@ -1,23 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
+import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
 import {
-  View,
-  Text,
-  Button,
   StyleSheet,
   Touchable,
   Pressable,
+  TouchableOpacity,
 } from "react-native";
+import { Entypo } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import BookScreen from "@/components/JournalTabScreens/bookNotes";
 import JournalScreen from "@/components/JournalTabScreens/journal";
 import QuoteScreen from "@/components/JournalTabScreens/quotes";
-import { useLayoutEffect } from "react";
-import { useNavigation } from "expo-router";
-import { Entypo } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { Button, Text, View } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
-import { useLocalSearchParams } from "expo-router";
 
 const JournalLanding = ({ navigation }: any) => {
   const user = useUser();
@@ -26,7 +21,7 @@ const JournalLanding = ({ navigation }: any) => {
   const getButtonStyle = (index: number) => ({
     ...styles.buttonCs,
     backgroundColor: pageIndex === index ? "black" : "white", // Changes the background color
-    borderWidth: pageIndex === index ? 0 : 1, // Optional: remove border if active for better visibility
+    borderWidth: 0, // Optional: remove border if active for better visibility
   });
 
   const getTextStyle = (index: number) => ({
@@ -43,7 +38,7 @@ const JournalLanding = ({ navigation }: any) => {
       });
 
       if (!result?.canceled) {
-        navigation.navigate("AddJournalEntryScreen", {
+        navigation.navigate("AddBookNoteEntryScreen", {
           image: result.assets[0],
           user: user,
         });
@@ -52,33 +47,49 @@ const JournalLanding = ({ navigation }: any) => {
     }
   };
 
-  function navigateToQuoteEntry() {
-    navigation.navigate("AddQuoteEntryScreen");
-  }
-
   function navigateToNoteEntry() {
     navigation.navigate("AddBookNoteEntryScreen");
   }
 
-  useLayoutEffect(() => {
+  function navigateToQuoteEntry() {
+    navigation.navigate("AddQuoteEntryScreen");
+  }
+
+  function navigateToJournalEntry() {
+    navigation.navigate("AddJournalEntryScreen");
+  }
+
+  useEffect(() => {
     const titles = ["Journal", "Book Notes", "Quotes"];
     const headerColors = ["#ff9999", "#99ccff", "#99ff99"];
 
     navigation.setOptions({
       headerTitle: titles[pageIndex],
       headerRight:
-        pageIndex === 0
+        pageIndex === 1
           ? () => (
-              <TouchableOpacity onPress={openCamera}>
-                <Entypo name="camera" size={24} color="black" />
-              </TouchableOpacity>
+              <View
+                style={{
+                  flexDirection: "row",
+                }}
+              >
+                <TouchableOpacity
+                  onPress={openCamera}
+                  style={{ marginRight: 10 }}
+                >
+                  <Entypo name="camera" size={24} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={navigateToNoteEntry}>
+                  <Entypo name="plus" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
             )
-          : pageIndex === 1 || pageIndex === 2
+          : pageIndex === 0 || pageIndex === 2
             ? () => (
                 <TouchableOpacity
                   onPress={() => {
-                    if (pageIndex == 1) {
-                      navigateToNoteEntry();
+                    if (pageIndex == 0) {
+                      navigateToJournalEntry();
                     } else {
                       navigateToQuoteEntry();
                     }
@@ -137,7 +148,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "black",
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 4,
     width: "33%",
     alignItems: "center",
   },

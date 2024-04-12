@@ -1,13 +1,15 @@
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import React, { useEffect } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 import { Text, TextInput, Button } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
+import { useUserBooksStore } from "@/store/userBooksStore";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase";
 
 const AddQuoteEntryScreen = () => {
+  const [loading, setLoading] = useState(false);
   const [quoteData, setQuoteData] = useState({
     title: "",
     author: "",
@@ -15,15 +17,16 @@ const AddQuoteEntryScreen = () => {
   });
   const navigation = useNavigation();
   const user = useUser();
+  const { books } = useUserBooksStore();
 
   useEffect(() => {
-    if (user?.user?.books?.length && !quoteData.users_book) {
+    if (books?.length && !quoteData.users_book) {
       setQuoteData((prevData) => ({
         ...prevData,
-        users_book: user?.user?.books[0]?.id || "",
+        users_book: books[0]?.id || "",
       }));
     }
-  }, [user]);
+  }, [user, books]);
 
   const handleChange = (name: string, value: any) => {
     setQuoteData({
@@ -33,6 +36,7 @@ const AddQuoteEntryScreen = () => {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     const { data, error } = await supabase
       .from("quotes")
       .insert([{ ...quoteData }]);
@@ -40,6 +44,7 @@ const AddQuoteEntryScreen = () => {
       console.error("Error inserting data", error);
       return;
     }
+    setLoading(false);
     navigation.goBack();
   };
 
@@ -59,9 +64,9 @@ const AddQuoteEntryScreen = () => {
       />
 
       <SelectDropdown
-        data={user?.user?.books.map((book) => book.book.title) || []}
+        data={books.map((book) => book.book.title) || []}
         onSelect={(selectedItem, index) => {
-          handleChange("users_book", user?.user?.books[index].id);
+          handleChange("users_book", books[index].id);
         }}
         buttonTextAfterSelection={(selectedItem) => selectedItem}
         rowTextForSelection={(item) => item}
@@ -69,7 +74,11 @@ const AddQuoteEntryScreen = () => {
         defaultButtonText="Select a book"
       />
       <Button onPress={handleSubmit} style={styles.Touchable}>
-        <Text style={{ color: "white" }}>Create Quote</Text>
+        {loading ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={{ color: "white" }}>Create Quote</Text>
+        )}
       </Button>
     </View>
   );

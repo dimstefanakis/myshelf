@@ -17,6 +17,7 @@ import { supabase } from "@/utils/supabase";
 
 import { Text, View, Button } from "@/components/Themed";
 import type { Book } from "@/constants/BookTypes";
+import { UserBook, useUserBooksStore } from "@/store/userBooksStore";
 
 const actionTypes = {
   currently_reading: "currently reading",
@@ -26,6 +27,8 @@ const actionTypes = {
 
 export default function BookModalScreen() {
   const router = useRouter();
+  const { setBooks } = useUserBooksStore();
+  const [coverUrl, setCoverUrl] = useState<string>("");
   const [addingBook, setAddingBook] = useState(false);
   const [book, setBook] = useState<Book | null>(null);
   const localSearchParams = useLocalSearchParams();
@@ -35,6 +38,17 @@ export default function BookModalScreen() {
 
   const blurhash =
     "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
+
+  const getUsersBooks = async (user_id: any) => {
+    const data = await supabase
+      .from("users_books")
+      .select("*, book(*)")
+      .eq("user", user_id);
+    if (data?.data) {
+      setBooks(data.data as unknown as UserBook[]);
+    }
+    return data;
+  };
 
   async function getBookById() {
     const response = await fetch(
@@ -157,12 +171,14 @@ export default function BookModalScreen() {
         },
       ]);
     }
+    getUsersBooks(session.user.id);
     setAddingBook(false);
     router.back();
   }
 
   useEffect(() => {
     getBookById().then((data) => {
+      setCoverUrl(`${data?.volumeInfo.imageLinks?.thumbnail}&fife=w800`);
       setBook(data);
     });
   }, [bookId]);
@@ -170,8 +186,11 @@ export default function BookModalScreen() {
   return (
     <View style={styles.container}>
       <Image
-        source={{ uri: book?.volumeInfo.imageLinks?.thumbnail }}
-        style={{ width: 128, height: 192 }}
+        source={{
+          uri: coverUrl,
+        }}
+        style={{ width: 256, height: 384 }}
+        contentFit="contain"
         placeholder={blurhash}
         transition={1000}
       />
@@ -180,7 +199,7 @@ export default function BookModalScreen() {
       <Text style={styles.author}>{book?.volumeInfo.authors?.[0]}</Text>
       {/* release year */}
       <Text style={styles.description}>
-        {getReleaseYear(book?.volumeInfo.publishedDate || "")}
+        Published: {getReleaseYear(book?.volumeInfo.publishedDate || "")}
       </Text>
 
       {/* <Link to="BookList">
@@ -192,22 +211,17 @@ export default function BookModalScreen() {
           marginTop: 20,
           display: "flex",
           flexDirection: "row",
+          width: 200,
         }}
       >
-        {addingBook && (
-          <ActivityIndicator
-            size="small"
-            color="white"
-            style={{
-              marginRight: 10,
-              marginLeft: -10,
-            }}
-          />
+        {addingBook ? (
+          <ActivityIndicator size="small" color="white" />
+        ) : (
+          <Text style={{ color: "white", fontWeight: "700" }}>
+            {/* @ts-ignore */}
+            Add to {action ? actionTypes[action] : "future reading"}
+          </Text>
         )}
-        <Text style={{ color: "white", fontWeight: "700" }}>
-          {/* @ts-ignore */}
-          Add to {action ? actionTypes[action] : "future reading"}
-        </Text>
       </Button>
       <StatusBar style="auto" />
     </View>
@@ -224,6 +238,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 10,
   },
   author: {
     fontSize: 16,
@@ -231,5 +247,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
+    marginTop: 10,
   },
 });

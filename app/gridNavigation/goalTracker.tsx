@@ -1,7 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Modal, Pressable, Dimensions, StyleSheet } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
+import PagerView from "react-native-pager-view";
 import { View, Text, Button, TextInput } from "@/components/Themed";
+import useUser, { User } from "@/hooks/useUser";
+import type { Database } from "@/types_db";
+import { supabase } from "@/utils/supabase";
+
+type Goal = Database["public"]["Tables"]["goals"]["Row"];
+
+type GoalLog = {
+  time_type: string;
+  logs: Database["public"]["Tables"]["goal_logs"]["Row"][];
+  week_count?: number;
+  month_count?: number;
+};
 
 const width = Dimensions.get("window").width;
 const tabs = [
@@ -24,18 +37,195 @@ const tabs = [
 ];
 
 function GoalTrackerScreen() {
+  const { user } = useUser();
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goalLogs, setGoalLogs] = useState<GoalLog[]>([]);
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
-  const completed = 50;
-  const total = 100;
-  const percentage = (completed / total) * 100;
 
   const markers = [
     { day: "6", completed: true },
     { day: "7", completed: false },
+    { day: "8", completed: true },
     { day: "9", completed: true },
-    { day: "11", completed: true },
-    { day: "17", completed: false },
+    { day: "10", completed: false },
   ];
+
+  async function fetchGoals() {
+    const { data: goals, error } = await supabase
+      .from("goals")
+      .select("*")
+      .eq("user", user?.id || "");
+
+    setGoals((goals as Goal[]) || []);
+  }
+
+  async function getGoalProgress() {
+    // starts from the beginning of the day
+    const dailyStart = new Date();
+    dailyStart.setUTCHours(0, 0, 0, 0);
+
+    // ends at the end of the day
+    const dailyEnd = new Date();
+    dailyEnd.setDate(dailyStart.getDate() + 1);
+
+    const weeklyStart = new Date();
+    // should start at the beginning of the week
+    weeklyStart.setUTCHours(0, 0, 0, 0);
+    if (weeklyStart.getDay() !== 0) {
+      weeklyStart.setDate(weeklyStart.getDate() - weeklyStart.getDay());
+    } else {
+      weeklyStart.setDate(weeklyStart.getDate() - 7);
+    }
+    const weeklyEnd = new Date();
+    weeklyEnd.setDate(weeklyStart.getDate() + 7);
+
+    const monthlyStart = new Date();
+    // should start at the beginning of the month
+    monthlyStart.setUTCHours(0, 0, 0, 0);
+    monthlyStart.setDate(1);
+    const monthlyEnd = new Date();
+    monthlyEnd.setMonth(monthlyStart.getMonth() + 1);
+
+    const yearlyStart = new Date();
+    // should start at the beginning of the year
+    yearlyStart.setUTCHours(0, 0, 0, 0);
+    yearlyStart.setMonth(0);
+    yearlyStart.setDate(1);
+    const yearlyEnd = new Date();
+    yearlyEnd.setFullYear(yearlyStart.getFullYear() + 1);
+
+    const { data: allLogs, error: allLogsError } = await supabase
+      .from("goal_logs")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .eq("user", user?.id || "");
+
+    const { data: dayGoals, error: dayGoalsError } = await supabase
+      .from("goal_logs")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .eq("user", user?.id || "")
+      .or("type.eq.pages,type.eq.minutes")
+      .gte("created_at", dailyStart.toISOString())
+      .lt("created_at", dailyEnd.toISOString());
+
+    const { data: weekGoals, error: weekGoalsError } = await supabase
+      .from("goal_logs")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .eq("user", user?.id || "")
+      .eq("type", "pages")
+      .gte("created_at", weeklyStart.toISOString())
+      .lt("created_at", weeklyEnd.toISOString());
+
+    const { data: monthGoals, error: monthGoalsError } = await supabase
+      .from("goal_logs")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .eq("user", user?.id || "")
+      .eq("type", "books")
+      .gte("created_at", monthlyStart.toISOString())
+      .lt("created_at", monthlyEnd.toISOString());
+
+    const { data: yearGoals, error: yearGoalsError } = await supabase
+      .from("goal_logs")
+      .select("*")
+      .order("created_at", { ascending: true })
+      .eq("user", user?.id || "")
+      .eq("type", "books")
+      .gte("created_at", yearlyStart.toISOString())
+      .lt("created_at", yearlyEnd.toISOString());
+
+    if (
+      allLogsError ||
+      dayGoalsError ||
+      weekGoalsError ||
+      monthGoalsError ||
+      yearGoalsError
+    ) {
+      return;
+    }
+    const combinedGoals = [
+      {
+        time_type: "daily",
+        logs: dayGoals,
+      },
+      {
+        time_type: "weekly",
+        logs: weekGoals,
+      },
+      {
+        time_type: "monthly",
+        logs: monthGoals,
+      },
+      {
+        time_type: "yearly",
+        logs: yearGoals,
+      },
+      {
+        time_type: "all",
+        logs: allLogs,
+        // count days where there is a log
+        // use the allLogs to get the unique days, starting from the weekly_start to weekly_end
+        // multiple logs in a day should be counted as one
+        week_count: allLogs
+          .filter((log) => {
+            const logDate = new Date(log.created_at);
+            return logDate >= weeklyStart && logDate < weeklyEnd;
+          })
+          .reduce<number[]>((acc, log) => {
+            const logDate = new Date(log.created_at);
+            const logDay = logDate.getDate();
+            if (!acc.includes(logDay)) {
+              acc.push(logDay);
+            }
+            return acc;
+          }, []).length,
+        month_count: allLogs
+          .filter((log) => {
+            const logDate = new Date(log.created_at);
+            return logDate >= monthlyStart && logDate < monthlyEnd;
+          })
+          .reduce<number[]>((acc, log) => {
+            const logDate = new Date(log.created_at);
+            const logDay = logDate.getDate();
+            if (!acc.includes(logDay)) {
+              acc.push(logDay);
+            }
+            return acc;
+          }, []).length,
+      },
+    ];
+    setGoalLogs(combinedGoals);
+  }
+
+  async function listenToLogUpdates() {
+    const channel = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "goal_logs",
+        },
+        () => {
+          fetchGoals();
+        },
+      )
+      .subscribe();
+
+    return channel;
+  }
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchGoals();
+      getGoalProgress();
+      listenToLogUpdates();
+    }
+  }, [user]);
+
   return (
     <View style={styles.container}>
       <View
@@ -43,11 +233,13 @@ function GoalTrackerScreen() {
           flexDirection: "row",
           justifyContent: "space-evenly",
           marginBottom: 30,
+          paddingTop: 10,
           width: "100%",
         }}
       >
         {tabs.map((tab) => (
           <Button
+            key={tab.value}
             onPress={() => setSelectedTab(tab)}
             style={{
               width: width / tabs.length - 3,
@@ -65,44 +257,109 @@ function GoalTrackerScreen() {
           </Button>
         ))}
       </View>
-      <AnimatedCircularProgress
-        size={200}
-        width={2}
-        fill={percentage}
-        tintColor="#5A6978"
-        backgroundColor="#b4cbcf"
-        arcSweepAngle={260}
-        rotation={230}
-      >
-        {(fill) => (
-          <View style={{ alignItems: "center" }}>
-            <Text style={styles.points}>
-              {completed}/{total}
-            </Text>
-            <Text>pages</Text>
-          </View>
-        )}
-      </AnimatedCircularProgress>
-      <View style={styles.progressBarContainer}>
-        <View style={[styles.progressBar, { width: `${percentage}%` }]} />
-      </View>
+      {goalLogs.length > 0 && goals.length > 0 && (
+        <PagerView
+          key={selectedTab.value}
+          initialPage={0}
+          style={{
+            flex: 1,
+            width: "100%",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {goals
+            .filter((goal) => goal.time_type === selectedTab.value)
+            .map((goal, i) => {
+              let progress = 0;
+              if (goal.type != "days") {
+                const timelogs = goalLogs.find((log) => {
+                  return log.time_type == selectedTab.value;
+                });
+                if (timelogs) {
+                  const logs = timelogs.logs.filter(
+                    (log) => log.type === goal.type,
+                  );
+                  progress = logs.reduce(
+                    (acc, log) => acc + (log.unit_amount ?? 0),
+                    0,
+                  );
+                }
+              } else {
+                // get count of unique days where a log was created
+                // multiple logs in one day should only count as one
+                const logs = goalLogs.find((log) => {
+                  return log.time_type == "all";
+                });
+                if (logs) {
+                  progress = logs.week_count || 0;
+                }
+              }
 
-      <Button style={{ marginTop: 30 }}>
-        <Text style={{ color: "white" }}>Update progress</Text>
-      </Button>
+              const percentage =
+                ((progress ?? 0) / (goal.unit_amount ?? 1)) * 100;
+              return (
+                <View
+                  key={i + 1}
+                  style={{
+                    width: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <AnimatedCircularProgress
+                    size={200}
+                    width={2}
+                    fill={percentage}
+                    tintColor="#5A6978"
+                    backgroundColor="#b4cbcf"
+                    arcSweepAngle={260}
+                    rotation={230}
+                  >
+                    {(fill) => (
+                      <View style={{ alignItems: "center" }}>
+                        <Text style={styles.points}>
+                          {progress || 0}/{goal.unit_amount}
+                        </Text>
+                        <Text>{goal.type}</Text>
+                      </View>
+                    )}
+                  </AnimatedCircularProgress>
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[styles.progressBar, { width: `${percentage}%` }]}
+                    />
+                  </View>
+                </View>
+              );
+            })}
+        </PagerView>
+      )}
+
+      {user && (
+        <UpdateGoals
+          tab={selectedTab}
+          user={user}
+          goals={goals}
+          refresh={() => {
+            fetchGoals();
+            getGoalProgress();
+          }}
+        />
+      )}
       <View style={{ flexDirection: "row" }}>
         <Button style={{ marginTop: 30, marginRight: 10 }}>
           <Text style={{ color: "white" }}>View history</Text>
         </Button>
         <EditGoals tab={selectedTab} />
       </View>
-      <StreakChallenge week={2} days={7} markers={markers} />
+      <View style={{ flex: 1 }}></View>
+      {/* <StreakChallenge week={2} days={7} markers={markers} /> */}
     </View>
   );
 }
 
 function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
-  const [selectedTab, setSelectedTab] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   function getGoalTabs() {
@@ -150,7 +407,24 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
         },
       ];
     }
+    return [
+      {
+        title: "Pages",
+        value: "pages",
+      },
+      {
+        title: "Minutes",
+        value: "minutes",
+      },
+    ];
   }
+
+  const goalTabs = getGoalTabs();
+  const [selectedTab, setSelectedTab] = useState(goalTabs[0]);
+
+  useEffect(() => {
+    setSelectedTab(goalTabs[0]);
+  }, [tab]);
 
   return (
     <>
@@ -214,6 +488,8 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                 style={{
                   borderRadius: 10,
                   width: "100%",
+                  paddingHorizontal: 10,
+                  alignItems: "center",
                 }}
               >
                 <View
@@ -225,33 +501,264 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                     // justifyContent: "space-between",
                   }}
                 >
-                  <Button
-                    style={{
-                      marginTop: 20,
-                      backgroundColor: selectedTab == 0 ? "#507C82" : "white",
-                    }}
-                    // onPress={() => setIsModalVisible(!isModalVisible)}
-                  >
-                    <Text
-                      style={{ color: selectedTab == 0 ? "white" : "black" }}
+                  {goalTabs.map((goal) => (
+                    <Button
+                      key={goal.value}
+                      style={{
+                        marginTop: 20,
+                        backgroundColor:
+                          selectedTab.value == goal.value ? "#507C82" : "white",
+                      }}
+                      onPress={() => setSelectedTab(goal)}
+                      // onPress={() => setIsModalVisible(!isModalVisible)}
                     >
-                      Books
-                    </Text>
-                  </Button>
-                  <Button
-                    style={{
-                      marginTop: 20,
-                      backgroundColor: selectedTab == 1 ? "#507C82" : "white",
-                    }}
-                    // onPress={() => setIsModalVisible(!isModalVisible)}
-                  >
-                    <Text
-                      style={{ color: selectedTab == 1 ? "white" : "black" }}
-                    >
-                      Days
-                    </Text>
-                  </Button>
+                      <Text
+                        style={{
+                          color:
+                            selectedTab.value == goal.value ? "white" : "black",
+                        }}
+                      >
+                        {goal.title}
+                      </Text>
+                    </Button>
+                  ))}
                 </View>
+                <TextInput
+                  textAlign="center"
+                  style={{
+                    width: "80%",
+                    marginTop: 20,
+                  }}
+                  placeholder={`Number of ${selectedTab.title.toLowerCase()}`}
+                />
+                <Button
+                  style={{
+                    backgroundColor: "#507C82",
+                    width: "80%",
+                    marginTop: 6,
+                  }}
+                  onPress={() => setIsModalVisible(!isModalVisible)}
+                >
+                  <Text style={{ color: "white" }}>Save</Text>
+                </Button>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
+  );
+}
+
+function UpdateGoals({
+  tab,
+  user,
+  goals,
+  refresh,
+}: {
+  tab: (typeof tabs)[0];
+  user: User;
+  goals: Goal[];
+  refresh: () => void;
+}) {
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | undefined>();
+  const [progress, setProgress] = useState(0);
+
+  function getGoalTabs() {
+    if (tab.value === "daily") {
+      return [
+        {
+          title: "Pages",
+          value: "pages",
+        },
+        {
+          title: "Minutes",
+          value: "minutes",
+        },
+      ];
+    }
+    if (tab.value === "weekly") {
+      return [
+        {
+          title: "Pages",
+          value: "pages",
+        },
+      ];
+    }
+    if (tab.value === "monthly") {
+      return [
+        {
+          title: "Books",
+          value: "books",
+        },
+      ];
+    }
+    if (tab.value === "yearly") {
+      return [
+        {
+          title: "Books",
+          value: "books",
+        },
+      ];
+    }
+    return [
+      {
+        title: "Pages",
+        value: "pages",
+      },
+      {
+        title: "Minutes",
+        value: "minutes",
+      },
+    ];
+  }
+
+  const goalTabs = getGoalTabs();
+  const [selectedTab, setSelectedTab] = useState(goalTabs[0]);
+
+  useEffect(() => {
+    setSelectedTab(goalTabs[0]);
+  }, [tab]);
+
+  async function updateGoal(value: number) {
+    const goal = goals.find(
+      (goal) => goal.type === selectedTab.value && goal.time_type === tab.value,
+    );
+    if (goal) {
+      const { data, error } = await supabase.from("goal_logs").insert({
+        goal: goal.id,
+        user: user.id,
+        type: selectedTab.value,
+        unit_amount: value,
+      });
+      if (error) {
+        console.error(error);
+      } else {
+        refresh();
+      }
+    }
+  }
+
+  return (
+    <>
+      <Button
+        style={{ marginTop: 30 }}
+        onPress={() => {
+          setIsModalVisible(!isModalVisible);
+        }}
+      >
+        <Text style={{ color: "white" }}>Update progress</Text>
+      </Button>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        // onRequestClose={() => {
+        //   setIsModalVisible(!isModalVisible);
+        // }}
+      >
+        <Pressable
+          onPress={() => setIsModalVisible(!isModalVisible)}
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation();
+            }}
+            style={{
+              width: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                width: "80%",
+                borderRadius: 10,
+                paddingBottom: 20,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "#356B75",
+                  paddingVertical: 20,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
+                >
+                  Update your goals
+                </Text>
+              </View>
+              <View
+                style={{
+                  borderRadius: 10,
+                  width: "100%",
+                  paddingHorizontal: 10,
+                  alignItems: "center",
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    width: "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    // justifyContent: "space-between",
+                  }}
+                >
+                  {goalTabs.map((goal) => (
+                    <Button
+                      style={{
+                        marginTop: 20,
+                        backgroundColor:
+                          selectedTab.value == goal.value ? "#507C82" : "white",
+                      }}
+                      onPress={() => setSelectedTab(goal)}
+                      // onPress={() => setIsModalVisible(!isModalVisible)}
+                    >
+                      <Text
+                        style={{
+                          color:
+                            selectedTab.value == goal.value ? "white" : "black",
+                        }}
+                      >
+                        {goal.title}
+                      </Text>
+                    </Button>
+                  ))}
+                </View>
+                <TextInput
+                  textAlign="center"
+                  style={{
+                    width: "80%",
+                    marginTop: 20,
+                  }}
+                  keyboardType="numeric"
+                  onChangeText={(text) => setProgress(parseInt(text))}
+                  placeholder={`Number of ${selectedTab.title.toLowerCase()}`}
+                />
+                <Button
+                  style={{
+                    backgroundColor: "#507C82",
+                    width: "80%",
+                    marginTop: 6,
+                  }}
+                  onPress={() => {
+                    updateGoal(progress);
+                    setIsModalVisible(!isModalVisible);
+                  }}
+                >
+                  <Text style={{ color: "white" }}>Save</Text>
+                </Button>
               </View>
             </View>
           </Pressable>
@@ -349,6 +856,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     justifyContent: "center",
     position: "relative",
+    overflow: "hidden",
   },
   timeline: {
     height: 2,
