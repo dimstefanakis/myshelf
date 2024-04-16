@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Image } from "expo-image";
 import {
@@ -8,6 +8,7 @@ import {
   Ionicons,
 } from "@expo/vector-icons";
 import { Dimensions, Pressable, ActivityIndicator } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-root-toast";
 import { supabase } from "@/utils/supabase";
 import { View, Text, Button, ScrollView } from "@/components/Themed";
@@ -16,6 +17,7 @@ import { useUserBooksStore } from "@/store/userBooksStore";
 
 export default function BookList() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { user } = useUser();
   const { books } = useUserBooksStore();
   const [loading, setLoading] = useState(false);
@@ -90,6 +92,25 @@ export default function BookList() {
       );
     }
   }
+
+  useEffect(() => {
+    if (type === "currently_reading") {
+      // set title
+      navigation.setOptions({
+        title: "Currently Reading",
+      });
+    } else if (type === "future_reading") {
+      // set title
+      navigation.setOptions({
+        title: "Books to Read",
+      });
+    } else {
+      // set title
+      navigation.setOptions({
+        title: "Completed",
+      });
+    }
+  }, [type]);
 
   return (
     <ScrollView style={{ flex: 1 }}>

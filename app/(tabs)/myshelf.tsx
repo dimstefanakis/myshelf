@@ -36,10 +36,6 @@ const shelves = [
     title: "To Read",
     image: require("./../../assets/images/to_read.png"),
   },
-  {
-    id: "for_studies",
-    title: "For Studies",
-  },
 ];
 
 export default function MyShelfScreen() {
@@ -133,7 +129,12 @@ function Shelves() {
   const { user } = useUser();
   const { books } = useUserBooksStore();
   return (
-    <View style={{ width: "100%" }}>
+    <ScrollView
+      style={{ width: "100%" }}
+      contentContainerStyle={{
+        flex: 1,
+      }}
+    >
       {shelves.map((shelf) => (
         <View
           key={shelf.id}
@@ -162,7 +163,7 @@ function Shelves() {
           <ScrollView
             key={shelf.id}
             horizontal={true}
-            style={{ height: "17%" }}
+            style={{ height: "25%" }}
             contentContainerStyle={{ minWidth: "100%" }}
           >
             {books
@@ -172,7 +173,7 @@ function Shelves() {
                   <Image
                     key={user_book.id}
                     contentFit="contain"
-                    style={{ width: 70, marginHorizontal: 10 }}
+                    style={{ width: 100, marginHorizontal: 10 }}
                     source={{ uri: user_book.book.cover_url || "" }}
                   />
                 );
@@ -180,7 +181,7 @@ function Shelves() {
           </ScrollView>
         </View>
       ))}
-    </View>
+    </ScrollView>
   );
 }
 

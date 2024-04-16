@@ -73,7 +73,7 @@ const BookScreen: React.FC = () => {
           google_api_data
         )
       )
-    `
+    `,
       )
       .eq("users_book.user", session?.user?.id || "");
     if (error) {
@@ -99,7 +99,7 @@ const BookScreen: React.FC = () => {
         () => {
           console.log("Notes table changed");
           getNotes();
-        }
+        },
       )
       .subscribe();
 
@@ -125,7 +125,7 @@ const BookScreen: React.FC = () => {
       entry.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       entry.users_book?.book.title
         ?.toLowerCase()
-        ?.includes(searchQuery.toLowerCase())
+        ?.includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -151,12 +151,14 @@ const BookScreen: React.FC = () => {
             if (remainder === 1) {
               additionalStyle = { marginRight: "auto", marginLeft: 0 };
             } else if (remainder === 0) {
-           
               additionalStyle = { marginLeft: "auto", marginRight: 0 };
-            } 
+            }
             return (
               <>
-                <View style={[styles.bookItem, additionalStyle]}>
+                <View
+                  style={[styles.bookItem, additionalStyle]}
+                  key={item.id.toString()}
+                >
                   <Pressable onPress={() => handleModal(item)}>
                     <Image
                       source={{
