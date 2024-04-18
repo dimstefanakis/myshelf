@@ -21,6 +21,24 @@ interface GoogleApiData {
   };
 }
 
+interface BookTag {
+  tags: { name: string };
+}
+
+interface Book {
+  book_tags: BookTag[];
+}
+
+interface FetchedBook {
+  book: Book;
+}
+
+interface GenreData {
+  x: string;
+  y: number;
+  label: string;
+}
+
 function isGoogleApiData(obj: any): obj is GoogleApiData {
   return obj && typeof obj === "object" && "volumeInfo" in obj;
 }
@@ -107,46 +125,53 @@ function StatisticsView() {
             tags (name)
           )
         )
-      `,
+      `
       )
       .eq("user", user?.id ? user.id : "");
-
+  
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
-
+  
     if (fetchedBooks) {
-      const genreCounts = fetchedBooks.reduce(
-        (acc: { [key: string]: number }, book: { [key: string]: any }) => {
-          const tags = book?.book?.book_tags.map(
-            (tag: { [key: string]: any }) => tag?.tags?.name,
-          );
-          tags.forEach((tag: string) => {
+      const genreCounts = fetchedBooks.reduce<Record<string, number>>(
+        (acc, book) => {
+          const tags = book?.book?.book_tags.map((tag:any) => tag.tags.name);
+          tags?.forEach((tag:any) => {
             acc[tag] = (acc[tag] || 0) + 1;
           });
           return acc;
         },
-        {},
+        {}
       );
-
-      const totalGenreAssignments = Object.values(genreCounts).reduce(
-        (total, count) => total + count,
-        0,
-      );
-      const dataForGenre = Object.keys(genreCounts).map((genre) => ({
-        x: genre,
-        y: (genreCounts[genre] / totalGenreAssignments) * 100,
-        label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(
-          0,
-        )}%`,
-      }));
-
+  
+      const totalGenreAssignments = Object.values(genreCounts).reduce((total, count) => total + count, 0);
+      let dataForGenre: GenreData[] = Object.keys(genreCounts)
+        .map(genre => ({
+          x: genre,
+          y: (genreCounts[genre] / totalGenreAssignments) * 100,
+          label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(0)}%`,
+        }))
+        .sort((a, b) => b.y - a.y); // Sort by percentage, descending
+  
+      if (dataForGenre.length > 10) {
+        const topTen = dataForGenre.slice(0, 10);
+        const othersPercentage = dataForGenre.slice(10).reduce((sum, current) => sum + current.y, 0);
+        topTen.push({
+          x: 'Others',
+          y: othersPercentage,
+          label: `${othersPercentage.toFixed(0)}%`
+        });
+        dataForGenre = topTen;
+      }
+  
       setBooksGenre(dataForGenre);
     } else {
       setBooksGenre([]);
     }
   };
+
   const getBooksLanguage = async () => {
     let { data: fetchedBooks, error } = await supabase
       .from("books")
@@ -187,11 +212,8 @@ function StatisticsView() {
   }, [user?.id]);
 
   const customColorScale = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#a4d8c2",
+    "#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#a4d8c2", 
+    "#845EC2", "#D65DB1", "#FF6F91", "#00C9A7", "#C4FCEF", "#F9F871" // Last color could be for "Others"
   ];
 
   const LegendItem = ({ name, color }: any) => (
@@ -235,12 +257,12 @@ function StatisticsView() {
           />
           <View style={styles.legendContainer}>
             {booksGenre.map((item, index) => (
-              <LegendItem
-                key={index}
-                name={item.x}
-                color={customColorScale[index]}
-              />
-            ))}
+          <LegendItem
+            key={index}
+            name={item.x}
+            color={customColorScale[index % customColorScale.length]}
+          />
+        ))}
           </View>
         </View>
         <View style={styles.graphContainer}>
