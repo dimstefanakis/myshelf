@@ -80,7 +80,11 @@ function HomepageContainers() {
               <Text style={styles.text}>{item.title}</Text>
             </View>
             <View style={styles.imagecontainer}>
-              <Image source={item.image} style={styles.image} />
+              <Image
+                source={item.image}
+                style={styles.image}
+                contentFit="cover"
+              />
             </View>
           </TouchableOpacity>
         </View>

@@ -99,7 +99,12 @@ function Gallery() {
           <Text style={styles.galleryItemButtonText}>Currently reading</Text>
         </Button>
         <Image
-          style={{ width: 150, height: 150, marginLeft: 20 }}
+          style={{
+            width: 150,
+            height: 150,
+            marginLeft: 20,
+          }}
+          contentFit="contain"
           source={require("./../../assets/images/currently_reading.png")}
         />
       </View>
@@ -108,6 +113,7 @@ function Gallery() {
           <Text style={styles.galleryItemButtonText}>Completed books</Text>
         </Button>
         <Image
+          contentFit="contain"
           style={{ width: 150, height: 150, marginLeft: 20 }}
           source={require("./../../assets/images/completed.png")}
         />
@@ -117,6 +123,7 @@ function Gallery() {
           <Text style={styles.galleryItemButtonText}>Books to read</Text>
         </Button>
         <Image
+          contentFit="contain"
           style={{ width: 150, height: 150, marginLeft: 20 }}
           source={require("./../../assets/images/to_read.png")}
         />
