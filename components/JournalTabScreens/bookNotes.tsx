@@ -51,9 +51,10 @@ const BookScreen: React.FC = () => {
       notes.map(async (note: any) => ({
         [note.id]: getPublicUrl(note.image_url, note.users_book.book.cover_url),
       })),
-    );
+      );
 
     setImageUrls(urls.reduce((acc, url) => ({ ...acc, ...url }), {}));
+    console.log(imageUrls)
   };
 
   const getNotes = async () => {
@@ -85,7 +86,6 @@ const BookScreen: React.FC = () => {
   };
 
   async function listenToNotesUpdates() {
-    console.log("Listening to notes updates");
     const channel = supabase
       .channel("schema-db-changes")
       .on(
@@ -97,7 +97,6 @@ const BookScreen: React.FC = () => {
           // filter: `users_book.user=eq.${session?.user?.id}`,
         },
         () => {
-          console.log("Notes table changed");
           getNotes();
         },
       )
@@ -116,6 +115,7 @@ const BookScreen: React.FC = () => {
   useEffect(() => {
     if (notes.length) {
       loadImageUrls(notes);
+      // console.log("notes", notes);
     }
   }, [notes]);
 
@@ -144,7 +144,6 @@ const BookScreen: React.FC = () => {
         >
           {filteredBookNotes.map((item, index) => {
             const thumbnailUrl = getThumbnailUrl(item);
-            console.log(imageUrls);
             // Calculate dynamic styling for alignment
             const remainder = (index + 1) % 3; // Determine position in the row
             let additionalStyle: StyleProp<ViewStyle> = {};
@@ -155,11 +154,17 @@ const BookScreen: React.FC = () => {
             }
             return (
               <>
-                <View
-                  style={[styles.bookItem, additionalStyle]}
-                  key={item.id.toString()}
-                >
-                  <Pressable onPress={() => handleModal(item)}>
+                <View style={[styles.bookItem, additionalStyle]}>
+                    
+                  <Pressable
+                    key={item.id.toString()}
+                    onPress={() => {
+                      navigation.navigate("AddBookNoteEntryScreen", {
+                        id: item.id,
+                        cover_image: thumbnailUrl
+                      });
+                    }}
+                  >
                     <Image
                       source={{
                         // @ts-ignore
@@ -167,42 +172,13 @@ const BookScreen: React.FC = () => {
                       }}
                       style={styles.bookImage}
                     />
-                  </Pressable>
-                  <Pressable
-                    key={item.id.toString()}
-                    onPress={() => {
-                      navigation.navigate("AddBookNoteEntryScreen", {
-                        id: item.id,
-                      });
-                    }}
-                  >
                     <Text style={styles.bookTitle}>{item.title}</Text>
                     <Text style={styles.bookDescription} numberOfLines={4}>
                       {item.description}
                     </Text>
                   </Pressable>
                 </View>
-                {currentItem && (
-                  <Modal
-                    animationType="slide"
-                    transparent={true}
-                    visible={modalVisible}
-                    onRequestClose={() => setModalVisible(false)}
-                  >
-                    <View style={styles.centeredView}>
-                      <Pressable onPress={() => setModalVisible(false)}>
-                        <AntDesign name="close" size={24} color="black" />
-                      </Pressable>
-                      <Image
-                        source={{
-                          // @ts-ignore
-                          uri: imageUrls[currentItem.id],
-                        }}
-                        style={{ width: "90%", height: "90%" }}
-                      />
-                    </View>
-                  </Modal>
-                )}
+                
               </>
             );
           })}

@@ -13,6 +13,8 @@ import { useNavigation } from "@react-navigation/native";
 import { supabase } from "@/utils/supabase";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
+import { Image,Modal } from "react-native";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   const [loading, setLoading] = useState(false);
@@ -21,16 +23,20 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
     description: "",
     users_book: "",
   });
+  const [bookName, setBookName] = useState("");
   const [bookToEdit, setBookToEdit] = useState<{
     id: string;
     title: string | null;
     description: string | null;
   }>({ id: "", title: null, description: null });
+  const [images, setImages] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const navigation = useNavigation();
   const user = useUser();
   const { books } = useUserBooksStore();
-  const { image, id } = route.params ?? {};
+  const { image, id, cover_image } = route.params ?? {};
   // if id exists then we are editing an existing book entry
   const uploadData = async () => {
     setLoading(true);
@@ -91,6 +97,41 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
       getBookNoteEntry();
       console.log(id);
     }
+  }, [id]);
+
+  // Changed fetchImages to fetch all images associated with the book instead of a specific note
+  useEffect(() => {
+    const fetchImages = async () => {
+      if (!id) return;
+      setLoading(true);
+
+      // Fetch all images linked to the same book
+      const { data: bookNotesData, error: bookNotesError } = await supabase
+        .from("notes")
+        .select("users_book")
+        .eq("id", id) // Get the book ID from the current note
+        .single();
+
+      if (bookNotesError || !bookNotesData.users_book) {
+        console.error("Error fetching book info:", bookNotesError);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("notes")
+        .select("image_url")
+        .eq("users_book", bookNotesData.users_book); // Use the book ID to fetch all images
+
+      if (error) {
+        console.error("Error fetching images:", error);
+      } else {
+        setImages(data.map((note) => note.image_url));
+      }
+      setLoading(false);
+    };
+
+    fetchImages();
   }, [id]);
 
   const updateBookNoteEntry = async () => {
@@ -162,8 +203,87 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
     navigation.goBack();
   };
 
+  const getPublicUrl = async (filePath: string) => {
+    const { data } = supabase.storage.from("images").getPublicUrl(filePath);
+    console.log("hihiihi", data.publicUrl);
+    return data.publicUrl;
+  };
+
+  //  get the image urls for the same book and set them in the state
+  const fetchImages = async () => {
+    if (!id) return;
+    setLoading(true);
+
+    // Fetch all images linked to the same book
+    const { data: bookNotesData, error: bookNotesError } = await supabase
+      .from("notes")
+      .select("users_book")
+      .eq("id", id) // Get the book ID from the current note
+      .single();
+
+    if (bookNotesError || !bookNotesData.users_book) {
+      console.error("Error fetching book info:", bookNotesError);
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("notes")
+      .select("*,image_url")
+      .eq("users_book", bookNotesData.users_book); // Use the book ID to fetch all images
+
+    if (error) {
+      console.error("Error fetching images:", error);
+    }
+
+    //  set the images to the public url of the images
+    const imageUrls = await Promise.all(
+      data
+        ? data.map(async (note: any) => {
+            const { data } = await supabase.storage
+              .from("images")
+              .getPublicUrl(note.image_url);
+
+            return data.publicUrl;
+          })
+        : []
+    );
+
+    setImages(imageUrls);
+
+    setLoading(false);
+  };
+
+  // get the book name from the book id
+  const getBookName = (bookId: string) => {
+    const book = books.find((book) => book.id === bookId);
+
+    // setbookname
+    setBookName(book?.book.title || "");
+  };
+
+  useEffect(() => {
+    if (!id) return;
+
+    fetchImages();
+    getBookName(bookData.users_book);
+  }, [id]);
+
+  const openImage = (imgUrl:any) => {
+    setSelectedImage(imgUrl);
+    setModalVisible(true);
+  };
+
   return (
-    <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>
+    <View style={{ flex: 1, alignItems: "center" }}>
+      {cover_image && (
+        <>
+          <Image
+            source={{ uri: cover_image }}
+            style={{ width: 100, height: 100, borderRadius: 10 }}
+          />
+        </>
+      )}
       <TextInput
         placeholder="Title"
         style={styles.input}
@@ -180,20 +300,29 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
       />
       {id ? (
         <>
-          <Button onPress={updateBookNoteEntry} style={styles.Touchable}>
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={{ color: "white" }}>Update Note</Text>
-            )}
-          </Button>
-          <Button onPress={deleteBookNoteEntry} style={styles.deleteButton}>
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={{ color: "white" }}>Delete Note</Text>
-            )}
-          </Button>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              width: "80%",
+            }}
+          >
+            <Button onPress={updateBookNoteEntry} style={styles.Touchable}>
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={{ color: "white" }}>Update Note</Text>
+              )}
+            </Button>
+            <Button onPress={deleteBookNoteEntry} style={styles.deleteButton}>
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={{ color: "white" }}>Delete Note</Text>
+              )}
+            </Button>
+          </View>
         </>
       ) : (
         <>
@@ -216,6 +345,49 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
           </Button>
         </>
       )}
+      {images.length > 0 &&
+        images[0].includes("http") && (
+          <>
+            <Text style={{ fontSize: 20, margin: 10 }}>
+              {/* bookname */}
+              {bookName}
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap",width:"100%" }}>
+                {images.map((imgUrl, index) => (
+                  <TouchableOpacity key={index} style={{maxWidth:"32%"}} onPress={() => openImage(imgUrl)}>
+                  <Image
+                    key={index}
+                    source={{ uri: imgUrl }}
+                    style={styles.galleryImage}
+                  />
+                  </TouchableOpacity>
+                ))}
+            </View>
+          </>
+        )}
+         <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setModalVisible(!modalVisible)}
+          >
+            <Text style={styles.textStyle}>Close</Text>
+          </TouchableOpacity>
+          {selectedImage && (
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.fullSizeImage}
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -248,6 +420,35 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 20,
   },
+  galleryImage: {
+    width: 110,
+    height: 110,
+    // borderRadius: 10,
+    margin: 5,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  fullSizeImage: {
+    width: "100%",
+    height: "80%",
+    resizeMode: "contain",
+  },
+  modalCloseButton: {
+    padding: 10,
+    elevation: 2,
+    backgroundColor: "#2196F3",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+
   Touchable: {
     backgroundColor: "black",
     padding: 10,
