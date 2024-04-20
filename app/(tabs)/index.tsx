@@ -25,7 +25,7 @@ const data = [
     image: require("./../../assets/images/chronology.jpg"),
   },
   {
-    title: "GoalTracker",
+    title: "Goal Tracker",
     image: require("./../../assets/images/goals.jpg"),
   },
   {
@@ -60,7 +60,7 @@ function HomepageContainers() {
       case "Habit Logbook":
         navigation.navigate("HabitLogBook");
         break;
-      case "GoalTracker":
+      case "Goal Tracker":
         navigation.navigate("GoalTracker");
         break;
       case "Statistics":

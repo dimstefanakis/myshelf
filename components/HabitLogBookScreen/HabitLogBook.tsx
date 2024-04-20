@@ -3,13 +3,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  TextInput,
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import { View, Text } from "../Themed";
+import { View, TextInput, Text } from "../Themed";
 import useUser from "@/hooks/useUser";
 import {
   startOfWeek,
@@ -55,7 +54,7 @@ const HabitLogBookComponent: React.FC = () => {
   const { user } = useUser();
   const getWeeksSinceCreation = (
     userCreatedAt: string,
-    habitCreatedAt: string
+    habitCreatedAt: string,
   ): number => {
     const start = new Date(userCreatedAt);
     const end = new Date(habitCreatedAt);
@@ -90,7 +89,7 @@ const HabitLogBookComponent: React.FC = () => {
       const maxWeekOffset = differenceInCalendarWeeks(
         startOfWeek(now, { weekStartsOn }),
         startOfWeek(createdAt, { weekStartsOn }),
-        { weekStartsOn }
+        { weekStartsOn },
       );
       setMaxWeekOffset(maxWeekOffset);
     }
@@ -111,7 +110,7 @@ const HabitLogBookComponent: React.FC = () => {
     const offset = differenceInCalendarWeeks(
       normalizedCurrentDate,
       normalizedCreationDate,
-      { weekStartsOn: 1 }
+      { weekStartsOn: 1 },
     );
 
     return offset;
@@ -131,7 +130,7 @@ const HabitLogBookComponent: React.FC = () => {
     const weekStartString = format(weekStart, "yyyy-MM-dd");
     const weekEndString = format(
       add(weekStart, { weeks: 1, days: -1 }),
-      "yyyy-MM-dd"
+      "yyyy-MM-dd",
     );
     let { data: habitsData, error: habitsError } = await supabase
       .from("habits")
@@ -160,7 +159,7 @@ const HabitLogBookComponent: React.FC = () => {
         ...habit,
         logs:
           habitLogsData?.filter(
-            (log) => log.habit_color.habit.id === habit.id
+            (log) => log.habit_color.habit.id === habit.id,
           ) || [],
         color_code: colorEntry ? colorEntry.color_code : "#808080", // Default gray color
         weekOffset: getWeeksSinceCreation(userCreatedAt, habit.created_at),
@@ -249,7 +248,7 @@ const HabitLogBookComponent: React.FC = () => {
           const color =
             habit.logs.find(
               (log) =>
-                format(parseISO(log.created_at), "yyyy-MM-dd") === dayString
+                format(parseISO(log.created_at), "yyyy-MM-dd") === dayString,
             )?.habit_color.color_code || "#808080";
 
           return (
@@ -297,7 +296,7 @@ const HabitLogBookComponent: React.FC = () => {
 
   const updateHabitColor = async (
     habitId: string | null,
-    colorCode: string
+    colorCode: string,
   ) => {
     if (!habitId) {
       setColorPickerModalVisible(false);
@@ -423,38 +422,39 @@ const HabitLogBookComponent: React.FC = () => {
         visible={addHabitModalVisible}
         onRequestClose={() => setAddHabitModalVisible(false)}
       >
-        <View style={styles.centeredView}>
-          <TextInput
-            placeholder="Habit name"
-            value={newHabit}
-            onChangeText={setNewHabit}
-            style={{
-              height: 40,
-              borderColor: "gray",
-              width: "40%",
-              textAlign: "center",
-              borderWidth: 1,
-              marginBottom: 20,
-              borderRadius: 25,
-            }}
-          />
-          <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => {
-                setAddHabitModalVisible(false);
-                setNewHabit("");
+        <View style={styles.updateHabitNameContainer}>
+          <View style={styles.textInputCenterView}>
+            <TextInput
+              placeholder="Habit name"
+              value={newHabit}
+              onChangeText={setNewHabit}
+              style={{
+                height: 40,
+                // borderColor: "gray",
+                width: "100%",
+                textAlign: "center",
+                borderWidth: 1,
+                marginBottom: 20,
               }}
-            >
-              <Text style={{ color: "black", textAlign: "center" }}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={addHabit} style={styles.submitButton}>
-              <Text style={{ color: "white", textAlign: "center" }}>
-                Submit
-              </Text>
-            </TouchableOpacity>
+            />
+            <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setAddHabitModalVisible(false);
+                  setNewHabit("");
+                }}
+              >
+                <Text style={{ color: "black", textAlign: "center" }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={addHabit} style={styles.submitButton}>
+                <Text style={{ color: "white", textAlign: "center" }}>
+                  Submit
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -496,33 +496,40 @@ const HabitLogBookComponent: React.FC = () => {
         visible={editHabitModalVisible}
         onRequestClose={() => setEditHabitModalVisible(false)}
       >
-        <View style={styles.centeredView}>
-          <TextInput
-            placeholder="Edit Habit"
-            value={editedHabitName}
-            onChangeText={setEditedHabitName}
-            style={{
-              height: 40,
-              borderColor: "gray",
-              width: "40%",
-              textAlign: "center",
-              borderWidth: 1,
-              marginBottom: 20,
-              borderRadius: 25,
-            }}
-          />
-          <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
-            <TouchableOpacity
-              onPress={() => setEditHabitModalVisible(false)}
-              style={styles.cancelButton}
-            >
-              <Text style={{ color: "black", textAlign: "center" }}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={updateHabit} style={styles.submitButton}>
-              <Text style={{ color: "white", textAlign: "center" }}>Save</Text>
-            </TouchableOpacity>
+        <View style={styles.updateHabitNameContainer}>
+          <View style={styles.textInputCenterView}>
+            <TextInput
+              placeholder="Edit Habit"
+              value={editedHabitName}
+              onChangeText={setEditedHabitName}
+              style={{
+                height: 40,
+                // borderColor: "gray",
+                width: "100%",
+                textAlign: "center",
+                borderWidth: 1,
+                marginBottom: 20,
+                borderRadius: 6,
+              }}
+            />
+            <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
+              <TouchableOpacity
+                onPress={() => setEditHabitModalVisible(false)}
+                style={styles.cancelButton}
+              >
+                <Text style={{ color: "black", textAlign: "center" }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={updateHabit}
+                style={styles.submitButton}
+              >
+                <Text style={{ color: "white", textAlign: "center" }}>
+                  Save
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -541,6 +548,18 @@ const styles = StyleSheet.create({
   centeredView: {
     flex: 1,
     justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  updateHabitNameContainer: {
+    flex: 1,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  textInputCenterView: {
+    width: "100%",
+    maxWidth: 200,
     alignItems: "center",
   },
   scrollViewStyle: {
@@ -580,7 +599,7 @@ const styles = StyleSheet.create({
   },
   colorDescription: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: "left",
   },
   buttonClose: {
     borderRadius: 20,
@@ -591,13 +610,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 18,
-    color: "#B1B7C0",
+    // color: "#B1B7C0",
   },
 
   colorPickerModalView: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
   },
   colorPickerOption: {
     width: 40,
@@ -677,14 +698,14 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: "black",
     padding: 10,
-    borderRadius: 25,
-    width: "20%",
+    borderRadius: 6,
+    width: "45%",
   },
   cancelButton: {
     backgroundColor: "#ddd",
     padding: 10,
-    borderRadius: 25,
-    width: "20%",
+    borderRadius: 6,
+    width: "45%",
   },
 });
 
