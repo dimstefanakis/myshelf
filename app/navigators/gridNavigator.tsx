@@ -66,9 +66,8 @@ export default function HomeStack() {
         name="AddBookNoteEntryScreen"
         component={AddBookNoteEntryScreen}
         options={{
-          presentation: "modal",
-          headerShown: Platform.OS === "android",
-          headerTitle: "Book note",
+          // presentation: "modal",
+          headerShown: Platform.OS === "android" || Platform.OS === "ios",
         }}
       />
       <Stack.Screen
