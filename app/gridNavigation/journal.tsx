@@ -17,6 +17,7 @@ import useUser from "@/hooks/useUser";
 const JournalLanding = ({ navigation }: any) => {
   const user = useUser();
   const [pageIndex, setPageIndex] = useState(0);
+  const [delay, setDelay] = useState(true);
 
   const getButtonStyle = (index: number) => ({
     ...styles.buttonCs,
@@ -59,44 +60,9 @@ const JournalLanding = ({ navigation }: any) => {
     navigation.navigate("AddJournalEntryScreen");
   }
 
-  useLayoutEffect(() => {
-    const titles = ["Journal", "Book Notes", "Quotes"];
-    const headerColors = ["#ff9999", "#99ccff", "#99ff99"];
-
-    navigation.setOptions({
-      headerTitle: titles[pageIndex],
-      headerRight:
-        pageIndex === 1
-          ? () => (
-              <View
-                style={{
-                  flexDirection: "row",
-                }}
-              >
-                <TouchableOpacity
-                  onPress={openCamera}
-                  style={{ marginRight: 10 }}
-                >
-                  <Entypo name="camera" size={24} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={navigateToNoteEntry}>
-                  <Entypo name="plus" size={24} color="black" />
-                </TouchableOpacity>
-              </View>
-            )
-          : pageIndex === 0
-            ? () => (
-                <TouchableOpacity
-                  onPress={() => {
-                    navigateToJournalEntry();
-                  }}
-                >
-                  <Entypo name="plus" size={24} color="black" />
-                </TouchableOpacity>
-              )
-            : null,
-    });
-  }, [pageIndex, navigation]);
+  useEffect(() => {
+    setTimeout(() => setDelay(false), 100);
+  }, [navigation]);
 
   return (
     <View style={{ height: "100%" }}>
@@ -125,37 +91,6 @@ const JournalLanding = ({ navigation }: any) => {
     </View>
   );
 };
-
-function QuotesMenu({ navigation }) {
-  const [filterLiked, setFilterLiked] = useState(false);
-  function navigateToQuoteEntry() {
-    navigation.navigate("AddQuoteEntryScreen");
-  }
-
-  return (
-    <View style={{ flexDirection: "row" }}>
-      <TouchableOpacity
-        onPress={() => {
-          setFilterLiked(!filterLiked);
-        }}
-        style={{ marginRight: 10 }}
-      >
-        <Entypo
-          name={filterLiked ? "heart" : "heart-outlined"}
-          size={24}
-          color="black"
-        />
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => {
-          navigateToQuoteEntry();
-        }}
-      >
-        <Entypo name="plus" size={24} color="black" />
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   header: {

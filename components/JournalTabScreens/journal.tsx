@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { TouchableOpacity, StyleSheet, TextInput } from "react-native";
+import { TouchableOpacity, StyleSheet } from "react-native";
+import { Entypo } from "@expo/vector-icons";
 import { supabase } from "@/utils/supabase";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { Image } from "react-native-elements";
 import { Modal } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { View, Text, Button, ScrollView } from "../Themed";
+import { View, Text, Button, ScrollView, TextInput } from "../Themed";
 import { useJournalStore, Journal } from "@/store/journalStore";
 import useUser from "@/hooks/useUser";
 import { useNavigation } from "expo-router";
@@ -18,7 +20,8 @@ interface RootStackParamList {
 }
 
 const JournalScreen = () => {
-  const { session } = useUser();
+  const { session, user } = useUser();
+  const navigation = useNavigation() as any;
   const { journal, setJournal } = useJournalStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,7 +50,7 @@ const JournalScreen = () => {
         },
         () => {
           getData();
-        }
+        },
       )
       .subscribe();
 
@@ -65,13 +68,31 @@ const JournalScreen = () => {
     setModalVisible(!modalVisible);
   };
 
+  function navigateToJournalEntry() {
+    navigation.navigate("AddJournalEntryScreen");
+  }
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            navigateToJournalEntry();
+          }}
+        >
+          <Entypo name="plus" size={24} color="black" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
   const filteredJournal = journal.filter(
     (entry) =>
       entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       entry.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       entry.users_book?.book.title
         ?.toLowerCase()
-        ?.includes(searchQuery.toLowerCase())
+        ?.includes(searchQuery.toLowerCase()),
   );
 
   return (

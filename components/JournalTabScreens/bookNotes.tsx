@@ -7,8 +7,10 @@ import {
   ViewStyle,
   Pressable,
   Modal,
-  TextInput,
 } from "react-native";
+import { Entypo } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+
 // import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRouter, useNavigation } from "expo-router";
@@ -16,11 +18,11 @@ import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
 import type { Note } from "@/store/journalStore";
-import { Button, View, ScrollView, Text } from "@/components/Themed";
+import { Button, View, ScrollView, Text, TextInput } from "@/components/Themed";
 import { AntDesign } from "@expo/vector-icons";
 
 const BookScreen: React.FC = () => {
-  const { session } = useUser();
+  const { session, user } = useUser();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { notes, setNotes } = useJournalStore();
   const [imageUrls, setImageUrls] = useState({}); // State to hold image URLs
@@ -51,10 +53,10 @@ const BookScreen: React.FC = () => {
       notes.map(async (note: any) => ({
         [note.id]: getPublicUrl(note.image_url, note.users_book.book.cover_url),
       })),
-      );
+    );
 
     setImageUrls(urls.reduce((acc, url) => ({ ...acc, ...url }), {}));
-    console.log(imageUrls)
+    console.log(imageUrls);
   };
 
   const getNotes = async () => {
@@ -119,6 +121,48 @@ const BookScreen: React.FC = () => {
     }
   }, [notes]);
 
+  function navigateToNoteEntry() {
+    navigation.navigate("AddBookNoteEntryScreen");
+  }
+
+  const openCamera = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.granted) {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+      });
+
+      if (!result?.canceled) {
+        navigation.navigate("AddBookNoteEntryScreen", {
+          image: result.assets[0],
+          user: user,
+        });
+      }
+    } else {
+    }
+  };
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View
+          style={{
+            flexDirection: "row",
+          }}
+        >
+          <TouchableOpacity onPress={openCamera} style={{ marginRight: 10 }}>
+            <Entypo name="camera" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={navigateToNoteEntry}>
+            <Entypo name="plus" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation]);
+
   const filteredBookNotes = notes.filter(
     (entry) =>
       entry.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -155,13 +199,12 @@ const BookScreen: React.FC = () => {
             return (
               <>
                 <View style={[styles.bookItem, additionalStyle]}>
-                    
                   <Pressable
                     key={item.id.toString()}
                     onPress={() => {
                       navigation.navigate("AddBookNoteEntryScreen", {
                         id: item.id,
-                        cover_image: thumbnailUrl
+                        cover_image: thumbnailUrl,
                       });
                     }}
                   >
@@ -178,7 +221,6 @@ const BookScreen: React.FC = () => {
                     </Text>
                   </Pressable>
                 </View>
-                
               </>
             );
           })}

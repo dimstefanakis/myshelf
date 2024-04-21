@@ -4,12 +4,11 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Share,
-  TextInput,
 } from "react-native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "expo-router";
 import { Entypo } from "@expo/vector-icons";
-import { View, Text, Button, ScrollView } from "../Themed";
+import { View, Text, Button, ScrollView, TextInput } from "../Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import { useJournalStore } from "@/store/journalStore";
@@ -157,7 +156,7 @@ const QuotesScreen = () => {
         },
         () => {
           getData();
-        }
+        },
       )
       .subscribe();
 
@@ -187,7 +186,7 @@ const QuotesScreen = () => {
       entry.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       entry.users_book?.book.title
         ?.toLowerCase()
-        ?.includes(searchQuery.toLowerCase())
+        ?.includes(searchQuery.toLowerCase()),
   );
   return quotes.length == 0 ? (
     <View

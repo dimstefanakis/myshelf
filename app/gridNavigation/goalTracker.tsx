@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Pressable, Dimensions, StyleSheet } from "react-native";
+import {
+  Modal,
+  Pressable,
+  Dimensions,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import PagerView from "react-native-pager-view";
 import { View, Text, Button, TextInput } from "@/components/Themed";
@@ -38,10 +44,12 @@ const tabs = [
 
 function GoalTrackerScreen() {
   const { user } = useUser();
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalLogs, setGoalLogs] = useState<GoalLog[]>([]);
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
-
+  const [loading, setLoading] = useState(true);
+  const [loadingLogs, setLoadingLogs] = useState(true);
   const markers = [
     { day: "6", completed: true },
     { day: "7", completed: false },
@@ -51,12 +59,14 @@ function GoalTrackerScreen() {
   ];
 
   async function fetchGoals() {
+    setLoading(true);
     const { data: goals, error } = await supabase
       .from("goals")
       .select("*")
       .eq("user", user?.id || "");
 
     setGoals((goals as Goal[]) || []);
+    setLoading(false);
   }
 
   async function getGoalProgress() {
@@ -94,6 +104,7 @@ function GoalTrackerScreen() {
     const yearlyEnd = new Date();
     yearlyEnd.setFullYear(yearlyStart.getFullYear() + 1);
 
+    setLoadingLogs(true);
     const { data: allLogs, error: allLogsError } = await supabase
       .from("goal_logs")
       .select("*")
@@ -197,6 +208,7 @@ function GoalTrackerScreen() {
       },
     ];
     setGoalLogs(combinedGoals);
+    setLoadingLogs(false);
   }
 
   async function listenToLogUpdates() {
@@ -226,7 +238,12 @@ function GoalTrackerScreen() {
     }
   }, [user]);
 
-  return (
+  return (goals.length == 0 || goalLogs.length == 0) &&
+    (loadingLogs || loading) ? (
+    <View style={styles.container}>
+      <ActivityIndicator />
+    </View>
+  ) : (
     <View style={styles.container}>
       <View
         style={{
@@ -261,6 +278,7 @@ function GoalTrackerScreen() {
         <PagerView
           key={selectedTab.value}
           initialPage={0}
+          onPageSelected={(e) => setCurrentIndex(e.nativeEvent.position)}
           style={{
             flex: 1,
             width: "100%",
@@ -335,6 +353,23 @@ function GoalTrackerScreen() {
             })}
         </PagerView>
       )}
+      <View style={{ flexDirection: "row" }}>
+        <View
+          style={[
+            styles.dot,
+            {
+              backgroundColor: currentIndex === 0 ? "#507C82" : "#B4CBCF",
+              marginRight: 5,
+            },
+          ]}
+        ></View>
+        <View
+          style={[
+            styles.dot,
+            { backgroundColor: currentIndex === 1 ? "#507C82" : "#B4CBCF" },
+          ]}
+        ></View>
+      </View>
 
       {user && (
         <UpdateGoals
@@ -809,6 +844,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  dot: {
+    height: 10,
+    width: 10,
+    borderRadius: 100,
+    backgroundColor: "#507C82",
   },
   points: {
     textAlign: "center",
