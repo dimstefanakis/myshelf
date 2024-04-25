@@ -2,17 +2,15 @@ import { View, Text, TextInput } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 import { UserBook } from "@/store/userBooksStore";
 import { useUserBooksStore } from "@/store/userBooksStore";
-import { EvilIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
   DimensionValue,
   Dimensions,
-  Pressable,
   ScrollView,
   StyleSheet,
 } from "react-native";
 
-const TOTAL_TITLE_CHARS_TO_SHOW = 18;
+const MIN_DECADES = 1;
 
 type Decade = {
   start: number;
@@ -23,6 +21,16 @@ type Decade = {
 function yearLastDigit(creationDate: string): number {
   const year: string = creationDate.slice(0, 4);
   return year.slice(-1) !== "-" ? parseInt(year.charAt(3)) : 0;
+}
+
+function generateDecadesUntill(stopYear: number | undefined): Decade[] {
+  if (stopYear === undefined) {
+    return generateDecades(10)
+  }
+  const currentYear: number = new Date().getFullYear(); 
+  const numberOfDecades = Math.ceil((currentYear - stopYear) / 10)
+  console.log(numberOfDecades)
+  return generateDecades(numberOfDecades > MIN_DECADES ? numberOfDecades: MIN_DECADES)
 }
 
 function generateDecades(numberOfDecades: number): Decade[] {
@@ -53,10 +61,9 @@ function calculateOffset(creationYear: string): DimensionValue {
 }
 
 export default function ChronologyScreen() {
-  const numberOfDecades = 12;
   const [decades, setDecades] = useState<Decade[]>([]);
   const [searchQuery, setSearchQuert] = useState<string>("");
-  const { user, session, loading } = useUser();
+  const { loading } = useUser();
   const { books } = useUserBooksStore();
   const [userBooks, setUserBooks] = useState<UserBook[]>([]);
 
@@ -65,8 +72,9 @@ export default function ChronologyScreen() {
   };
 
   useEffect(() => {
-    setDecades(generateDecades(numberOfDecades));
     setUserBooks(books ? books : []);
+    const oldestYear = books.length > 0 ? books.map(book => { return { book: book, year: Number(getBookCreationYear(book)) } }).sort((a,b) => a.year - b.year)[0].year: undefined
+    setDecades(generateDecadesUntill(oldestYear))
   }, [loading, books]);
 
   useEffect(() => {
@@ -124,23 +132,13 @@ export default function ChronologyScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.inputContainer}>
-          {/* <EvilIcons name="search" size={25} /> */}
           <TextInput
-            // style={styles.input}
             placeholder="Search"
             onChangeText={handleInputChange}
             value={searchQuery}
             keyboardType="default"
           />
         </View>
-        {/* <Pressable style={styles.addButton}>
-          <EvilIcons size={25} name="plus" />
-          <Text
-            style={{ color: "black", alignSelf: "center", textAlign: "center" }}
-          >
-            Add
-          </Text>
-        </Pressable> */}
       </View>
       <ScrollView
         style={{
@@ -178,6 +176,14 @@ type BookChronologyEntryProps = {
   left: boolean;
 };
 function BookChronologyEntry(props: BookChronologyEntryProps) {
+  const TOTAL_TITLE_CHARS_TO_SHOW = 18;
+  const TOTAL_TITLE_CHARS_TO_SHOW_IN_DECADE = 14;
+  const [maxChars, setMaxChars] = useState<number>(0);
+
+  useEffect(() => {
+    setMaxChars(yearLastDigit(getBookCreationYear(props.book)) === 0 ? TOTAL_TITLE_CHARS_TO_SHOW_IN_DECADE: TOTAL_TITLE_CHARS_TO_SHOW);
+  }, []);
+
   return (
     <View
       style={{
@@ -187,7 +193,7 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
         left: props.left
           ? null
           : yearLastDigit(getBookCreationYear(props.book)) == 0
-            ? "92%"
+            ? "91%"
             : "50%",
         right: props.left
           ? yearLastDigit(getBookCreationYear(props.book))
@@ -195,7 +201,7 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
             : "80%"
           : null,
         marginLeft: 1,
-        width: 185,
+        width: yearLastDigit(getBookCreationYear(props.book)) == 0 ? 160: 180,
         borderBottomWidth: 1,
         borderColor: "#3EB489",
         backgroundColor: "rgba(0, 0, 0, 0.0)",
@@ -208,8 +214,8 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
         }}
         key={props.index}
       >
-        {props.book.book.title!.length > TOTAL_TITLE_CHARS_TO_SHOW
-          ? props.book.book.title!.slice(0, TOTAL_TITLE_CHARS_TO_SHOW) + ".."
+        {props.book.book.title!.length > maxChars
+          ? props.book.book.title!.slice(0, maxChars) + ".."
           : props.book.book.title}{" "}
         ({getBookCreationYear(props.book)})
       </Text>
