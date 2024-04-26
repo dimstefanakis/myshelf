@@ -176,7 +176,7 @@ type BookChronologyEntryProps = {
   left: boolean;
 };
 function BookChronologyEntry(props: BookChronologyEntryProps) {
-  const TOTAL_TITLE_CHARS_TO_SHOW = 18;
+  const TOTAL_TITLE_CHARS_TO_SHOW = 16;
   const TOTAL_TITLE_CHARS_TO_SHOW_IN_DECADE = 14;
   const [maxChars, setMaxChars] = useState<number>(0);
 
@@ -193,15 +193,15 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
         left: props.left
           ? null
           : yearLastDigit(getBookCreationYear(props.book)) == 0
-            ? "91%"
+            ? "99%"
             : "50%",
         right: props.left
           ? yearLastDigit(getBookCreationYear(props.book))
             ? "52%"
-            : "80%"
+            : "89%"
           : null,
         marginLeft: 1,
-        width: yearLastDigit(getBookCreationYear(props.book)) == 0 ? 160: 180,
+        width: yearLastDigit(getBookCreationYear(props.book)) == 0 ? 150: 180,
         borderBottomWidth: 1,
         borderColor: "#3EB489",
         backgroundColor: "rgba(0, 0, 0, 0.0)",
@@ -210,7 +210,7 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
       <Text
         style={{
           color: "black",
-          textAlign: "center",
+          textAlign: props.left ? "left": "right",
         }}
         key={props.index}
       >
