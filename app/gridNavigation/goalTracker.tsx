@@ -12,6 +12,7 @@ import { View, Text, Button, TextInput } from "@/components/Themed";
 import useUser, { User } from "@/hooks/useUser";
 import type { Database } from "@/types_db";
 import { supabase } from "@/utils/supabase";
+import { FontAwesome } from "@expo/vector-icons";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
@@ -223,7 +224,7 @@ function GoalTrackerScreen() {
         },
         () => {
           fetchGoals();
-        },
+        }
       )
       .subscribe();
 
@@ -296,11 +297,11 @@ function GoalTrackerScreen() {
                 });
                 if (timelogs) {
                   const logs = timelogs.logs.filter(
-                    (log) => log.type === goal.type,
+                    (log) => log.type === goal.type
                   );
                   progress = logs.reduce(
                     (acc, log) => acc + (log.unit_amount ?? 0),
-                    0,
+                    0
                   );
                 }
               } else {
@@ -388,8 +389,8 @@ function GoalTrackerScreen() {
         </Button>
         <EditGoals tab={selectedTab} />
       </View>
+      <StreakChallenge />
       <View style={{ flex: 1 }}></View>
-      {/* <StreakChallenge week={2} days={7} markers={markers} /> */}
     </View>
   );
 }
@@ -658,7 +659,7 @@ function UpdateGoals({
 
   async function updateGoal(value: number) {
     const goal = goals.find(
-      (goal) => goal.type === selectedTab.value && goal.time_type === tab.value,
+      (goal) => goal.type === selectedTab.value && goal.time_type === tab.value
     );
     if (goal) {
       const { data, error } = await supabase.from("goal_logs").insert({
@@ -802,44 +803,128 @@ function UpdateGoals({
     </>
   );
 }
+const StreakChallenge = () => {
+  const [streak, setStreak] = useState(0);
+  const [checkmarks, setCheckmarks] = useState([
+    { day: "Sun", hasGoal: false },
+    { day: "Mon", hasGoal: false },
+    { day: "Tue", hasGoal: false },
+    { day: "Wed", hasGoal: false },
+    { day: "Thu", hasGoal: false },
+    { day: "Fri", hasGoal: false },
+    { day: "Sat", hasGoal: false },
+  ]);
+  const { user } = useUser();
 
-const StreakChallenge = ({
-  days,
-  week,
-  markers,
-}: {
-  days: number;
-  week: number;
-  markers: { day: string }[];
-}) => {
-  // Adjust this function according to how you calculate the position of the markers
-  const calculateLeftPosition = (day: string) => {
-    // Example calculation, you will need to adjust this logic
-    const dayOffset = new Date(day).getDay() - 1;
-    return `${dayOffset * 14}%`; // Assuming 14% per day in a week for simplicity
-  };
+  async function fetchStreakFromDatabase() {
+    const { data: goalLogs } = await supabase
+      .from("goal_logs")
+      .select("created_at")
+      .order("created_at", { ascending: false });
+
+    let streak = 0;
+    let prevDate;
+
+    for (const log of goalLogs!) {
+      const logDate = new Date(log.created_at).toISOString().slice(0, 10);
+
+      if (!prevDate || isConsecutive(prevDate, logDate)) {
+        streak++;
+        setStreak(streak);
+        prevDate = logDate;
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  }
+
+  function isConsecutive(prevDate: any, currentDate: any) {
+    const prev = new Date(prevDate);
+    const current = new Date(currentDate);
+    const oneDay = 24 * 60 * 60 * 1000;
+    return Math.abs((current.getTime() - prev.getTime()) / oneDay) === 1;
+  }
+
+  async function fetchCheckmarks() {
+    const today = new Date();
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const checkmarksArray = [];
+
+    for (let i = 0; i < days.length; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - today.getDay() + ((i + 1) % 7)); // Offset by 1 to start from Monday
+      const dateString = date.toISOString().slice(0, 10);
+      const hasGoal = await hasGoalLog(dateString);
+      checkmarksArray.push({ day: days[date.getDay()], hasGoal });
+    }
+
+    setCheckmarks(checkmarksArray);
+  }
+
+  async function hasGoalLog(date: string) {
+    const { data } = await supabase
+      .from("goal_logs")
+      .select("created_at")
+      .gte("created_at", `${date}T00:00:00.000Z`)
+      .lte("created_at", `${date}T23:59:59.999Z`);
+
+    return data!.length > 0;
+  }
+
+  useEffect(() => {
+    fetchStreakFromDatabase();
+    fetchCheckmarks();
+  }, [user]);
 
   return (
-    <View style={styles.streakContainer}>
-      <Text style={styles.title}>Streak Challenge</Text>
-      <Text style={styles.days}>{days} days</Text>
-      <Text style={styles.week}>Week {week}</Text>
-      <View style={styles.card}>
-        <View style={styles.timeline} />
-        {markers.map((marker, index) => (
-          <View
-            key={index}
-            style={[styles.marker, { left: calculateLeftPosition(marker.day) }]}
-          >
-            <Text style={styles.markerText}>{marker.day}</Text>
-          </View>
-        ))}
+    <View style={{ height: "8%", alignItems: "center", marginTop: 40 }}>
+      <View style={styles.streakText}>
+        <Text style={{ fontSize: 40, color: "#5A6978" }}>{streak}</Text>
+        <Text style={{ fontSize: 20 }}>day streak!</Text>
+      </View>
+      <View style={styles.daysContainer}>
+        {checkmarks.map(({ day, hasGoal }) => {
+          return (
+            <View key={day} style={styles.dayContainer}>
+              <Text style={styles.day}>{day}</Text>
+              {hasGoal && streak > 0 ? (
+                <FontAwesome name="check-circle" size={24} color="green" />
+              ) : (
+                <FontAwesome name="circle-o" size={24} color="black" />
+              )}
+            </View>
+          );
+        })}
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  daysContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+    alignItems: "center",
+    width: "85%",
+    borderColor: "#5A6978",
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 8,
+  },
+  dayContainer: {
+    alignItems: "center",
+  },
+  day: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#5A6978",
+  },
+  green: {
+    color: "green",
+  },
   container: {
     flex: 1,
     justifyContent: "center",
@@ -872,12 +957,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#5A6978",
     borderRadius: 10,
   },
-  streakContainer: {
-    padding: 20,
-    alignItems: "center",
-    // backgroundColor: "red",
-    width: "100%",
-  },
   title: {
     fontSize: 18,
     fontWeight: "bold",
@@ -886,7 +965,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
   },
-  week: {
+  text: {
     fontSize: 16,
   },
   card: {
@@ -919,6 +998,10 @@ const styles = StyleSheet.create({
   },
   markerText: {
     fontSize: 12,
+  },
+  streakText: {
+    alignItems: "center",
+    color: "#5A6978",
   },
 });
 
