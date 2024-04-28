@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Touchable, TouchableOpacity } from "react-native";
 import {
   VictoryBar,
   VictoryChart,
@@ -51,6 +51,7 @@ function StatisticsView() {
   const [booksGenre, setBooksGenre] = useState<any[]>([]);
   const [fictionData, setFictionData] = useState<any[]>([]);
   const [nonFictionData, setNonFictionData] = useState<any[]>([]);
+  const [filter, setFilter] = useState("overall"); // 'thisYear' or 'overall'
 
   const getBooksFictionNonFiction = async () => {
     let { data: fetchedBooks, error } = await supabase
@@ -77,10 +78,10 @@ function StatisticsView() {
         if (isGoogleApiData(book.google_api_data)) {
           const categories = book.google_api_data.volumeInfo?.categories;
           const containsFiction = categories?.some((category: string) =>
-            category.toLowerCase().includes("fiction"),
+            category.toLowerCase().includes("fiction")
           );
           const containsNonfiction = categories?.some((category: string) =>
-            category.toLowerCase().includes("nonfiction"),
+            category.toLowerCase().includes("nonfiction")
           );
 
           if (containsFiction && !containsNonfiction) {
@@ -95,7 +96,7 @@ function StatisticsView() {
       const totalCount = fictionCount + nonFictionCount;
       const fictionPercentage = customRound((fictionCount / totalCount) * 100);
       const nonFictionPercentage = customRound(
-        (nonFictionCount / totalCount) * 100,
+        (nonFictionCount / totalCount) * 100
       );
 
       setFictionData([{ bookType: "Fiction", percentage: fictionPercentage }]);
@@ -114,58 +115,75 @@ function StatisticsView() {
   }, [user?.id, books]);
 
   const getBooksGenre = async () => {
-    let { data: fetchedBooks, error } = await supabase
+    let currentDate = new Date();
+    let lastYearDate = new Date(
+      new Date().setDate(currentDate.getDate() - 365)
+    );
+
+    let query = supabase
       .from("users_books")
       .select(
         `
+      id,
+      book:books (
         id,
-        book:books (
-          id,
-          book_tags (*,
-            tags (name)
-          )
+        book_tags (*,
+          tags (name)
         )
-      `
+      )
+    `
       )
       .eq("user", user?.id ? user.id : "");
-  
+
+    if (filter === "thisYear") {
+      query = query.gte("created_at", lastYearDate.toISOString());
+    }
+    let { data: fetchedBooks, error } = await query;
     if (error) {
       console.error("Error fetching data:", error);
       return;
     }
-  
+
     if (fetchedBooks) {
       const genreCounts = fetchedBooks.reduce<Record<string, number>>(
         (acc, book) => {
-          const tags = book?.book?.book_tags.map((tag:any) => tag.tags.name);
-          tags?.forEach((tag:any) => {
+          const tags = book?.book?.book_tags.map((tag: any) => tag.tags.name);
+          tags?.forEach((tag: any) => {
             acc[tag] = (acc[tag] || 0) + 1;
           });
           return acc;
         },
         {}
       );
-  
-      const totalGenreAssignments = Object.values(genreCounts).reduce((total, count) => total + count, 0);
+
+      const totalGenreAssignments = Object.values(genreCounts).reduce(
+        (total, count) => total + count,
+        0
+      );
       let dataForGenre: GenreData[] = Object.keys(genreCounts)
-        .map(genre => ({
+        .map((genre) => ({
           x: genre,
           y: (genreCounts[genre] / totalGenreAssignments) * 100,
-          label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(0)}%`,
+          label: `${(
+            (genreCounts[genre] / totalGenreAssignments) *
+            100
+          ).toFixed(0)}%`,
         }))
         .sort((a, b) => b.y - a.y); // Sort by percentage, descending
-  
+
       if (dataForGenre.length > 10) {
         const topTen = dataForGenre.slice(0, 10);
-        const othersPercentage = dataForGenre.slice(10).reduce((sum, current) => sum + current.y, 0);
+        const othersPercentage = dataForGenre
+          .slice(10)
+          .reduce((sum, current) => sum + current.y, 0);
         topTen.push({
-          x: 'Others',
+          x: "Others",
           y: othersPercentage,
-          label: `${othersPercentage.toFixed(0)}%`
+          label: `${othersPercentage.toFixed(0)}%`,
         });
         dataForGenre = topTen;
       }
-  
+
       setBooksGenre(dataForGenre);
     } else {
       setBooksGenre([]);
@@ -188,7 +206,7 @@ function StatisticsView() {
           acc[lang] = (acc[lang] || 0) + 1;
           return acc;
         },
-        {},
+        {}
       );
 
       const totalBooks = fetchedBooks.length;
@@ -208,12 +226,22 @@ function StatisticsView() {
     if (user) {
       getBooksLanguage();
       getBooksGenre();
+      getBooksFictionNonFiction();
     }
-  }, [user?.id]);
+  }, [user?.id, books, filter]);
 
   const customColorScale = [
-    "#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#a4d8c2", 
-    "#845EC2", "#D65DB1", "#FF6F91", "#00C9A7", "#C4FCEF", "#F9F871" // Last color could be for "Others"
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#a4d8c2",
+    "#845EC2",
+    "#D65DB1",
+    "#FF6F91",
+    "#00C9A7",
+    "#C4FCEF",
+    "#F9F871", // Last color could be for "Others"
   ];
 
   const LegendItem = ({ name, color }: any) => (
@@ -242,6 +270,52 @@ function StatisticsView() {
     </View>
   ) : (
     <ScrollView>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          marginVertical: 20,
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => setFilter("overall")}
+          style={[
+            styles.filterButtons,
+            filter === "overall"
+              ? styles.filterButtonActive
+              : styles.filterButtonInactive,
+          ]}
+        >
+          <Text
+            style={
+              filter === "overall"
+                ? styles.filterButtonTextActive
+                : styles.filterButtonTextInactive
+            }
+          >
+            Overall
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setFilter("thisYear")}
+          style={[
+            styles.filterButtons,
+            filter === "thisYear"
+              ? styles.filterButtonActive
+              : styles.filterButtonInactive,
+          ]}
+        >
+          <Text
+            style={
+              filter === "thisYear"
+                ? styles.filterButtonTextActive
+                : styles.filterButtonTextInactive
+            }
+          >
+            This Year
+          </Text>
+        </TouchableOpacity>
+      </View>
       <View style={styles.container}>
         <View style={styles.graphContainer}>
           <Text style={styles.title}>Genres</Text>
@@ -257,12 +331,12 @@ function StatisticsView() {
           />
           <View style={styles.legendContainer}>
             {booksGenre.map((item, index) => (
-          <LegendItem
-            key={index}
-            name={item.x}
-            color={customColorScale[index % customColorScale.length]}
-          />
-        ))}
+              <LegendItem
+                key={index}
+                name={item.x}
+                color={customColorScale[index % customColorScale.length]}
+              />
+            ))}
           </View>
         </View>
         <View style={styles.graphContainer}>
@@ -335,6 +409,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 10,
     // backgroundColor: "white",
+  },
+  filterButtons: {
+    padding: 10,
+    marginHorizontal: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  filterButtonActive: {
+    backgroundColor: "#00C49F",
+    borderColor: "#0088FE",
+  },
+  filterButtonInactive: {
+    backgroundColor: "white",
+    borderColor: "#ddd",
+  },
+  filterButtonTextActive: {
+    fontWeight: "bold",
+    color: "white",
+  },
+  filterButtonTextInactive: {
+    color: "black",
   },
   graphContainer: {
     borderBottomWidth: 1,
