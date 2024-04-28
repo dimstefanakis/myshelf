@@ -87,7 +87,7 @@ export default function HomeStack() {
       <Stack.Screen
         name="GoalTracker"
         component={GoalTrackerScreen}
-        options={{ headerShown: true, headerTitle: "Goal Tracker" }}
+        options={{ headerShown: true, headerTitle: "My Reading Goals" }}
       />
       <Stack.Screen
         name="EditMarkers"

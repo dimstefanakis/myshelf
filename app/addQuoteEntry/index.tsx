@@ -1,4 +1,4 @@
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import React, { useEffect } from "react";
 import SelectDropdown from "react-native-select-dropdown";
 import { Text, TextInput, Button } from "@/components/Themed";
@@ -19,14 +19,14 @@ const AddQuoteEntryScreen = () => {
   const user = useUser();
   const { books } = useUserBooksStore();
 
-  useEffect(() => {
-    if (books?.length && !quoteData.users_book) {
-      setQuoteData((prevData) => ({
-        ...prevData,
-        users_book: books[0]?.id || "",
-      }));
-    }
-  }, [user, books]);
+  // useEffect(() => {
+  //   if (books?.length && !quoteData.users_book) {
+  //     setQuoteData((prevData) => ({
+  //       ...prevData,
+  //       users_book: books[0]?.id || "",
+  //     }));
+  //   }
+  // }, [user, books]);
 
   const handleChange = (name: string, value: any) => {
     setQuoteData({
@@ -37,6 +37,11 @@ const AddQuoteEntryScreen = () => {
 
   const handleSubmit = async () => {
     setLoading(true);
+    if (!quoteData.users_book) {
+      Alert.alert("Error", "Please select a book");
+      setLoading(false);
+      return;
+    }
     const { data, error } = await supabase
       .from("quotes")
       .insert([{ ...quoteData }]);

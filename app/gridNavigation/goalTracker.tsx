@@ -353,23 +353,27 @@ function GoalTrackerScreen() {
             })}
         </PagerView>
       )}
-      <View style={{ flexDirection: "row" }}>
-        <View
-          style={[
-            styles.dot,
-            {
-              backgroundColor: currentIndex === 0 ? "#507C82" : "#B4CBCF",
-              marginRight: 5,
-            },
-          ]}
-        ></View>
-        <View
-          style={[
-            styles.dot,
-            { backgroundColor: currentIndex === 1 ? "#507C82" : "#B4CBCF" },
-          ]}
-        ></View>
-      </View>
+      {selectedTab.value != "yearly" ? (
+        <View style={{ flexDirection: "row" }}>
+          <View
+            style={[
+              styles.dot,
+              {
+                backgroundColor: currentIndex === 0 ? "#507C82" : "#B4CBCF",
+                marginRight: 5,
+              },
+            ]}
+          ></View>
+          <View
+            style={[
+              styles.dot,
+              { backgroundColor: currentIndex === 1 ? "#507C82" : "#B4CBCF" },
+            ]}
+          ></View>
+        </View>
+      ) : (
+        <View style={{ height: 10 }}></View>
+      )}
 
       {user && (
         <UpdateGoals
