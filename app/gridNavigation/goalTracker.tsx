@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import PagerView from "react-native-pager-view";
-import { View, Text, Button, TextInput } from "@/components/Themed";
+import { View, Text, Button, TextInput, ScrollView } from "@/components/Themed";
 import useUser, { User } from "@/hooks/useUser";
 import type { Database } from "@/types_db";
 import { supabase } from "@/utils/supabase";
@@ -51,13 +51,6 @@ function GoalTrackerScreen() {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [loading, setLoading] = useState(true);
   const [loadingLogs, setLoadingLogs] = useState(true);
-  const markers = [
-    { day: "6", completed: true },
-    { day: "7", completed: false },
-    { day: "8", completed: true },
-    { day: "9", completed: true },
-    { day: "10", completed: false },
-  ];
 
   async function fetchGoals() {
     setLoading(true);
@@ -224,7 +217,7 @@ function GoalTrackerScreen() {
         },
         () => {
           fetchGoals();
-        }
+        },
       )
       .subscribe();
 
@@ -241,11 +234,19 @@ function GoalTrackerScreen() {
 
   return (goals.length == 0 || goalLogs.length == 0) &&
     (loadingLogs || loading) ? (
-    <View style={styles.container}>
+    <View style={styles.loadingContainer}>
       <ActivityIndicator />
     </View>
   ) : (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+      }}
+    >
       <View
         style={{
           flexDirection: "row",
@@ -281,10 +282,11 @@ function GoalTrackerScreen() {
           initialPage={0}
           onPageSelected={(e) => setCurrentIndex(e.nativeEvent.position)}
           style={{
-            flex: 1,
             width: "100%",
             alignItems: "center",
             justifyContent: "center",
+            height: "30%",
+            backgroundColor: "red",
           }}
         >
           {goals
@@ -297,11 +299,11 @@ function GoalTrackerScreen() {
                 });
                 if (timelogs) {
                   const logs = timelogs.logs.filter(
-                    (log) => log.type === goal.type
+                    (log) => log.type === goal.type,
                   );
                   progress = logs.reduce(
                     (acc, log) => acc + (log.unit_amount ?? 0),
-                    0
+                    0,
                   );
                 }
               } else {
@@ -324,6 +326,8 @@ function GoalTrackerScreen() {
                     width: "100%",
                     justifyContent: "center",
                     alignItems: "center",
+                    flex: 1,
+                    height: "100%",
                   }}
                 >
                   <AnimatedCircularProgress
@@ -377,25 +381,27 @@ function GoalTrackerScreen() {
       )}
 
       {user && (
-        <UpdateGoals
-          tab={selectedTab}
-          user={user}
-          goals={goals}
-          refresh={() => {
-            fetchGoals();
-            getGoalProgress();
-          }}
-        />
+        <View style={{ flexDirection: "row" }}>
+          <UpdateGoals
+            tab={selectedTab}
+            user={user}
+            goals={goals}
+            refresh={() => {
+              fetchGoals();
+              getGoalProgress();
+            }}
+          />
+          <EditGoals tab={selectedTab} />
+        </View>
       )}
       <View style={{ flexDirection: "row" }}>
-        <Button style={{ marginTop: 30, marginRight: 10 }}>
+        {/* <Button style={{ marginTop: 30, marginRight: 10 }}>
           <Text style={{ color: "white" }}>View history</Text>
-        </Button>
-        <EditGoals tab={selectedTab} />
+        </Button> */}
       </View>
       <StreakChallenge />
       <View style={{ flex: 1 }}></View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -469,12 +475,12 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
   return (
     <>
       <Button
-        style={{ marginTop: 30 }}
+        style={{ marginTop: 30, backgroundColor: "white" }}
         onPress={() => {
           setIsModalVisible(!isModalVisible);
         }}
       >
-        <Text style={{ color: "white" }}>Edit goals</Text>
+        <Text style={{ color: "black" }}>Edit goals</Text>
       </Button>
       <Modal
         animationType="fade"
@@ -663,7 +669,7 @@ function UpdateGoals({
 
   async function updateGoal(value: number) {
     const goal = goals.find(
-      (goal) => goal.type === selectedTab.value && goal.time_type === tab.value
+      (goal) => goal.type === selectedTab.value && goal.time_type === tab.value,
     );
     if (goal) {
       const { data, error } = await supabase.from("goal_logs").insert({
@@ -683,7 +689,7 @@ function UpdateGoals({
   return (
     <>
       <Button
-        style={{ marginTop: 30 }}
+        style={{ marginTop: 30, marginRight: 5 }}
         onPress={() => {
           setIsModalVisible(!isModalVisible);
         }}
@@ -810,13 +816,13 @@ function UpdateGoals({
 const StreakChallenge = () => {
   const [streak, setStreak] = useState(0);
   const [checkmarks, setCheckmarks] = useState([
-    { day: "Sun", hasGoal: false },
-    { day: "Mon", hasGoal: false },
-    { day: "Tue", hasGoal: false },
-    { day: "Wed", hasGoal: false },
-    { day: "Thu", hasGoal: false },
-    { day: "Fri", hasGoal: false },
-    { day: "Sat", hasGoal: false },
+    { day: "Su", hasGoal: false },
+    { day: "Mo", hasGoal: false },
+    { day: "Tu", hasGoal: false },
+    { day: "We", hasGoal: false },
+    { day: "Th", hasGoal: false },
+    { day: "Fr", hasGoal: false },
+    { day: "Sa", hasGoal: false },
   ]);
   const { user } = useUser();
 
@@ -828,6 +834,18 @@ const StreakChallenge = () => {
 
     let streak = 0;
     let prevDate;
+
+    // check whether there is a log today
+    // means no streak
+    if (goalLogs && goalLogs.length > 0) {
+      const today = new Date().toISOString().slice(0, 10);
+      const lastLog = new Date(goalLogs[0].created_at)
+        .toISOString()
+        .slice(0, 10);
+      if (today != lastLog) {
+        return 0;
+      }
+    }
 
     for (const log of goalLogs!) {
       const logDate = new Date(log.created_at).toISOString().slice(0, 10);
@@ -853,7 +871,7 @@ const StreakChallenge = () => {
 
   async function fetchCheckmarks() {
     const today = new Date();
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
     const checkmarksArray = [];
 
     for (let i = 0; i < days.length; i++) {
@@ -883,24 +901,49 @@ const StreakChallenge = () => {
   }, [user]);
 
   return (
-    <View style={{ height: "8%", alignItems: "center", marginTop: 40 }}>
+    <View style={{ alignItems: "center", marginTop: 40, width: "100%" }}>
       <View style={styles.streakText}>
-        <Text style={{ fontSize: 40, color: "#5A6978" }}>{streak}</Text>
+        <Text style={{ fontSize: 40, color: "#5A6978", fontWeight: "bold" }}>
+          {streak}
+        </Text>
         <Text style={{ fontSize: 20 }}>day streak!</Text>
       </View>
-      <View style={styles.daysContainer}>
-        {checkmarks.map(({ day, hasGoal }) => {
-          return (
-            <View key={day} style={styles.dayContainer}>
-              <Text style={styles.day}>{day}</Text>
-              {hasGoal && streak > 0 ? (
-                <FontAwesome name="check-circle" size={24} color="green" />
-              ) : (
-                <FontAwesome name="circle-o" size={24} color="black" />
-              )}
-            </View>
-          );
-        })}
+      <View
+        style={{
+          marginTop: 6,
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <View
+          style={{
+            width: "85%",
+            borderWidth: 2,
+            borderColor: "#5A6978",
+            borderRadius: 6,
+          }}
+        >
+          <View style={styles.daysContainer}>
+            {checkmarks.map(({ day, hasGoal }) => {
+              return (
+                <View key={day} style={styles.dayContainer}>
+                  <Text style={styles.day}>{day}</Text>
+                  {hasGoal && streak > 0 ? (
+                    <FontAwesome name="check-circle" size={24} color="green" />
+                  ) : (
+                    <FontAwesome name="circle-o" size={24} color="black" />
+                  )}
+                </View>
+              );
+            })}
+          </View>
+          <View style={styles.separator}></View>
+          <Text style={{ textAlign: "center", marginVertical: 10 }}>
+            A <Text style={styles.green}>streak</Text> is when you complete your
+            goal for consecutive days.
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -912,17 +955,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 10,
     alignItems: "center",
-    width: "85%",
+    width: "100%",
     borderColor: "#5A6978",
-    borderWidth: 1,
-    borderRadius: 20,
-    padding: 8,
+    borderRadius: 10,
+    padding: 10,
   },
   dayContainer: {
     alignItems: "center",
   },
+  separator: {
+    height: 1,
+    width: "100%",
+    backgroundColor: "#5A6978",
+  },
   day: {
-    fontSize: 20,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#5A6978",
   },
@@ -930,6 +977,11 @@ const styles = StyleSheet.create({
     color: "green",
   },
   container: {
+    flex: 1,
+    // justifyContent: "center",
+    // alignItems: "center",
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
