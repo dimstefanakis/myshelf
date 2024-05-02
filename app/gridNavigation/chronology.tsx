@@ -25,15 +25,17 @@ function yearLastDigit(creationDate: string): number {
 
 function generateDecadesUntill(stopYear: number | undefined): Decade[] {
   if (stopYear === undefined) {
-    return generateDecades(10)
+    return generateDecades(10);
   }
-  const currentYear: number = new Date().getFullYear(); 
-  const numberOfDecades = Math.ceil((currentYear - stopYear) / 10)
-  console.log(numberOfDecades)
-  return generateDecades(numberOfDecades > MIN_DECADES ? numberOfDecades: MIN_DECADES)
+  const currentYear: number = new Date().getFullYear();
+  const numberOfDecades = Math.ceil((currentYear - stopYear) / 10);
+  return generateDecades(
+    numberOfDecades > MIN_DECADES ? numberOfDecades : MIN_DECADES,
+  );
 }
 
 function generateDecades(numberOfDecades: number): Decade[] {
+  numberOfDecades = numberOfDecades + 1;
   let decades: Decade[] = [];
   let currentYear = new Date().getFullYear();
   let currentDecade = currentYear - parseInt(String(currentYear).charAt(3));
@@ -73,8 +75,15 @@ export default function ChronologyScreen() {
 
   useEffect(() => {
     setUserBooks(books ? books : []);
-    const oldestYear = books.length > 0 ? books.map(book => { return { book: book, year: Number(getBookCreationYear(book)) } }).sort((a,b) => a.year - b.year)[0].year: undefined
-    setDecades(generateDecadesUntill(oldestYear))
+    const oldestYear =
+      books.length > 0
+        ? books
+            .map((book) => {
+              return { book: book, year: Number(getBookCreationYear(book)) };
+            })
+            .sort((a, b) => a.year - b.year)[0].year
+        : undefined;
+    setDecades(generateDecadesUntill(oldestYear));
   }, [loading, books]);
 
   useEffect(() => {
@@ -181,7 +190,11 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
   const [maxChars, setMaxChars] = useState<number>(0);
 
   useEffect(() => {
-    setMaxChars(yearLastDigit(getBookCreationYear(props.book)) === 0 ? TOTAL_TITLE_CHARS_TO_SHOW_IN_DECADE: TOTAL_TITLE_CHARS_TO_SHOW);
+    setMaxChars(
+      yearLastDigit(getBookCreationYear(props.book)) === 0
+        ? TOTAL_TITLE_CHARS_TO_SHOW_IN_DECADE
+        : TOTAL_TITLE_CHARS_TO_SHOW,
+    );
   }, []);
 
   return (
@@ -201,7 +214,7 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
             : "89%"
           : null,
         marginLeft: 1,
-        width: yearLastDigit(getBookCreationYear(props.book)) == 0 ? 150: 180,
+        width: yearLastDigit(getBookCreationYear(props.book)) == 0 ? 150 : 180,
         borderBottomWidth: 1,
         borderColor: "#3EB489",
         backgroundColor: "rgba(0, 0, 0, 0.0)",
@@ -210,7 +223,7 @@ function BookChronologyEntry(props: BookChronologyEntryProps) {
       <Text
         style={{
           color: "black",
-          textAlign: props.left ? "left": "right",
+          textAlign: props.left ? "left" : "right",
         }}
         key={props.index}
       >
