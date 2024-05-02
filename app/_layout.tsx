@@ -135,6 +135,20 @@ function RootLayoutNav({ user }: { user: any }) {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name="searchCategory/index"
+            options={{
+              headerShadowVisible: false, // applied here
+              headerBackTitleVisible: false,
+              headerBackTitle: "Back",
+              headerTitle: "Search",
+              headerStyle: {
+                backgroundColor: Colors.light.background,
+              },
+
+              // headerShown: false,
+            }}
+          />
         </Stack>
       </ThemeProvider>
     </View>

@@ -56,7 +56,9 @@ function StatisticsView() {
   const getBooksFictionNonFiction = async () => {
     let { data: fetchedBooks, error } = await supabase
       .from("books")
-      .select("google_api_data");
+      .select("users_books(*),google_api_data")
+      .eq("users_books.user", user?.id || "")
+      .eq("users_books.status", "completed");
 
     if (error) {
       console.error("Error fetching data:", error);
@@ -78,10 +80,10 @@ function StatisticsView() {
         if (isGoogleApiData(book.google_api_data)) {
           const categories = book.google_api_data.volumeInfo?.categories;
           const containsFiction = categories?.some((category: string) =>
-            category.toLowerCase().includes("fiction")
+            category.toLowerCase().includes("fiction"),
           );
           const containsNonfiction = categories?.some((category: string) =>
-            category.toLowerCase().includes("nonfiction")
+            category.toLowerCase().includes("nonfiction"),
           );
 
           if (containsFiction && !containsNonfiction) {
@@ -96,7 +98,7 @@ function StatisticsView() {
       const totalCount = fictionCount + nonFictionCount;
       const fictionPercentage = customRound((fictionCount / totalCount) * 100);
       const nonFictionPercentage = customRound(
-        (nonFictionCount / totalCount) * 100
+        (nonFictionCount / totalCount) * 100,
       );
 
       setFictionData([{ bookType: "Fiction", percentage: fictionPercentage }]);
@@ -117,7 +119,7 @@ function StatisticsView() {
   const getBooksGenre = async () => {
     let currentDate = new Date();
     let lastYearDate = new Date(
-      new Date().setDate(currentDate.getDate() - 365)
+      new Date().setDate(currentDate.getDate() - 365),
     );
 
     let query = supabase
@@ -131,9 +133,10 @@ function StatisticsView() {
           tags (name)
         )
       )
-    `
+    `,
       )
-      .eq("user", user?.id ? user.id : "");
+      .eq("user", user?.id ? user.id : "")
+      .eq("status", "completed");
 
     if (filter === "thisYear") {
       query = query.gte("created_at", lastYearDate.toISOString());
@@ -153,12 +156,12 @@ function StatisticsView() {
           });
           return acc;
         },
-        {}
+        {},
       );
 
       const totalGenreAssignments = Object.values(genreCounts).reduce(
         (total, count) => total + count,
-        0
+        0,
       );
       let dataForGenre: GenreData[] = Object.keys(genreCounts)
         .map((genre) => ({
@@ -194,7 +197,8 @@ function StatisticsView() {
     let { data: fetchedBooks, error } = await supabase
       .from("books")
       .select(`users_books(*),google_api_data`)
-      .eq("users_books.user", user?.id || "");
+      .eq("users_books.user", user?.id || "")
+      .eq("users_books.status", "completed");
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -206,7 +210,7 @@ function StatisticsView() {
           acc[lang] = (acc[lang] || 0) + 1;
           return acc;
         },
-        {}
+        {},
       );
 
       const totalBooks = fetchedBooks.length;
@@ -412,14 +416,14 @@ const styles = StyleSheet.create({
   },
   filterButtons: {
     padding: 10,
-    marginHorizontal: 10,
+    marginHorizontal: 4,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: "#ddd",
   },
   filterButtonActive: {
-    backgroundColor: "#00C49F",
-    borderColor: "#0088FE",
+    backgroundColor: "black",
+    borderColor: "black",
   },
   filterButtonInactive: {
     backgroundColor: "white",

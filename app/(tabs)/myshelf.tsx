@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StyleSheet, ScrollView } from "react-native";
+import { StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { useUserBooksStore } from "@/store/userBooksStore";
@@ -45,23 +45,23 @@ export default function MyShelfScreen() {
     <View style={styles.container}>
       <View style={styles.tabs}>
         {tabs.map((tab) => (
-          <View
+          <TouchableOpacity
             key={tab.id}
             style={[
               styles.tab,
               selectedTab.id === tab.id && styles.selectedTab,
             ]}
+            onPress={() => setSelectedTab(tab)}
           >
             <Text
               style={[
                 styles.tabTitle,
                 selectedTab.id === tab.id && styles.selectedTabTitle,
               ]}
-              onPress={() => setSelectedTab(tab)}
             >
               {tab.title}
             </Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
       {
@@ -206,18 +206,18 @@ const styles = StyleSheet.create({
   },
   tab: {
     padding: 10,
-    marginHorizontal: 2,
-    borderRadius: 4,
-    // borderBottomWidth: 2,
+    marginHorizontal: 4,
+    borderRadius: 5,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    backgroundColor: "white",
+    borderColor: "#ddd",
   },
   selectedTab: {
     backgroundColor: "black",
     borderColor: "black",
   },
   tabTitle: {
-    fontSize: 20,
+    fontSize: 16,
   },
   selectedTabTitle: {
     color: "white",
