@@ -1,59 +1,83 @@
-import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
+import React, { useEffect } from "react";
+import { useRouter, Redirect } from "expo-router";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import {
+  Entypo,
+  AntDesign,
+  MaterialCommunityIcons,
+  Ionicons,
+} from "@expo/vector-icons";
+import Colors from "@/constants/Colors";
+import { useColorScheme } from "@/components/useColorScheme";
+import useUser from "@/hooks/useUser";
+import Search from "./search";
+import HomeStack from "../navigators/gridNavigator";
+import ChronologyScreen from "../gridNavigation/chronology";
+import StatisticsScreen from "../gridNavigation/statistics";
+import ProfileScreen from "./profile";
+import MyShelfScreen from "./myshelf";
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+const Tab = createBottomTabNavigator();
 
 export default function TabLayout() {
+  const router = useRouter();
+  const { user, session, initialLoaded, loading } = useUser();
   const colorScheme = useColorScheme();
 
+  if (initialLoaded && (!user || !session)) {
+    return <Redirect href="/login" />;
+  }
   return (
-    <Tabs
+    <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
-      <Tabs.Screen
-        name="index"
+        tabBarActiveTintColor: Colors["light"].tint,
+        headerShown: false,
+      }}
+    >
+      {/* Points to the grid navigator to enable nested routes */}
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <Entypo name="home" size={24} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
-        name="two"
+      <Tab.Screen
+        name="Search"
+        component={Search}
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          // tabBarButton:()=> null,
+          headerShown: false,
+          tabBarIcon: ({ color }) => (
+            <AntDesign name="search1" size={22} color={color} />
+          ),
         }}
       />
-    </Tabs>
+      <Tab.Screen
+        name="MyShelf"
+        component={MyShelfScreen}
+        options={{
+          title: "MyShelf",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="bookshelf" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-circle" size={24} color={color} />
+          ),
+          // tabBarButton: () => null,
+        }}
+      />
+    </Tab.Navigator>
   );
 }
