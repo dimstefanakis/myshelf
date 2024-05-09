@@ -29,11 +29,17 @@
       }
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.senec.myshelf"
+      "package": "com.senec.myshelf",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyArJwmfJ4iU-MS_PM2Zaima6vO6jqbA6Uk"
+        }
+      }
     },
     "web": {
       "bundler": "metro",

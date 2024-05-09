@@ -13,10 +13,10 @@ import useUser from "@/hooks/useUser";
 import {
   startOfWeek,
   add,
-  format,
   parseISO,
   differenceInCalendarWeeks,
 } from "date-fns";
+import { fromZonedTime, toZonedTime, format } from "date-fns-tz";
 import { Database } from "@/types_db";
 
 interface Habit {
@@ -32,6 +32,8 @@ interface HabitWithDate extends Habit {
 }
 
 type HabitColor = Database["public"]["Tables"]["habit_colors"]["Row"];
+
+const timeZone = "Asia/Seoul";
 
 const HabitLogBookComponent: React.FC = () => {
   const [weekOffset, setWeekOffset] = useState<number>(0);
@@ -82,8 +84,9 @@ const HabitLogBookComponent: React.FC = () => {
 
     if (data && data.created_at) {
       setUserCreatedAt(data.created_at);
-      const now = new Date();
-      const createdAt = parseISO(data.created_at);
+      const now = toZonedTime(new Date(), timeZone);
+      // const createdAt = parseISO(data.created_at);
+      const createdAt = fromZonedTime(parseISO(data.created_at), timeZone);
       const weekStartsOn = 1;
 
       const maxWeekOffset = differenceInCalendarWeeks(
@@ -96,7 +99,8 @@ const HabitLogBookComponent: React.FC = () => {
   };
 
   const getWeekStartFromDate = (dateString: string) => {
-    const date = parseISO(dateString);
+    // const date = parseISO(dateString);
+    const date = fromZonedTime(parseISO(dateString), timeZone);
     return startOfWeek(date, { weekStartsOn: 1 });
   };
 
@@ -117,7 +121,9 @@ const HabitLogBookComponent: React.FC = () => {
   };
   useEffect(() => {
     if (userCreatedAt) {
-      const today = new Date();
+      // const today = new Date();
+      const today = toZonedTime(new Date(), timeZone);
+      // FIX: tz here
       const offset = calculateWeekOffset(userCreatedAt, today);
       setWeekOffset(offset);
       setMaxWeekOffset(offset);
@@ -129,7 +135,7 @@ const HabitLogBookComponent: React.FC = () => {
     const weekStart = add(userWeekStart, { weeks: weekOffset });
     const weekStartString = format(weekStart, "yyyy-MM-dd");
     const weekEndString = format(
-      add(weekStart, { weeks: 1, days: -1 }),
+      add(weekStart, { weeks: 1, days: 0 }),
       "yyyy-MM-dd",
     );
     let { data: habitsData, error: habitsError } = await supabase
@@ -243,14 +249,10 @@ const HabitLogBookComponent: React.FC = () => {
       <View key={dayString} style={styles.dayColumn}>
         <Text style={styles.dayHeader}>{format(dayDate, "EEE, d MMM")}</Text>
         {habits.map((habit) => {
-          const date = parseISO(habit.created_at);
-          // const color = habit.color_code || "#808080";
           const color =
             habit.logs.find(
-              (log) =>
-                format(parseISO(log.created_at), "yyyy-MM-dd") === dayString,
+              (log) => format(log.created_at, "yyyy-MM-dd") === dayString,
             )?.habit_color.color_code || "#808080";
-
           return (
             <View key={habit.id} style={styles.habitContainer}>
               <View style={styles.habitRow}>
@@ -310,15 +312,20 @@ const HabitLogBookComponent: React.FC = () => {
       .eq("color_code", colorCode)
       .single();
 
+    // make it so selectedDay is on 6pm
+    const timeDay = new Date(selectedDay);
+    timeDay.setHours(12);
+    timeDay.setMinutes(0);
+    timeDay.setSeconds(0);
+
     const { data: insertHabitLog, error: insertError } = await supabase
       .from("habit_logs")
       .insert([
         {
           habit_color: data?.id,
-          created_at: selectedDay,
+          created_at: toZonedTime(timeDay, timeZone),
         },
       ]);
-    console.log("Inserted Habit Log:", insertHabitLog, insertError);
     updateSuccessful = !insertError;
 
     setColorPickerModalVisible(false);
@@ -387,9 +394,15 @@ const HabitLogBookComponent: React.FC = () => {
                       { backgroundColor: "#FB3231" },
                     ]}
                   />
-                  <Text style={styles.colorDescription}>
-                    No I didn't read bad stress many distractions
-                  </Text>
+                  <View>
+                    <Text style={styles.colorDescription}>
+                      No I didn't read many distractions
+                    </Text>
+                    <Text style={styles.colorDescription}>Bad stress </Text>
+                    <Text style={styles.colorDescription}>
+                      Many distractions
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.colorGuide}>
                   <View
@@ -398,9 +411,13 @@ const HabitLogBookComponent: React.FC = () => {
                       { backgroundColor: "#FFC82C" },
                     ]}
                   />
-                  <Text style={styles.colorDescription}>
-                    Medium reading medium stress medium distractions
-                  </Text>
+                  <View>
+                    <Text style={styles.colorDescription}>Medium reading</Text>
+                    <Text style={styles.colorDescription}>Medium stress</Text>
+                    <Text style={styles.colorDescription}>
+                      Medium distractions
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.colorGuide}>
                   <View
@@ -409,9 +426,11 @@ const HabitLogBookComponent: React.FC = () => {
                       { backgroundColor: "#41BF00" },
                     ]}
                   />
-                  <Text style={styles.colorDescription}>
-                    Yes I read no stress no distractions
-                  </Text>
+                  <View>
+                    <Text style={styles.colorDescription}>Yes I read</Text>
+                    <Text style={styles.colorDescription}>No stress</Text>
+                    <Text style={styles.colorDescription}>No distractions</Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -467,7 +486,6 @@ const HabitLogBookComponent: React.FC = () => {
             const userWeekStart = getWeekStartFromDate(userCreatedAt);
             const weekStart = add(userWeekStart, { weeks: weekOffset });
             const dayDate = add(weekStart, { days: index });
-
             return renderDayColumn(dayDate, habits, index);
           })}
         </View>

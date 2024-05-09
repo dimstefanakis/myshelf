@@ -13,7 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import { supabase } from "@/utils/supabase";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
-import { Image,Modal } from "react-native";
+import { Image, Modal } from "react-native";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 const AddBookNoteEntryScreen = ({ route, nav }: any) => {
@@ -95,7 +95,6 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
         setBookToEdit(data);
       };
       getBookNoteEntry();
-      console.log(id);
     }
   }, [id]);
 
@@ -205,7 +204,6 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
 
   const getPublicUrl = async (filePath: string) => {
     const { data } = supabase.storage.from("images").getPublicUrl(filePath);
-    console.log("hihiihi", data.publicUrl);
     return data.publicUrl;
   };
 
@@ -246,7 +244,7 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
 
             return data.publicUrl;
           })
-        : []
+        : [],
     );
 
     setImages(imageUrls);
@@ -269,7 +267,7 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
     getBookName(bookData.users_book);
   }, [id]);
 
-  const openImage = (imgUrl:any) => {
+  const openImage = (imgUrl: any) => {
     setSelectedImage(imgUrl);
     setModalVisible(true);
   };
@@ -345,27 +343,32 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
           </Button>
         </>
       )}
-      {images.length > 0 &&
-        images[0].includes("http") && (
-          <>
-            <Text style={{ fontSize: 20, margin: 10 }}>
-              {/* bookname */}
-              {bookName}
-            </Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap",width:"100%" }}>
-                {images.map((imgUrl, index) => (
-                  <TouchableOpacity key={index} style={{maxWidth:"32%"}} onPress={() => openImage(imgUrl)}>
-                  <Image
-                    key={index}
-                    source={{ uri: imgUrl }}
-                    style={styles.galleryImage}
-                  />
-                  </TouchableOpacity>
-                ))}
-            </View>
-          </>
-        )}
-         <Modal
+      {images.length > 0 && images[0].includes("http") && (
+        <>
+          <Text style={{ fontSize: 20, margin: 10 }}>
+            {/* bookname */}
+            {bookName}
+          </Text>
+          <View
+            style={{ flexDirection: "row", flexWrap: "wrap", width: "100%" }}
+          >
+            {images.map((imgUrl, index) => (
+              <TouchableOpacity
+                key={index}
+                style={{ maxWidth: "32%" }}
+                onPress={() => openImage(imgUrl)}
+              >
+                <Image
+                  key={index}
+                  source={{ uri: imgUrl }}
+                  style={styles.galleryImage}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
+      <Modal
         animationType="slide"
         transparent={false}
         visible={modalVisible}
@@ -447,7 +450,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-
 
   Touchable: {
     backgroundColor: "black",
