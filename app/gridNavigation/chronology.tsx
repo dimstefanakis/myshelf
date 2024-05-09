@@ -186,7 +186,7 @@ type BookChronologyEntryProps = {
 };
 function BookChronologyEntry(props: BookChronologyEntryProps) {
   const TOTAL_TITLE_CHARS_TO_SHOW = 16;
-  const TOTAL_TITLE_CHARS_TO_SHOW_IN_DECADE = 14;
+  const TOTAL_TITLE_CHARS_TO_SHOW_IN_DECADE = 13;
   const [maxChars, setMaxChars] = useState<number>(0);
 
   useEffect(() => {
