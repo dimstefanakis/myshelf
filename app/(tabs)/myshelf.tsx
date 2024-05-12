@@ -206,7 +206,7 @@ function Shelves() {
                       <TouchableOpacity
                         key={user_book.id}
                         style={{ width: 100, marginHorizontal: 10, flex: 0 }}
-                        onPress={() => openModal(user_book)}
+                        onPress={() => openModal(user_book.id)}
                       >
                         <Image
                           contentFit="contain"
@@ -228,9 +228,7 @@ function Shelves() {
                               <Text style={styles.modalText}>
                                 {user_book.id}
                               </Text>
-                              <Button
-                                onPress={() => deleteBook(user_book.book.id)}
-                              >
+                              <Button onPress={() => deleteBook(user_book.id)}>
                                 <Text style={{ color: "white" }}>Delete</Text>
                               </Button>
                             </View>
