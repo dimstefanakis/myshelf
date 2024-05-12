@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { StyleSheet, ScrollView, TouchableOpacity, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { useUserBooksStore } from "@/store/userBooksStore";
@@ -135,64 +135,145 @@ function Gallery() {
 function Shelves() {
   const { user } = useUser();
   const { books } = useUserBooksStore();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(null);
+  const openModal = (book: any) => {
+    setSelectedBook(book);
+    setModalVisible(true);
+  };
+  const deleteBook = async (bookId: any) => {
+    console.log("Deleting book with ID:", bookId);
+    const { data, error } = await supabase
+      .from("books")
+      .delete()
+      .eq("id", bookId);
+
+    if (error) {
+      console.error("Error deleting book:", error);
+      alert("Failed to delete book.");
+    } else {
+      console.log("Book deleted successfully:", data);
+      alert("Book deleted successfully.");
+    }
+
+    setModalVisible(false);
+  };
+
   return (
-    <ScrollView
-      style={{ width: "100%" }}
-      contentContainerStyle={{
-        flex: 1,
-      }}
-    >
-      {shelves.map((shelf) => (
-        <View
-          key={shelf.id}
-          style={{
-            minWidth: "100%",
-            alignItems: "flex-start",
-            position: "relative",
-            borderBottomWidth: 3,
-            borderColor: "black",
-          }}
-        >
-          <Text style={{ marginVertical: 10, marginHorizontal: 10 }}>
-            {shelf.title}
-          </Text>
+    <>
+      <ScrollView
+        style={{ width: "100%" }}
+        contentContainerStyle={{
+          flex: 1,
+        }}
+      >
+        {shelves.map((shelf) => (
           <View
-            style={{
-              backgroundColor: "#D2B48C",
-              height: 10,
-              position: "absolute",
-              left: 0,
-              bottom: 0,
-              width: "100%",
-              zIndex: 1000,
-            }}
-          ></View>
-          <ScrollView
             key={shelf.id}
-            horizontal={true}
-            style={{ height: "25%" }}
-            contentContainerStyle={{ minWidth: "100%" }}
+            style={{
+              minWidth: "100%",
+              alignItems: "flex-start",
+              position: "relative",
+              borderBottomWidth: 3,
+              borderColor: "black",
+            }}
           >
-            {books
-              ?.filter((book) => book.status === shelf.id)
-              .map((user_book) => {
-                return (
-                  <Image
-                    key={user_book.id}
-                    contentFit="contain"
-                    style={{ width: 100, marginHorizontal: 10 }}
-                    source={{ uri: user_book.book.cover_url || "" }}
-                  />
-                );
-              })}
-          </ScrollView>
-        </View>
-      ))}
-    </ScrollView>
+            <Text style={{ marginVertical: 10, marginHorizontal: 10 }}>
+              {shelf.title}
+            </Text>
+            <View
+              style={{
+                backgroundColor: "#D2B48C",
+                height: 10,
+                position: "absolute",
+                left: 0,
+                bottom: 0,
+                width: "100%",
+                zIndex: 1000,
+              }}
+            ></View>
+            <ScrollView
+              key={shelf.id}
+              horizontal={true}
+              style={{ height: "25%" }}
+              contentContainerStyle={{ minWidth: "100%" }}
+            >
+              {books
+                ?.filter((book) => book.status === shelf.id)
+                .map((user_book) => {
+                  return (
+                    <>
+                      <TouchableOpacity
+                        key={user_book.id}
+                        style={{ width: 100, marginHorizontal: 10, flex: 0 }}
+                        onPress={() => openModal(user_book)}
+                      >
+                        <Image
+                          contentFit="contain"
+                          style={{ width: 100, height: 150 }}
+                          source={{ uri: user_book.book.cover_url || "" }}
+                        />
+                      </TouchableOpacity>
+                      <View>
+                        <Modal
+                          animationType="slide"
+                          transparent={true}
+                          visible={modalVisible}
+                          onRequestClose={() => {
+                            setModalVisible(!modalVisible);
+                          }}
+                        >
+                          <View style={styles.centeredView}>
+                            <View style={styles.modalView}>
+                              <Text style={styles.modalText}>
+                                {user_book.id}
+                              </Text>
+                              <Button
+                                onPress={() => deleteBook(user_book.book.id)}
+                              >
+                                <Text style={{ color: "white" }}>Delete</Text>
+                              </Button>
+                            </View>
+                          </View>
+                        </Modal>
+                      </View>
+                    </>
+                  );
+                })}
+            </ScrollView>
+          </View>
+        ))}
+      </ScrollView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center",
+  },
   container: {
     flex: 1,
     alignItems: "center",
