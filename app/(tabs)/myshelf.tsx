@@ -144,15 +144,15 @@ function Shelves() {
   const deleteBook = async (bookId: any) => {
     console.log("Deleting book with ID:", bookId);
     const { data, error } = await supabase
-      .from("books")
+      .from("users_books")
       .delete()
-      .eq("id", bookId);
+      .match({ id: bookId });
 
     if (error) {
       console.error("Error deleting book:", error);
       alert("Failed to delete book.");
     } else {
-      console.log("Book deleted successfully:", data);
+      // console.log("Book deleted successfully:", data);
       alert("Book deleted successfully.");
     }
 
@@ -225,9 +225,11 @@ function Shelves() {
                         >
                           <View style={styles.centeredView}>
                             <View style={styles.modalView}>
-                              <Text style={styles.modalText}>
-                                {user_book.id}
-                              </Text>
+                              <Image
+                                contentFit="contain"
+                                style={{ width: 100, height: 150 }}
+                                source={{ uri: user_book.book.cover_url || "" }}
+                              />
                               <Button onPress={() => deleteBook(user_book.id)}>
                                 <Text style={{ color: "white" }}>Delete</Text>
                               </Button>
