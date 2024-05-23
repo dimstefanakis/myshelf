@@ -18,6 +18,7 @@ import {
 } from "date-fns";
 import { fromZonedTime, toZonedTime, format } from "date-fns-tz";
 import { Database } from "@/types_db";
+import { getLocales, getCalendars } from "expo-localization";
 
 interface Habit {
   weekOffset: number;
@@ -33,7 +34,8 @@ interface HabitWithDate extends Habit {
 
 type HabitColor = Database["public"]["Tables"]["habit_colors"]["Row"];
 
-const timeZone = "Asia/Seoul";
+// const timeZone = "Asia/Seoul";
+const { timeZone } = getCalendars()[0];
 
 const HabitLogBookComponent: React.FC = () => {
   const [weekOffset, setWeekOffset] = useState<number>(0);
@@ -219,7 +221,7 @@ const HabitLogBookComponent: React.FC = () => {
   };
 
   const updateHabit = async () => {
-    if (!editingHabit) return;
+    if (!editingHabit || !editedHabitName) return;
 
     let { error } = await supabase
       .from("habits")

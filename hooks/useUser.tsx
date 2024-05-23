@@ -9,6 +9,7 @@ import type { UserBook } from "@/store/userBooksStore";
 
 export type User = {
   books: UserBook[];
+  profile: Database["public"]["Tables"]["users"]["Row"];
 } & Session["user"];
 
 type UserContextType = {
@@ -16,6 +17,7 @@ type UserContextType = {
   session: Session | null;
   loading: boolean;
   initialLoaded: boolean;
+  getUser: () => void;
 };
 
 export const UserContext = createContext<UserContextType | undefined>(
@@ -92,11 +94,15 @@ export const MyUserContextProvider = (props: Props) => {
     const session = await supabase.auth.getSession();
     // const user = await supabase.auth.getUser();
     await getUsersBooks(session?.data.session?.user?.id);
+    const profile = await getUserDetails(session?.data.session?.user?.id);
 
     setUser(
       session?.data.session?.user
         ? ({
             ...session.data.session.user,
+            profile: {
+              ...profile.data,
+            },
           } as unknown as User)
         : null,
     );
@@ -156,6 +162,7 @@ export const MyUserContextProvider = (props: Props) => {
     session,
     loading,
     initialLoaded,
+    getUser,
   };
   return <UserContext.Provider value={value} {...props} />;
 };
