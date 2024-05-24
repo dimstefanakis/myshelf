@@ -133,6 +133,7 @@ function Gallery() {
 }
 
 function Shelves() {
+  const router = useRouter();
   const { user } = useUser();
   const { books } = useUserBooksStore();
   return (
@@ -177,12 +178,22 @@ function Shelves() {
               ?.filter((book) => book.status === shelf.id)
               .map((user_book) => {
                 return (
-                  <Image
+                  <TouchableOpacity
                     key={user_book.id}
-                    contentFit="contain"
-                    style={{ width: 100, marginHorizontal: 10 }}
-                    source={{ uri: user_book.book.cover_url || "" }}
-                  />
+                    style={{ width: 100, height: 160, marginHorizontal: 10 }}
+                    onPress={() => {
+                      router.push(`/removeFromShelf/${user_book.id}`);
+                    }}
+                  >
+                    <Image
+                      contentFit="contain"
+                      style={{
+                        width: 100,
+                        height: 160,
+                      }}
+                      source={{ uri: user_book.book.cover_url || "" }}
+                    />
+                  </TouchableOpacity>
                 );
               })}
           </ScrollView>

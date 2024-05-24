@@ -51,12 +51,12 @@ const BookScreen: React.FC = () => {
   const loadImageUrls = async (notes: any) => {
     const urls = await Promise.all(
       notes.map(async (note: any) => ({
-        [note.id]: getPublicUrl(note.image_url, note.users_book.book.cover_url),
+        // [note.id]: getPublicUrl(note.image_url, note.users_book.book.cover_url),
+        [note.id]: note.users_book.book.cover_url,
       })),
     );
 
     setImageUrls(urls.reduce((acc, url) => ({ ...acc, ...url }), {}));
-    console.log(imageUrls);
   };
 
   const getNotes = async () => {

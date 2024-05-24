@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "MyShelf - Your Reading Tracker",
+    "name": "BNOOK - Your Reading Tracker",
     "slug": "myshelf",
-    "version": "0.0.10",
+    "version": "0.0.14",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -29,11 +29,17 @@
       }
     },
     "android": {
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.senec.myshelf"
+      "package": "com.senec.myshelf",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyArJwmfJ4iU-MS_PM2Zaima6vO6jqbA6Uk"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -49,7 +55,16 @@
           "cameraPermission": "The app accesses your camera to let you take photos."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

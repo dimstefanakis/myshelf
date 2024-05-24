@@ -24,8 +24,6 @@ type Geometry = {
   };
 };
 
-
-
 export default function MapViewScreen({ navigation, sortCategory }: any) {
   const nav = useNavigation<any>();
   const mapRef = useRef<MapView>(null);
@@ -79,7 +77,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
         country_published_lat,
         country_published_long,
         user_book: users_books(*, book: books(*) )
-      `
+      `,
       )
       .eq("user_book.user", user?.user?.id || "");
 
@@ -122,11 +120,12 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
               marker.setting_origin_lat && marker.setting_origin_long
                 ? "Setting Origin"
                 : marker.author_nationality_lat &&
-                  marker.author_nationality_long
-                ? "Author National"
-                : marker.country_published_lat && marker.country_published_long
-                ? "Country Published"
-                : null;
+                    marker.author_nationality_long
+                  ? "Author National"
+                  : marker.country_published_lat &&
+                      marker.country_published_long
+                    ? "Country Published"
+                    : null;
             latitude =
               marker.setting_origin_lat ||
               marker.author_nationality_lat ||
@@ -159,15 +158,14 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
 
   return (
     <View style={styles.container}>
-        {markers.length>0&&(
-
-            <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => handleEditMarker()}
-            >
-        <Text style={styles.editButtonText}>Edit Markers</Text>
-      </TouchableOpacity>
-        )}
+      {markers.length > 0 && (
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => handleEditMarker()}
+        >
+          <Text style={styles.editButtonText}>Edit Markers</Text>
+        </TouchableOpacity>
+      )}
       <View style={styles.searchContainer}>
         <GooglePlacesAutocomplete
           placeholder="Search"
@@ -210,7 +208,6 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
         ))}
       </MapView>
     </View>
-
   );
 }
 

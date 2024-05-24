@@ -118,6 +118,10 @@ function RootLayoutNav({ user }: { user: any }) {
             options={{ presentation: "modal", headerShown: false }}
           />
           <Stack.Screen
+            name="removeFromShelf/[id]"
+            options={{ presentation: "modal", headerShown: false }}
+          />
+          <Stack.Screen
             name="bookList/[type]"
             options={{
               title: "Books",

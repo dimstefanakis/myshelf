@@ -1,18 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Modal,
   Pressable,
   Dimensions,
   StyleSheet,
   ActivityIndicator,
+  TouchableOpacity,
+  Platform,
 } from "react-native";
+import { Entypo } from "@expo/vector-icons";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import PagerView from "react-native-pager-view";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { View, Text, Button, TextInput, ScrollView } from "@/components/Themed";
 import useUser, { User } from "@/hooks/useUser";
 import type { Database } from "@/types_db";
 import { supabase } from "@/utils/supabase";
 import { FontAwesome } from "@expo/vector-icons";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
+import { SafeAreaView } from "react-native";
+import { getLocales, getCalendars } from "expo-localization";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 
@@ -43,14 +54,126 @@ const tabs = [
   },
 ];
 
+function convertTimeToHHMM(timeStr: string) {
+  // Split the time string to get hours, minutes, and seconds
+  const [hours, minutes] = timeStr.split(":");
+
+  // Return the formatted string in "HH:MM" format
+  return `${hours}:${minutes}`;
+}
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
+function formatReminderTime(reminderTime: string) {
+  // Extract the time and timezone parts
+  const timePart = reminderTime.slice(0, 8); // '08:30:00'
+  const timezonePart = reminderTime.slice(8); // '+02' or '-02'
+
+  // Format the timezone part to '+02:00' or '-02:00'
+  const formattedTimezone =
+    timezonePart.length === 3 ? `${timezonePart}:00` : timezonePart;
+
+  // Construct the ISO 8601 datetime string
+  return `1970-01-01T${timePart}${formattedTimezone}`;
+}
+
 function GoalTrackerScreen() {
-  const { user } = useUser();
+  const navigation = useNavigation<NavigationProp<any>>();
+  const { user, getUser } = useUser();
+  const { timeZone } = getCalendars()[0];
+  const [loadingReminderUpdate, setLoadingReminderUpdate] = useState(false);
+  // const [date, setDate] = useState(new Date(1598051730000));
+  const dateTimeString = `${formatReminderTime(user?.profile.reminder_time ?? "")}`;
+  const dateObj = new Date(dateTimeString);
+  dateObj.toLocaleString("en-US", { timeZone: timeZone ?? undefined });
+  const [date, setDate] = useState(dateObj);
+  const [show, setShow] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalLogs, setGoalLogs] = useState<GoalLog[]>([]);
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [loading, setLoading] = useState(true);
   const [loadingLogs, setLoadingLogs] = useState(true);
+  const [expoPushToken, setExpoPushToken] = useState("");
+  const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
+    [],
+  );
+  const [notification, setNotification] = useState<
+    Notifications.Notification | undefined
+  >(undefined);
+  const notificationListener = useRef<Notifications.Subscription>();
+  const responseListener = useRef<Notifications.Subscription>();
+
+  async function registerForPushNotificationsAsync() {
+    // registerForPushNotificationsAsync()
+    //   .then((token) => setExpoPushToken(token ?? ""))
+    //   .catch((error: any) => setExpoPushToken(`${error}`));
+
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+    if (finalStatus !== "granted") {
+      alert("Failed to get push token for push notification!");
+      return;
+    }
+    if (finalStatus === "granted") {
+      setIsModalVisible(true);
+    }
+  }
+  async function scheduleDailyNotification(time: Date) {
+    // Ensure the time is a Date object
+    const now = new Date();
+    const notificationTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      time.getHours(),
+      time.getMinutes(),
+    );
+
+    // If the chosen time has already passed today, schedule for tomorrow
+    if (notificationTime < now) {
+      notificationTime.setDate(notificationTime.getDate() + 1);
+    }
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Daily Reminder",
+        body: "Don't forget to log your goals for today!",
+      },
+      trigger: {
+        hour: notificationTime.getHours(),
+        minute: notificationTime.getMinutes(),
+        repeats: true,
+      },
+    });
+  }
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            // navigateToJournalEntry();
+            registerForPushNotificationsAsync();
+          }}
+        >
+          <FontAwesome name="bell-o" size={24} color="black" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   async function fetchGoals() {
     setLoading(true);
@@ -232,6 +355,67 @@ function GoalTrackerScreen() {
     }
   }, [user]);
 
+  const onChange = (event: any, selectedDate?: Date) => {
+    if (selectedDate) {
+      const currentDate = selectedDate;
+      // setShow(false);
+      setDate(currentDate);
+    }
+  };
+
+  async function handleUpdateReminder() {
+    setLoadingReminderUpdate(true);
+
+    const timezoneOffset = date.getTimezoneOffset();
+    const offsetHours = String(
+      Math.abs(Math.floor(timezoneOffset / 60)),
+    ).padStart(2, "0");
+    const offsetMinutes = String(Math.abs(timezoneOffset % 60)).padStart(
+      2,
+      "0",
+    );
+    const offsetSign = timezoneOffset <= 0 ? "+" : "-";
+    const formattedOffset = `${offsetSign}${offsetHours}:${offsetMinutes}`;
+    const formattedTime =
+      date.toLocaleTimeString("en-US", {
+        hour12: false,
+        timeZone: timeZone ?? undefined,
+      }) + ` ${formattedOffset}`;
+
+    const { data, error } = await supabase
+      .from("users")
+      .update({
+        reminder_time: formattedTime,
+      })
+      .eq("id", user?.id || "");
+    if (error) {
+      console.error("Error updating reminder time", error);
+    }
+    await getUser();
+    setLoadingReminderUpdate(false);
+    setShow(false);
+  }
+
+  const showMode = () => {
+    if (Platform.OS === "ios") {
+      setShow(true);
+    } else {
+      DateTimePickerAndroid.open({
+        value: date,
+        onChange,
+        mode: "time",
+        is24Hour: true,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (user?.profile.reminder_time) {
+      const formattedDate = formatReminderTime(user?.profile.reminder_time);
+      scheduleDailyNotification(new Date(formattedDate));
+    }
+  }, [user?.profile.reminder_time]);
+
   return (goals.length == 0 || goalLogs.length == 0) &&
     (loadingLogs || loading) ? (
     <View style={styles.loadingContainer}>
@@ -401,6 +585,156 @@ function GoalTrackerScreen() {
       </View>
       <StreakChallenge />
       <View style={{ flex: 1 }}></View>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => {
+          setIsModalVisible(!isModalVisible);
+        }}
+      >
+        {show && (
+          <View
+            style={{
+              flex: 1,
+              position: "absolute",
+              zIndex: 10,
+              left: 0,
+              right: 0,
+              width: "100%",
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={date}
+              mode="time"
+              is24Hour={true}
+              onChange={onChange}
+            />
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "center",
+                width: "80%",
+                marginTop: 20,
+              }}
+            >
+              <Button
+                onPress={() => {
+                  handleUpdateReminder();
+                }}
+                style={styles.doneButton}
+              >
+                {loadingReminderUpdate ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={{ color: "white" }}>Update Reminder</Text>
+                )}
+              </Button>
+              <Button
+                onPress={() => {
+                  setShow(false);
+                  setIsModalVisible(false);
+                }}
+                style={styles.deleteButton}
+              >
+                <Text style={{ color: "white" }}>Cancel</Text>
+              </Button>
+            </View>
+          </View>
+        )}
+        <Pressable
+          onPress={() => setIsModalVisible(!isModalVisible)}
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <Pressable
+            style={{
+              width: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                width: "80%",
+                borderRadius: 10,
+                paddingBottom: 20,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "#356B75",
+                  paddingVertical: 20,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
+                >
+                  Set goal notification
+                </Text>
+              </View>
+              <View
+                style={{
+                  borderRadius: 10,
+                  width: "100%",
+                  paddingHorizontal: 10,
+                  alignItems: "center",
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    width: "100%",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    // justifyContent: "space-between",
+                  }}
+                >
+                  <View
+                    style={{ justifyContent: "center", alignItems: "center" }}
+                  >
+                    <Text style={{ marginTop: 10 }}>Reminder every day at</Text>
+                    <Text style={{ fontWeight: "bold", marginBottom: 10 }}>
+                      {convertTimeToHHMM(
+                        user?.profile.reminder_time || "00:00",
+                      )}
+                    </Text>
+                    <Button
+                      style={{
+                        backgroundColor: "#507C82",
+                        width: "80%",
+                        marginTop: 6,
+                      }}
+                      onPress={() => {
+                        showMode();
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: "white",
+                        }}
+                      >
+                        Change time
+                      </Text>
+                    </Button>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }
@@ -824,7 +1158,7 @@ const StreakChallenge = () => {
     { day: "Fr", hasGoal: false },
     { day: "Sa", hasGoal: false },
   ]);
-  const { user } = useUser();
+  const { user, getUser } = useUser();
 
   async function fetchStreakFromDatabase() {
     const { data: goalLogs } = await supabase
@@ -1058,6 +1392,22 @@ const styles = StyleSheet.create({
   streakText: {
     alignItems: "center",
     color: "#5A6978",
+  },
+  doneButton: {
+    backgroundColor: "black",
+    padding: 10,
+    margin: 10,
+    borderRadius: 10,
+    width: "50%",
+    alignItems: "center",
+  },
+  deleteButton: {
+    backgroundColor: "red",
+    padding: 10,
+    alignItems: "center",
+    width: "50%",
+    borderRadius: 10,
+    marginVertical: 10,
   },
 });
 

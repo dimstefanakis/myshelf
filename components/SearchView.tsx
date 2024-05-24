@@ -46,7 +46,11 @@ export default function Search({ addAction, ...rest }: SearchProps) {
   function chooseUlr(): string {
     const isbnCode: number = Number(search);
     if (filter) {
-      return `https://www.googleapis.com/books/v1/volumes?q=${filter}&startIndex=${bookIndex}&maxResults=10`;
+      if (search.length > 0) {
+        return `https://www.googleapis.com/books/v1/volumes?q=${search}&${filter}&startIndex=${bookIndex}&maxResults=10`;
+      } else {
+        return `https://www.googleapis.com/books/v1/volumes?q=${filter}&startIndex=${bookIndex}&maxResults=10`;
+      }
     } else {
       return !isNaN(isbnCode) && (search.length === 10 || search.length === 13)
         ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${search}&startIndex=${bookIndex}&maxResults=10`
@@ -116,29 +120,27 @@ export default function Search({ addAction, ...rest }: SearchProps) {
         <Text
           style={{
             width: "100%",
-            padding: 20,
+            paddingHorizontal: 20,
             fontSize: 26,
             fontWeight: "bold",
-            marginTop: 10,
           }}
         >
           {category}
         </Text>
-      ) : (
-        <TextInput
-          style={{
-            height: 40,
-            borderWidth: 1,
-            width: "80%",
-            padding: 10,
-            borderRadius: 10,
-            marginTop: 10,
-          }}
-          placeholder="Search: Title, Author, ISBN..."
-          // value={search}
-          onChange={handleChange}
-        />
-      )}
+      ) : null}
+      <TextInput
+        style={{
+          height: 40,
+          borderWidth: 1,
+          width: "80%",
+          padding: 10,
+          borderRadius: 10,
+          marginTop: 10,
+        }}
+        placeholder="Search: Title, Author, ISBN..."
+        // value={search}
+        onChange={handleChange}
+      />
 
       <View
         style={{

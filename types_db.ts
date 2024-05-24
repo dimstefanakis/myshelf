@@ -446,6 +446,7 @@ export interface Database {
           full_name: string | null
           id: string
           payment_method: Json | null
+          reminder_time: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -454,6 +455,7 @@ export interface Database {
           full_name?: string | null
           id: string
           payment_method?: Json | null
+          reminder_time?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -462,6 +464,7 @@ export interface Database {
           full_name?: string | null
           id?: string
           payment_method?: Json | null
+          reminder_time?: string | null
         }
         Relationships: []
       }
