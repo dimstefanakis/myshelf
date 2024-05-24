@@ -648,7 +648,7 @@ function GoalTrackerScreen() {
           </View>
         )}
         <Pressable
-          // onPress={() => setIsModalVisible(!isModalVisible)}
+          onPress={() => setIsModalVisible(!isModalVisible)}
           style={{
             flex: 1,
             justifyContent: "center",
@@ -657,9 +657,6 @@ function GoalTrackerScreen() {
           }}
         >
           <Pressable
-            onPress={(e) => {
-              e.stopPropagation();
-            }}
             style={{
               width: "100%",
               justifyContent: "center",

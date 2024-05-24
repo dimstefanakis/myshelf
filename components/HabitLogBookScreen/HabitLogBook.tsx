@@ -6,8 +6,9 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { supabase } from "@/utils/supabase";
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, MaterialIcons, Entypo } from "@expo/vector-icons";
 import { View, TextInput, Text } from "../Themed";
 import useUser from "@/hooks/useUser";
 import {
@@ -38,6 +39,7 @@ type HabitColor = Database["public"]["Tables"]["habit_colors"]["Row"];
 const { timeZone } = getCalendars()[0];
 
 const HabitLogBookComponent: React.FC = () => {
+  const navigation = useNavigation();
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [maxWeekOffset, setMaxWeekOffset] = useState<number>(0);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -131,6 +133,20 @@ const HabitLogBookComponent: React.FC = () => {
       setMaxWeekOffset(offset);
     }
   }, [userCreatedAt]);
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            setAddHabitModalVisible(true);
+            setNewHabit("");
+          }}
+        >
+          <Entypo name="plus" size={24} color="black" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
   const fetchHabits = async () => {
     if (!userCreatedAt) return;
     const userWeekStart = getWeekStartFromDate(userCreatedAt);
@@ -269,7 +285,7 @@ const HabitLogBookComponent: React.FC = () => {
             </View>
           );
         })}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           onPress={() => {
             setAddHabitModalVisible(true);
             setNewHabit("");
@@ -277,7 +293,7 @@ const HabitLogBookComponent: React.FC = () => {
           style={styles.addButton}
         >
           <Text style={styles.addButtonText}>Add +</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     );
   };
@@ -380,13 +396,13 @@ const HabitLogBookComponent: React.FC = () => {
               ]}
             >
               <View style={styles.modalView}>
-                <AntDesign
+                {/* <AntDesign
                   name="closecircleo"
                   size={24}
                   color="black"
                   style={{ textAlign: "right" }}
                   onPress={() => setModalVisible(!modalVisible)}
-                />
+                /> */}
 
                 <Text style={styles.modalText}>Colour Guide</Text>
                 <View style={styles.colorGuide}>
@@ -398,7 +414,7 @@ const HabitLogBookComponent: React.FC = () => {
                   />
                   <View>
                     <Text style={styles.colorDescription}>
-                      No I didn't read many distractions
+                      No I didn't read
                     </Text>
                     <Text style={styles.colorDescription}>Bad stress </Text>
                     <Text style={styles.colorDescription}>
@@ -605,6 +621,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    paddingHorizontal: 40,
   },
   colorGuide: {
     flexDirection: "row",
