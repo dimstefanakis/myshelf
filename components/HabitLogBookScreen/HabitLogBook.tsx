@@ -251,6 +251,21 @@ const HabitLogBookComponent: React.FC = () => {
     }
   };
 
+  async function deleteHabit() {
+    if (!editingHabit || !editedHabitName) return;
+
+    let { error } = await supabase
+      .from("habits")
+      .delete()
+      .eq("id", editingHabit.id);
+
+    if (error) console.error("Error deleting habit:", error);
+    else {
+      setEditHabitModalVisible(false);
+      fetchHabits();
+    }
+  }
+
   const openColorPicker = (habit: Habit, dayDate: Date) => {
     setSelectedDay(dayDate);
     setSelectedHabit(habit);
@@ -533,6 +548,23 @@ const HabitLogBookComponent: React.FC = () => {
         onRequestClose={() => setEditHabitModalVisible(false)}
       >
         <View style={styles.updateHabitNameContainer}>
+          <View
+            style={{
+              position: "absolute",
+              bottom: 40,
+              justifyContent: "center",
+              alignItems: "center",
+              right: 0,
+              width: "100%",
+              flex: 1,
+            }}
+          >
+            <TouchableOpacity onPress={deleteHabit} style={styles.deleteButton}>
+              <Text style={{ color: "white", textAlign: "center" }}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.textInputCenterView}>
             <TextInput
               placeholder="Edit Habit"
@@ -548,23 +580,32 @@ const HabitLogBookComponent: React.FC = () => {
                 borderRadius: 6,
               }}
             />
-            <View style={{ display: "flex", flexDirection: "row", gap: 15 }}>
-              <TouchableOpacity
-                onPress={() => setEditHabitModalVisible(false)}
-                style={styles.cancelButton}
+            <View style={{ width: "100%" }}>
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "space-between",
+                }}
               >
-                <Text style={{ color: "black", textAlign: "center" }}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={updateHabit}
-                style={styles.submitButton}
-              >
-                <Text style={{ color: "white", textAlign: "center" }}>
-                  Save
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setEditHabitModalVisible(false)}
+                  style={styles.cancelButton}
+                >
+                  <Text style={{ color: "black", textAlign: "center" }}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={updateHabit}
+                  style={styles.submitButton}
+                >
+                  <Text style={{ color: "white", textAlign: "center" }}>
+                    Save
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -727,6 +768,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
     color: "#C2C8CE",
+  },
+  deleteButton: {
+    backgroundColor: "red",
+    padding: 10,
+    borderRadius: 6,
+    width: 200,
   },
   addButtonText: {
     fontSize: 14,

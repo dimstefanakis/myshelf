@@ -55,7 +55,7 @@ export default function Signup() {
             marginTop: 50,
           }}
         >
-          Signup to MyShelf
+          Signup to bnook
         </Text>
         <Controller
           control={control}
