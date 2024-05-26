@@ -89,7 +89,7 @@ function GoalTrackerScreen() {
   const { timeZone } = getCalendars()[0];
   const [loadingReminderUpdate, setLoadingReminderUpdate] = useState(false);
   // const [date, setDate] = useState(new Date(1598051730000));
-  const dateTimeString = `${formatReminderTime(user?.profile.reminder_time ?? "")}`;
+  const dateTimeString = `${formatReminderTime(user?.profile?.reminder_time ?? "")}`;
   const dateObj = new Date(dateTimeString);
   dateObj.toLocaleString("en-US", { timeZone: timeZone ?? undefined });
   const [date, setDate] = useState(dateObj);
@@ -180,7 +180,8 @@ function GoalTrackerScreen() {
     const { data: goals, error } = await supabase
       .from("goals")
       .select("*")
-      .eq("user", user?.id || "");
+      .eq("user", user?.id || "")
+      .order("created_at", { ascending: false });
 
     setGoals((goals as Goal[]) || []);
     setLoading(false);
@@ -346,12 +347,30 @@ function GoalTrackerScreen() {
 
     return channel;
   }
+  async function listenToGoalUpdates() {
+    const channel = supabase
+      .channel("schema-db-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "goals",
+        },
+        () => {
+          fetchGoals();
+        },
+      )
+      .subscribe();
 
+    return channel;
+  }
   useEffect(() => {
     if (user?.id) {
       fetchGoals();
       getGoalProgress();
       listenToLogUpdates();
+      listenToGoalUpdates();
     }
   }, [user]);
 
@@ -410,11 +429,11 @@ function GoalTrackerScreen() {
   };
 
   useEffect(() => {
-    if (user?.profile.reminder_time) {
-      const formattedDate = formatReminderTime(user?.profile.reminder_time);
+    if (user?.profile?.reminder_time) {
+      const formattedDate = formatReminderTime(user?.profile?.reminder_time);
       scheduleDailyNotification(new Date(formattedDate));
     }
-  }, [user?.profile.reminder_time]);
+  }, [user?.profile?.reminder_time]);
 
   return (goals.length == 0 || goalLogs.length == 0) &&
     (loadingLogs || loading) ? (
@@ -470,7 +489,6 @@ function GoalTrackerScreen() {
             alignItems: "center",
             justifyContent: "center",
             height: "30%",
-            backgroundColor: "red",
           }}
         >
           {goals
@@ -505,7 +523,7 @@ function GoalTrackerScreen() {
                 ((progress ?? 0) / (goal.unit_amount ?? 1)) * 100;
               return (
                 <View
-                  key={i + 1}
+                  key={goal.id}
                   style={{
                     width: "100%",
                     justifyContent: "center",
@@ -740,8 +758,6 @@ function GoalTrackerScreen() {
 }
 
 function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
   function getGoalTabs() {
     if (tab.value === "daily") {
       return [
@@ -799,12 +815,27 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
     ];
   }
 
+  const { user } = useUser();
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const goalTabs = getGoalTabs();
   const [selectedTab, setSelectedTab] = useState(goalTabs[0]);
+  const [value, setValue] = useState<null | number>(null);
 
   useEffect(() => {
     setSelectedTab(goalTabs[0]);
   }, [tab]);
+
+  async function editGoal() {
+    const { data, error } = await supabase
+      .from("goals")
+      .update({
+        unit_amount: value,
+      })
+      .eq("user", user?.id || "")
+      .eq("time_type", tab.value)
+      .eq("type", selectedTab.value);
+    setIsModalVisible(false);
+  }
 
   return (
     <>
@@ -909,6 +940,8 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                     width: "80%",
                     marginTop: 20,
                   }}
+                  keyboardType="numeric"
+                  onChangeText={(text) => setValue(parseInt(text))}
                   placeholder={`Number of ${selectedTab.title.toLowerCase()}`}
                 />
                 <Button
@@ -917,7 +950,9 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                     width: "80%",
                     marginTop: 6,
                   }}
-                  onPress={() => setIsModalVisible(!isModalVisible)}
+                  onPress={() => {
+                    editGoal();
+                  }}
                 >
                   <Text style={{ color: "white" }}>Save</Text>
                 </Button>

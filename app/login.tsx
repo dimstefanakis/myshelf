@@ -60,7 +60,7 @@ export default function Login() {
             marginTop: 50,
           }}
         >
-          Login to MyShelf
+          Login to bnook
         </Text>
         <Controller
           control={control}

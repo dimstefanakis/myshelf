@@ -221,6 +221,8 @@ const styles = StyleSheet.create({
     width: 200,
     borderRadius: 10,
     marginVertical: 10,
+    position: "absolute",
+    bottom: 40,
   },
 
   submitButtonText: {
