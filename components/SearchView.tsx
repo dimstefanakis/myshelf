@@ -25,9 +25,14 @@ type SearchProps = {
   addAction?: string;
   filter?: string;
   category?: string;
+  showCategories?: boolean;
 };
 
-export default function Search({ addAction, ...rest }: SearchProps) {
+export default function Search({
+  addAction,
+  showCategories = true,
+  ...rest
+}: SearchProps) {
   const localSearchParams = useLocalSearchParams();
   const filter = localSearchParams.filter || (rest.filter as string);
   const category = localSearchParams.category || (rest.category as string);
@@ -149,7 +154,7 @@ export default function Search({ addAction, ...rest }: SearchProps) {
           padding: 10,
         }}
       >
-        {results.length == 0 && !category ? (
+        {showCategories && results.length == 0 && !category ? (
           <View style={{ width: "100%", flex: 1 }}>
             <Category title="Fiction" value="subject:fiction" />
             <Category title="Non-Fiction" value='subject:"non-fiction"' />

@@ -26,10 +26,13 @@ import { SafeAreaView } from "react-native";
 import { getLocales, getCalendars } from "expo-localization";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
-
+type Log = Database["public"]["Tables"]["goal_logs"]["Row"] & {
+  goal: Goal;
+};
 type GoalLog = {
+  // goal: Goal;
   time_type: string;
-  logs: Database["public"]["Tables"]["goal_logs"]["Row"][];
+  logs: Log[];
   week_count?: number;
   month_count?: number;
 };
@@ -231,7 +234,7 @@ function GoalTrackerScreen() {
 
     const { data: dayGoals, error: dayGoalsError } = await supabase
       .from("goal_logs")
-      .select("*")
+      .select("*, goal(*)")
       .order("created_at", { ascending: true })
       .eq("user", user?.id || "")
       .or("type.eq.pages,type.eq.minutes")
@@ -240,7 +243,7 @@ function GoalTrackerScreen() {
 
     const { data: weekGoals, error: weekGoalsError } = await supabase
       .from("goal_logs")
-      .select("*")
+      .select("*, goal(*)")
       .order("created_at", { ascending: true })
       .eq("user", user?.id || "")
       .eq("type", "pages")
@@ -249,7 +252,7 @@ function GoalTrackerScreen() {
 
     const { data: monthGoals, error: monthGoalsError } = await supabase
       .from("goal_logs")
-      .select("*")
+      .select("*, goal(*)")
       .order("created_at", { ascending: true })
       .eq("user", user?.id || "")
       .eq("type", "books")
@@ -258,7 +261,7 @@ function GoalTrackerScreen() {
 
     const { data: yearGoals, error: yearGoalsError } = await supabase
       .from("goal_logs")
-      .select("*")
+      .select("*, goal(*)")
       .order("created_at", { ascending: true })
       .eq("user", user?.id || "")
       .eq("type", "books")
@@ -325,7 +328,7 @@ function GoalTrackerScreen() {
           }, []).length,
       },
     ];
-    setGoalLogs(combinedGoals);
+    setGoalLogs(combinedGoals as GoalLog[]);
     setLoadingLogs(false);
   }
 
@@ -500,9 +503,30 @@ function GoalTrackerScreen() {
                   return log.time_type == selectedTab.value;
                 });
                 if (timelogs) {
-                  const logs = timelogs.logs.filter(
-                    (log) => log.type === goal.type,
-                  );
+                  const logs = timelogs.logs.filter((log) => {
+                    if (selectedTab.value == "daily") {
+                      return (
+                        log.type === goal.type &&
+                        log?.goal?.time_type === "daily"
+                      );
+                    } else if (selectedTab.value == "weekly") {
+                      return (
+                        log.type === goal.type &&
+                        (log?.goal?.time_type === "weekly" ||
+                          log?.goal?.time_type === "daily")
+                      );
+                    } else if (selectedTab.value == "monthly") {
+                      return (
+                        log.type === goal.type &&
+                        (log?.goal?.time_type === "monthly" ||
+                          log?.goal?.time_type === "weekly" ||
+                          log?.goal?.time_type === "daily")
+                      );
+                    } else {
+                      return log.type === goal.type;
+                    }
+                    // return log.type === goal.type;
+                  });
                   progress = logs.reduce(
                     (acc, log) => acc + (log.unit_amount ?? 0),
                     0,
@@ -725,7 +749,7 @@ function GoalTrackerScreen() {
                     <Text style={{ marginTop: 10 }}>Reminder every day at</Text>
                     <Text style={{ fontWeight: "bold", marginBottom: 10 }}>
                       {convertTimeToHHMM(
-                        user?.profile.reminder_time || "00:00",
+                        user?.profile?.reminder_time || "00:00",
                       )}
                     </Text>
                     <Button

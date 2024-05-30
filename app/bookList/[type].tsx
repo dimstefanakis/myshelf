@@ -7,7 +7,12 @@ import {
   MaterialCommunityIcons,
   Ionicons,
 } from "@expo/vector-icons";
-import { Dimensions, Pressable, ActivityIndicator } from "react-native";
+import {
+  Dimensions,
+  Pressable,
+  ActivityIndicator,
+  TouchableOpacity,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-root-toast";
 import { supabase } from "@/utils/supabase";
@@ -141,11 +146,17 @@ export default function BookList() {
                   // marginLeft: "auto",
                 }}
               >
-                <Image
-                  source={{ uri: userBook.book.cover_url || "" }}
-                  style={{ width: bookImageWidth, height: bookImageHeight }}
-                  contentFit="contain"
-                />
+                <TouchableOpacity
+                  onPress={() => {
+                    router.push(`/removeFromShelf/${userBook.id}`);
+                  }}
+                >
+                  <Image
+                    source={{ uri: userBook.book.cover_url || "" }}
+                    style={{ width: bookImageWidth, height: bookImageHeight }}
+                    contentFit="contain"
+                  />
+                </TouchableOpacity>
                 <Text
                   numberOfLines={2}
                   ellipsizeMode="tail"
