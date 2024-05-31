@@ -2,7 +2,7 @@
   "expo": {
     "name": "BNOOK - Your Reading Tracker",
     "slug": "myshelf",
-    "version": "0.0.15",
+    "version": "0.0.19",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -29,11 +29,15 @@
       }
     },
     "android": {
-      "versionCode": 7,
+      "versionCode": 11,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/splash.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.INTERNET"
+      ],
       "package": "com.senec.myshelf",
       "config": {
         "googleMaps": {

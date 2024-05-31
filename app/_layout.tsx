@@ -4,7 +4,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { AppState, StatusBar } from "react-native";
+import { AppState, StatusBar, Platform } from "react-native";
 import Colors from "@/constants/Colors";
 import { useFonts } from "expo-font";
 import { Stack, Slot } from "expo-router";
@@ -38,7 +38,9 @@ export {
 // };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+if (Platform.OS == "ios") {
+  SplashScreen.preventAutoHideAsync();
+}
 
 export default function Root() {
   return (
@@ -52,10 +54,10 @@ export function RootLayout() {
   const { user, loading, initialLoaded } = useUser();
   const { setBooks } = useUserBooksStore();
 
-  const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-    ...FontAwesome.font,
-  });
+  // const [loaded, error] = useFonts({
+  //   SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+  //   ...FontAwesome.font,
+  // });
 
   const getUsersBooks = async (user_id: any) => {
     const data = await supabase
@@ -75,18 +77,21 @@ export function RootLayout() {
   }, [user]);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  // useEffect(() => {
+  //   if (error) throw error;
+  // }, [error]);
 
   useEffect(() => {
-    if (loaded && initialLoaded) {
+    if (Platform.OS == "android") {
+      SplashScreen.hideAsync();
+    }
+    if (initialLoaded) {
       SplashScreen.hideAsync();
       // StatusBar.setHidden(true);
     }
-  }, [loaded, initialLoaded]);
+  }, [initialLoaded]);
 
-  if (!loaded || !initialLoaded) {
+  if (!initialLoaded) {
     return null;
   }
 

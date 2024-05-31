@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Modal, StyleSheet, TouchableOpacity } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { Modal, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import MapEvent from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { View, Button, TextInput, Text } from "../Themed";
@@ -190,23 +190,44 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
           }}
         />
       </View>
-      <MapView
-        onRegionChangeComplete={(region, { isGesture }) => {}}
-        ref={mapRef}
-        style={styles.map}
-        onPress={(e: any) => handleMapPress(e)}
-      >
-        {markers.map((marker) => (
-          <Marker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.latitude,
-              longitude: marker.longitude,
-            }}
-            title={marker.title}
-          />
-        ))}
-      </MapView>
+      {Platform.OS === "android" ? (
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          onRegionChangeComplete={(region, { isGesture }) => {}}
+          ref={mapRef}
+          style={styles.map}
+          onPress={(e: any) => handleMapPress(e)}
+        >
+          {markers.map((marker) => (
+            <Marker
+              key={marker.key}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              title={marker.title}
+            />
+          ))}
+        </MapView>
+      ) : (
+        <MapView
+          onRegionChangeComplete={(region, { isGesture }) => {}}
+          ref={mapRef}
+          style={styles.map}
+          onPress={(e: any) => handleMapPress(e)}
+        >
+          {markers.map((marker) => (
+            <Marker
+              key={marker.key}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              title={marker.title}
+            />
+          ))}
+        </MapView>
+      )}
     </View>
   );
 }
