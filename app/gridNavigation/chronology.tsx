@@ -51,10 +51,14 @@ function generateDecades(numberOfDecades: number): Decade[] {
 }
 
 function getBookCreationYear(book: UserBook): string {
-  return (book.book.google_api_data as any).volumeInfo.publishedDate.slice(
-    0,
-    4,
-  );
+  try {
+    return (book.book.google_api_data as any).volumeInfo.publishedDate.slice(
+      0,
+      4,
+    );
+  } catch(e) {
+    return "-1" // Ignore books without published date
+  }
 }
 
 function calculateOffset(creationYear: string): DimensionValue {
@@ -78,6 +82,7 @@ export default function ChronologyScreen() {
     const oldestYear =
       books.length > 0
         ? books
+            .filter(book => getBookCreationYear(book) != "-1") // Exclude books without published date
             .map((book) => {
               return { book: book, year: Number(getBookCreationYear(book)) };
             })
