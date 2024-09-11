@@ -174,8 +174,8 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
             // 'details' is provided when fetchDetails = true
             if (details?.geometry) {
               mapRef?.current?.animateToRegion({
-                latitude: details.geometry.location.lat,
-                longitude: details.geometry.location.lng,
+                latitude: details.geometry.location.lat || 0,
+                longitude: details.geometry.location.lng || 0,
                 latitudeDelta: 0.1,
                 longitudeDelta: 0.1,
               });
@@ -198,16 +198,19 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
           style={styles.map}
           onPress={(e: any) => handleMapPress(e)}
         >
-          {markers.map((marker) => (
-            <Marker
-              key={marker.key}
-              coordinate={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
-              }}
-              title={marker.title}
-            />
-          ))}
+          {markers.map((marker) => {
+            console.log(marker);
+            return (
+              <Marker
+                key={marker.key}
+                coordinate={{
+                  latitude: parseFloat(marker.latitude) || 0,
+                  longitude: parseFloat(marker.longitude) || 0,
+                }}
+                title={marker.title}
+              />
+            );
+          })}
         </MapView>
       ) : (
         <MapView
