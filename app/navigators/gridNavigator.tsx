@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useTheme } from "tamagui";
 import HomepageContainers from "../(tabs)/index";
 import ChronologyScreen from "../gridNavigation/chronology";
 import JournalLanding from "../gridNavigation/journal";
@@ -11,12 +12,14 @@ import MapScreen from "../gridNavigation/map";
 import AddMarker from "../addMarker";
 import EditMarkers from "@/components/EditMarker";
 import StatisticsScreen from "../gridNavigation/statistics";
-import { Platform } from "react-native";
+import Search from "@/components/SearchView";
+import { Platform, View, StatusBar } from "react-native";
 import Colors from "@/constants/Colors";
 
 const Stack = createNativeStackNavigator();
 
 export default function HomeStack() {
+  const theme = useTheme();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -25,11 +28,14 @@ export default function HomeStack() {
         headerStyle: {
           backgroundColor: Colors.light.background,
         },
-        headerShadowVisible: false, // applied here
+        headerShadowVisible: false,
         headerBackTitleVisible: false,
       }}
     >
       <Stack.Screen name="GridItems" component={HomepageContainers} />
+      <Stack.Screen name="Search" component={Search} />
+      {/* <Stack.Screen name="MyShelf" component={MyShelfScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} /> */}
       <Stack.Screen
         name="Chronology"
         component={ChronologyScreen}
@@ -41,7 +47,16 @@ export default function HomeStack() {
       <Stack.Screen
         name="Journal"
         component={JournalLanding}
-        options={{ headerShown: true, headerTitle: "Journal" }}
+        options={{
+          headerShown: true,
+          headerTitle: "Journal",
+          headerStyle: {
+            backgroundColor: theme?.background?.val,
+          },
+          contentStyle: { backgroundColor: theme?.background?.val },
+          headerTintColor: Colors.light.text,
+          headerShadowVisible: false,
+        }}
       />
       <Stack.Screen
         name="Map"

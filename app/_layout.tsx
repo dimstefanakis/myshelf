@@ -1,23 +1,36 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { AppState, StatusBar, Platform } from "react-native";
+import { createTamagui, View, Theme, useTheme, TamaguiProvider } from "tamagui";
+import defaultConfig from "@tamagui/config/v3";
 import Colors from "@/constants/Colors";
-import { useFonts } from "expo-font";
 import { Stack, Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect } from "react";
-import { View } from "@/components/Themed";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { RootSiblingParent } from "react-native-root-siblings";
 import useUser, { MyUserContextProvider } from "@/hooks/useUser";
 import { useUserBooksStore, UserBook } from "@/store/userBooksStore";
 import { supabase } from "@/utils/supabase";
 import { useColorScheme } from "@/components/useColorScheme";
+
+const tamaguiConfig = createTamagui({
+  ...defaultConfig,
+  defaultTheme: 'light',
+  themes: {
+    light: {
+      ...defaultConfig.themes.light,
+    },
+    dark: {
+      ...defaultConfig.themes.dark,
+    }
+  }
+})
+
+type Conf = typeof tamaguiConfig
+declare module '@tamagui/core' {
+  interface TamaguiCustomConfig extends Conf { }
+}
+
 
 AppState.addEventListener("change", (state) => {
   if (state === "active") {
@@ -54,11 +67,6 @@ export function RootLayout() {
   const { user, loading, initialLoaded } = useUser();
   const { setBooks } = useUserBooksStore();
 
-  // const [loaded, error] = useFonts({
-  //   SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-  //   ...FontAwesome.font,
-  // });
-
   const getUsersBooks = async (user_id: any) => {
     const data = await supabase
       .from("users_books")
@@ -76,11 +84,6 @@ export function RootLayout() {
     }
   }, [user]);
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  // useEffect(() => {
-  //   if (error) throw error;
-  // }, [error]);
-
   useEffect(() => {
     if (Platform.OS == "android") {
       SplashScreen.hideAsync();
@@ -95,71 +98,73 @@ export function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav user={user} />;
+  return (
+    <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
+      <ThemeProvider value={DefaultTheme}>
+        <RootLayoutNav />
+      </ThemeProvider>
+    </TamaguiProvider>
+  );
 }
 
-function RootLayoutNav({ user }: { user: any }) {
+function RootLayoutNav() {
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
 
-  const colorScheme = useColorScheme();
+  const theme = useTheme();
 
   return (
-    <View style={{ flex: 1, paddingTop: insets.top }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background.get() }}>
       <StatusBar hidden />
-      <ThemeProvider
-        // value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        value={DefaultTheme}
-      >
-        <Stack initialRouteName={user ? "(tabs)" : "login"}>
-          <Stack.Screen name="login" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="(tabs)"
-            options={{ headerShown: false, title: "" }}
-          />
-          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="book/[id]"
-            options={{ presentation: "modal", headerShown: false }}
-          />
-          <Stack.Screen
-            name="removeFromShelf/[id]"
-            options={{ presentation: "modal", headerShown: false }}
-          />
-          <Stack.Screen
-            name="bookList/[type]"
-            options={{
-              title: "Books",
-              headerStyle: {
-                backgroundColor: Colors.light.background,
-              },
-              headerShadowVisible: false, // applied here
-              headerBackTitleVisible: false,
-            }}
-          />
-          <Stack.Screen
-            name="searchModal/[action]"
-            options={{
-              presentation: "modal",
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="searchCategory/index"
-            options={{
-              headerShadowVisible: false, // applied here
-              headerBackTitleVisible: false,
-              headerBackTitle: "Back",
-              headerTitle: "Search",
-              headerStyle: {
-                backgroundColor: Colors.light.background,
-              },
+      <Stack initialRouteName={user ? "(tabs)" : "login"}>
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false, title: "" }}
+        />
+        <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="book/[id]"
+          options={{ presentation: "modal", headerShown: false }}
+        />
+        <Stack.Screen
+          name="removeFromShelf/[id]"
+          options={{ presentation: "modal", headerShown: false }}
+        />
+        <Stack.Screen
+          name="bookList/[type]"
+          options={{
+            title: "Books",
+            headerStyle: {
+              backgroundColor: Colors.light.background,
+            },
+            headerShadowVisible: false, // applied here
+            headerBackTitleVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="searchModal/[action]"
+          options={{
+            presentation: "modal",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="searchCategory/index"
+          options={{
+            headerShadowVisible: false, // applied here
+            headerBackTitleVisible: false,
+            headerBackTitle: "Back",
+            headerTitle: "Search",
+            headerStyle: {
+              backgroundColor: Colors.light.background,
+            },
 
-              // headerShown: false,
-            }}
-          />
-        </Stack>
-      </ThemeProvider>
-    </View>
+            // headerShown: false,
+          }}
+        />
+      </Stack>
+    </SafeAreaView>
   );
 }

@@ -21,6 +21,8 @@ import type { Book } from "@/constants/BookTypes";
 import { isLoaded } from "expo-font";
 import { Pressable } from "react-native";
 
+const API_KEY = 'AIzaSyDAxF1uGveMkZz0ySXJnziEF9oO3z2rTXY';
+
 type SearchProps = {
   addAction?: string;
   filter?: string;
@@ -50,17 +52,28 @@ export default function Search({
 
   function chooseUlr(): string {
     const isbnCode: number = Number(search);
+    const baseUrl = 'https://www.googleapis.com/books/v1/volumes';
+    const params = new URLSearchParams({
+      key: API_KEY,
+      startIndex: bookIndex.toString(),
+      maxResults: '10',
+    });
+
     if (filter) {
       if (search.length > 0) {
-        return `https://www.googleapis.com/books/v1/volumes?q=${search}&${filter}&startIndex=${bookIndex}&maxResults=10`;
+        params.append('q', `${search}&${filter}`);
       } else {
-        return `https://www.googleapis.com/books/v1/volumes?q=${filter}&startIndex=${bookIndex}&maxResults=10`;
+        params.append('q', filter as string);
       }
     } else {
-      return !isNaN(isbnCode) && (search.length === 10 || search.length === 13)
-        ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${search}&startIndex=${bookIndex}&maxResults=10`
-        : `https://www.googleapis.com/books/v1/volumes?q=${search}&startIndex=${bookIndex}&maxResults=10`;
+      if (!isNaN(isbnCode) && (search.length === 10 || search.length === 13)) {
+        params.append('q', `isbn:${search}`);
+      } else {
+        params.append('q', search);
+      }
     }
+
+    return `${baseUrl}?${params.toString()}`;
   }
 
   async function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -243,7 +256,12 @@ function Category({
     "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
 
   async function getBooks() {
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${value}&maxResults=10`;
+    const params = new URLSearchParams({
+      q: value,
+      maxResults: '10',
+      key: API_KEY,
+    });
+    const url = `https://www.googleapis.com/books/v1/volumes?${params.toString()}`;
     const response = await fetch(url);
     const data = await response.json();
     setResults(data.items || []);
