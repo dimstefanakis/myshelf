@@ -78,11 +78,11 @@ const JournalBlock = () => {
       <XStack justifyContent="space-between" alignItems="center" padding="$3">
         <Text fontSize="$5" fontWeight="bold">Journal</Text>
       </XStack>
-      <YStack space="$3" padding="$3">
+      <YStack space="$2" padding="$3">
         {recentItems.map((item, index) => (
           <React.Fragment key={`${item.type}-${item.id}`}>
             {renderItem(item)}
-            {index < recentItems.length - 1 && <Separator />}
+            {index < recentItems.length - 1 && <Separator borderWidth={1} my="$2" mb="$1"/>}
           </React.Fragment>
         ))}
       </YStack>

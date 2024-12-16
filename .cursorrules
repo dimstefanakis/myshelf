@@ -1,0 +1,22 @@
+These colors are part of Tamagui's orange scale, which ranges from $orange1 (lightest) to $orange12 (darkest). The scale is designed to provide appropriate contrast and visual hierarchy while maintaining accessibility. Use these colors for the following purposes:
+
+$orange2
+Used for: Main card backgrounds
+Purpose: Very light orange tint for container backgrounds
+Components: About book card, Categories card
+$orange4
+Used for: Category pill backgrounds
+Purpose: Slightly darker orange for interactive elements
+Components: Individual category tags
+$orange8
+Used for: Button press state
+Purpose: Lighter orange for button feedback when pressed
+Components: Main action button hover/press state
+$orange10
+Used for: Primary button background
+Purpose: Main accent color for call-to-action elements
+Components: "Add to" button default state
+$orange11
+Used for: Text accents
+Purpose: High contrast text on light backgrounds
+Components: Section headings ("About this book", "Categories"), category text

@@ -129,21 +129,46 @@ const CombinedFeedScreen = () => {
     }
   };
 
-  const FilterButton = styled(Button, {
+  const FilterPill = styled(Button, {
     borderRadius: 9999,
+    backgroundColor: "$orange4",
+    paddingHorizontal: "$4",
+    paddingVertical: "$2",
     variants: {
       active: {
         true: {
-          backgroundColor: "$background",
-          color: "$color",
-          borderWidth: 2,
-          borderColor: "$color",
-        },
-        false: {
-          backgroundColor: "$color",
-          color: "$background",
+          backgroundColor: "$orange10",
         },
       },
+    },
+  });
+
+  const FeedCard = styled(Card, {
+    backgroundColor: "$orange2",
+    padding: "$4",
+    marginBottom: "$3",
+    borderRadius: "$4",
+  });
+
+  const ActionBar = styled(XStack, {
+    backgroundColor: "$orange10",
+    borderRadius: 9999,
+    padding: "$2",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  });
+
+  const ActionButton = styled(Button, {
+    backgroundColor: "transparent",
+    // width: 50,
+    // height: 50,
+    borderRadius: 25,
+    marginHorizontal: "$2",
+    pressStyle: {
+      backgroundColor: "$orange8",
     },
   });
 
@@ -186,7 +211,7 @@ const CombinedFeedScreen = () => {
   useEffect(() => {
     Animated.parallel([
       Animated.timing(searchHeight, {
-        toValue: isSearchVisible ? 50 : 0, // Increased from 40 to 50
+        toValue: isSearchVisible ? 50 : 0,
         duration: 200,
         useNativeDriver: false,
       }),
@@ -198,139 +223,127 @@ const CombinedFeedScreen = () => {
     ]).start();
   }, [isSearchVisible]);
 
-  const FloatingBar = styled(XStack, {
-    transform: [
-      { translateY: -25 }, // Half of the approximate height of the bar
-    ],
-    backgroundColor: '$color',
-    borderRadius: 9999,
-    padding: '$1',
-    justifyContent: 'center',
-    alignItems: 'center',
-  });
-
-  const IconButton = styled(Button, {
-    backgroundColor: 'transparent',
-    borderRadius: 9999,
-    padding: '$4',
-    width: 60,
-    height: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-  });
-
   return (
-    <YStack flex={1}>
+    <YStack flex={1} backgroundColor="$background">
       <YStack padding="$4" space="$4">
-        <Animated.View style={{
-          height: searchHeight,
-          marginBottom: searchMargin,
-          opacity: isSearchVisible ? 1 : searchOpacity,
-          overflow: 'hidden',
-        }}>
+        <Animated.View
+          style={{
+            height: searchHeight,
+            marginBottom: searchMargin,
+            opacity: isSearchVisible ? 1 : searchOpacity,
+          }}
+        >
           <Input
-            placeholder="Search"
+            placeholder="Search your entries..."
             value={searchQuery}
             onChangeText={setSearchQuery}
+            backgroundColor="$orange2"
+            borderColor="$orange4"
+            fontSize="$4"
           />
         </Animated.View>
 
-        <XStack space="$2">
-          <FilterButton
-            active={activeFilter === 'note'}
-            onPress={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
-          >
-            Photos
-          </FilterButton>
-          <FilterButton
-            active={activeFilter === 'journal'}
-            onPress={() => setActiveFilter(activeFilter === 'journal' ? null : 'journal')}
-          >
-            Notes
-          </FilterButton>
-          <FilterButton
-            active={activeFilter === 'quote'}
-            onPress={() => setActiveFilter(activeFilter === 'quote' ? null : 'quote')}
-          >
-            Highlights
-          </FilterButton>
-        </XStack>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <XStack space="$2" paddingVertical="$2">
+            <FilterPill
+              active={activeFilter === 'note'}
+              onPress={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
+            >
+              <XStack space="$2" alignItems="center">
+                <Feather name="camera" size={16} color={activeFilter === 'note' ? "white" : "$orange11"} />
+                <Text color={activeFilter === 'note' ? "white" : "$orange11"}>Photos</Text>
+              </XStack>
+            </FilterPill>
+            <FilterPill
+              active={activeFilter === 'journal'}
+              onPress={() => setActiveFilter(activeFilter === 'journal' ? null : 'journal')}
+            >
+              <XStack space="$2" alignItems="center">
+                <Feather name="book" size={16} color={activeFilter === 'journal' ? "white" : "$orange11"} />
+                <Text color={activeFilter === 'journal' ? "white" : "$orange11"}>Notes</Text>
+              </XStack>
+            </FilterPill>
+            <FilterPill
+              active={activeFilter === 'quote'}
+              onPress={() => setActiveFilter(activeFilter === 'quote' ? null : 'quote')}
+            >
+              <XStack space="$2" alignItems="center">
+                <Entypo name="quote" size={16} color={activeFilter === 'quote' ? "white" : "$orange11"} />
+                <Text color={activeFilter === 'quote' ? "white" : "$orange11"}>Highlights</Text>
+              </XStack>
+            </FilterPill>
+          </XStack>
+        </ScrollView>
 
         <Animated.ScrollView
           onScroll={handleScroll}
           scrollEventThrottle={16}
-          contentContainerStyle={{ paddingTop: 16 }}
         >
           <YStack space="$4">
             {filteredFeed.length > 0 ? (
-              filteredFeed.map((item, index) => (
-                <React.Fragment key={`${item.type}-${item.id}`}>
-                  {index > 0 && <Separator />}
+              filteredFeed.map((item) => (
+                <FeedCard key={`${item.type}-${item.id}`}>
                   {renderFeedItem(item)}
-                </React.Fragment>
+                </FeedCard>
               ))
             ) : (
-              <Text>No results found</Text>
+              <YStack alignItems="center" padding="$8">
+                <Text color="$orange11" fontSize="$5">No entries found</Text>
+                <Text color="$orange11" fontSize="$3">Try adjusting your search or filters</Text>
+              </YStack>
             )}
           </YStack>
         </Animated.ScrollView>
       </YStack>
+
       <XStack
         position="absolute"
-        bottom={0}
+        bottom={16}
         left={0}
         right={0}
         justifyContent="center"
-        alignItems="center"
-        paddingBottom="$4"
+        paddingHorizontal="$4"
       >
-        <FloatingBar>
-          <IconButton
-            themeInverse
+        <ActionBar>
+          <ActionButton
             onPress={openCamera}
-            icon={<Feather name="camera" color={theme?.background?.val} size={20} />}
+            icon={<Feather name="camera" color="white" size={24} />}
           />
-          <IconButton
-            themeInverse
-            onPress={() => {
-              navigation.navigate("AddQuoteEntryScreen");
-            }}
-            icon={<Entypo name="quote" color={theme?.background?.val} size={20} />}
+          <ActionButton
+            onPress={() => navigation.navigate("AddQuoteEntryScreen")}
+            icon={<Entypo name="quote" color="white" size={24} />}
           />
-          <IconButton
-            themeInverse
-            onPress={() => {
-              navigation.navigate("AddJournalEntryScreen");
-            }}
-            icon={<Feather name="book" color={theme?.background?.val} size={20} />}
+          <ActionButton
+            onPress={() => navigation.navigate("AddJournalEntryScreen")}
+            icon={<Feather name="book" color="white" size={24} />}
           />
-        </FloatingBar>
+        </ActionBar>
       </XStack>
     </YStack>
   );
 };
 
 const NoteItem = ({ item }: { item: Note }) => (
-  <YStack space="$2" paddingVertical="$4">
-    <Text fontSize="$5" fontWeight="bold">{item.title}</Text>
+  <YStack space="$2">
+    <Text color="$orange11" fontSize="$5" fontWeight="bold">{item.title}</Text>
     <Paragraph>{item.description}</Paragraph>
     {item.image_url && (
       <Image
         source={{ uri: item.image_url }}
         aspectRatio={16 / 9}
+        borderRadius="$2"
         objectFit="cover"
-        marginTop="$2"
       />
     )}
   </YStack>
 );
 
 const JournalItem = ({ item }: { item: Journal }) => (
-  <YStack space="$2" paddingVertical="$4">
-    <Text fontSize="$4" fontWeight="bold">
-      {new Date(item.created_at).toLocaleDateString()} - {item.title}
+  <YStack space="$2">
+    <Text color="$orange11" fontSize="$4" fontWeight="bold">
+      {new Date(item.created_at).toLocaleDateString()}
     </Text>
+    <Text fontSize="$5" fontWeight="bold">{item.title}</Text>
     <Paragraph>{item.description}</Paragraph>
   </YStack>
 );
@@ -353,19 +366,31 @@ const QuoteItem = ({ item }: { item: Quote }) => {
       .eq("id", item.id);
     if (error) {
       console.error("Error updating quote like status:", error);
-      setLiked(!newLikedState); // Revert on error
+      setLiked(!newLikedState);
     }
   };
 
   return (
-    <YStack space="$2" paddingVertical="$4">
-      <Paragraph fontSize="$4" fontStyle="italic">"{item.title}"</Paragraph>
+    <YStack space="$3">
+      <Paragraph fontSize="$4" fontStyle="italic" color="$orange11">
+        "{item.title}"
+      </Paragraph>
       <XStack justifyContent="space-between" alignItems="center">
         <Text fontSize="$3">{item.author}, {item.users_book.book.title}</Text>
         <XStack space="$2">
-          <Button icon={<FontAwesome6 name="share-square" />} onPress={onShare} />
           <Button
-            icon={<FontAwesome6 name={liked ? "heart" : "heart-o"} color={liked ? "$red10" : undefined} />}
+            backgroundColor="$orange4"
+            pressStyle={{ backgroundColor: "$orange8" }}
+            icon={<FontAwesome6 name="share-square" color="$orange11" />}
+            onPress={onShare}
+          />
+          <Button
+            backgroundColor="$orange4"
+            pressStyle={{ backgroundColor: "$orange8" }}
+            icon={<FontAwesome6 
+              name={liked ? "heart" : "heart-o"} 
+              color={liked ? "$red10" : "$orange11"} 
+            />}
             onPress={toggleLike}
           />
         </XStack>
@@ -373,9 +398,5 @@ const QuoteItem = ({ item }: { item: Quote }) => {
     </YStack>
   );
 };
-
-function Separator() {
-  return <View height={1} backgroundColor="$borderColor" marginVertical="$2" />;
-}
 
 export default CombinedFeedScreen;

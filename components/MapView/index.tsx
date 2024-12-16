@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import React, { useEffect, useState, useRef } from "react";
 import { Modal, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";

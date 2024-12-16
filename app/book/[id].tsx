@@ -1,21 +1,16 @@
-import { useState, useEffect, useRef } from "react";
-import { StatusBar } from "expo-status-bar";
+import { useState, useEffect } from "react";
 import {
   useLocalSearchParams,
   useGlobalSearchParams,
   useRouter,
-  Link,
 } from "expo-router";
 import { Image } from "expo-image";
-import {
-  Platform,
-  StyleSheet,
-  TouchableNativeFeedback,
-  ActivityIndicator,
-} from "react-native";
+import { ActivityIndicator, ScrollView, useWindowDimensions } from "react-native";
 import { supabase } from "@/utils/supabase";
+import { YStack, XStack, Text, Button, Card, Paragraph, H2, H4 } from "tamagui";
+import { StyleSheet } from "react-native";
+import RenderHtml from 'react-native-render-html';
 
-import { Text, View, Button } from "@/components/Themed";
 import type { Book } from "@/constants/BookTypes";
 import { UserBook, useUserBooksStore } from "@/store/userBooksStore";
 
@@ -34,10 +29,13 @@ export default function BookModalScreen() {
   const localSearchParams = useLocalSearchParams();
   const globalSearchParams = useGlobalSearchParams();
   const bookId = localSearchParams.id;
-  const action = localSearchParams.addAction as string;
+  const action = localSearchParams.addAction as keyof typeof actionTypes;
 
   const blurhash =
     "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
+
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const getUsersBooks = async (user_id: any) => {
     const data = await supabase
@@ -177,76 +175,123 @@ export default function BookModalScreen() {
   }
 
   useEffect(() => {
+    setLoading(true);
     getBookById().then((data) => {
       setCoverUrl(`${data?.volumeInfo.imageLinks?.thumbnail}&fife=w800`);
       setBook(data);
+      setLoading(false);
     });
   }, [bookId]);
 
+  const { width } = useWindowDimensions();
+
+  if (loading) {
+    return (
+      <YStack flex={1} justifyContent="center" alignItems="center">
+        <ActivityIndicator size="large" />
+      </YStack>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Image
-        source={{
-          uri: coverUrl,
-        }}
-        style={{ width: 256, height: 384 }}
-        contentFit="contain"
-        placeholder={blurhash}
-        transition={1000}
-      />
+    <ScrollView>
+      <YStack f={1} padding="$4">
+        <XStack space="$4">
+          <Image
+            source={{ uri: coverUrl }}
+            style={styles.coverImage}
+            contentFit="contain"
+            placeholder={blurhash}
+            transition={1000}
+          />
+          
+          <YStack flex={1} space="$2">
+            <H2>{book?.volumeInfo.title}</H2>
+            <Text color="$gray11">{book?.volumeInfo.authors?.join(', ')}</Text>
+            <Text color="$gray10" fontSize="$3">
+              Published: {getReleaseYear(book?.volumeInfo.publishedDate || "")}
+            </Text>
+            {book?.volumeInfo.pageCount && (
+              <Text color="$gray10" fontSize="$3">
+                {book.volumeInfo.pageCount} pages
+              </Text>
+            )}
+          </YStack>
+        </XStack>
 
-      <Text style={styles.title}>{book?.volumeInfo.title}</Text>
-      <Text style={styles.author}>{book?.volumeInfo.authors?.[0]}</Text>
-      {/* release year */}
-      <Text style={styles.description}>
-        Published: {getReleaseYear(book?.volumeInfo.publishedDate || "")}
-      </Text>
+        <Card marginVertical="$4" bordered padding="$4" backgroundColor="$orange2">
+          <H4 marginBottom="$2" color="$orange11">About this book</H4>
+          <YStack 
+            height={isDescriptionExpanded ? 'auto' : 150} 
+            overflow="hidden"
+          >
+            <RenderHtml
+              contentWidth={width - 48}
+              source={{ 
+                html: book?.volumeInfo.description || 'No description available'
+              }}
+              baseStyle={{
+                color: '$gray11',
+                fontSize: 14,
+                lineHeight: 20
+              }}
+            />
+          </YStack>
+          {book?.volumeInfo.description && (
+            <Text
+              color="$blue10"
+              marginTop="$2"
+              onPress={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+            >
+              {isDescriptionExpanded ? 'Show less' : 'Show more'}
+            </Text>
+          )}
+        </Card>
 
-      {/* <Link to="BookList">
-        <Button title="Close" onPress={() => {}} />
-      </Link> */}
-      <Button
-        onPress={addBookToMyShelf}
-        style={{
-          marginTop: 20,
-          display: "flex",
-          flexDirection: "row",
-          width: 200,
-        }}
-      >
-        {addingBook ? (
-          <ActivityIndicator size="small" color="white" />
-        ) : (
-          <Text style={{ color: "white", fontWeight: "700" }}>
-            {/* @ts-ignore */}
-            Add to {action ? actionTypes[action] : "future reading"}
-          </Text>
+        {book?.volumeInfo.categories && (
+          <Card bordered padding="$4" backgroundColor="$orange2">
+            <H4 marginBottom="$2" color="$orange11">Categories</H4>
+            <XStack flexWrap="wrap" gap="$2">
+              {book.volumeInfo.categories.map((category, index) => (
+                <Card
+                  key={index}
+                  backgroundColor="$orange4"
+                  paddingHorizontal="$3"
+                  paddingVertical="$2"
+                  borderRadius="$10"
+                >
+                  <Text color="$orange11" fontSize="$3">{category}</Text>
+                </Card>
+              ))}
+            </XStack>
+          </Card>
         )}
-      </Button>
-      <StatusBar style="auto" />
-    </View>
+
+        <Button
+          size="$6"
+          marginVertical="$4"
+          borderRadius="$10"
+          backgroundColor="$orange10"
+          pressStyle={{ backgroundColor: '$orange8' }}
+          onPress={addBookToMyShelf}
+        >
+          {addingBook ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <Text color="white">
+              Add to {action ? actionTypes[action] : "future reading"}
+            </Text>
+          )}
+        </Button>
+      </YStack>
+    </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginVertical: 10,
-  },
-  author: {
-    fontSize: 16,
-    color: "gray",
-  },
-  description: {
-    fontSize: 16,
-    marginTop: 10,
+  coverImage: {
+    width: 120,
+    height: 180,
+    borderRadius: 8,
   },
 });
+

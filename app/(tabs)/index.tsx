@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { Dimensions, View, LayoutChangeEvent } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
@@ -7,7 +8,10 @@ import { Stack, XStack, YStack, Text, Button } from "tamagui";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import JournalBlock from "@/components/Dashboard/JournalBlock";
 import ShelvesBlock from "@/components/Dashboard/ShelvesBlock";
-import { FlashList } from "@shopify/flash-list";
+import StatisticsBlock from "@/components/Dashboard/StatisticsBlock";
+import GoalTrackerBlock from "@/components/Dashboard/GoalTrackerBlock";
+import MapBlock from "@/components/Dashboard/MapBlock";
+import { FlashList, MasonryFlashList } from "@shopify/flash-list";
 
 const data = [
   {
@@ -39,14 +43,19 @@ const data = [
     image: require("./../../assets/images/chronology.jpg"),
   },
   {
-    type: 'regular',
+    type: 'goalTracker',
     title: "Goal Tracker",
     image: require("./../../assets/images/goals.jpg"),
   },
   {
-    type: 'regular',
+    type: 'statistics',
     title: "Statistics",
     image: require("./../../assets/images/stats-min.jpeg"),
+  },
+  {
+    type: 'map',
+    title: "Map",
+    image: require("./../../assets/images/map.jpg"),
   },
 ].map((item, index) => ({ ...item, id: index }));
 
@@ -62,22 +71,24 @@ export type RootStackParamList = {
 };
 
 type Item = {
-  type: 'journal' | 'shelves' | 'regular';
+  type: 'journal' | 'shelves' | 'regular' | 'goalTracker' | 'statistics' | 'map';
   title: string;
   image?: any;
   id: number;
 };
 
 function HomepageContainers() {
+  const router = useRouter();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const screenWidth = Dimensions.get('window').width;
-  const spacing = 8;
+  const spacing = 16;
 
   const renderItem = ({ item }: { item: Item }) => {
     if (item.type === 'journal') {
       return (
-        <YStack 
-          marginHorizontal={spacing/2}
+        <YStack
+          marginHorizontal={spacing / 2}
+          marginBottom={spacing / 2}
           width={(screenWidth - spacing * 3) / 2}
         >
           <JournalBlock />
@@ -87,8 +98,9 @@ function HomepageContainers() {
 
     if (item.type === 'shelves') {
       return (
-        <YStack 
-          marginHorizontal={spacing/2}
+        <YStack
+          marginHorizontal={spacing / 2}
+          marginBottom={spacing / 2}
           width={(screenWidth - spacing * 3) / 2}
         >
           <ShelvesBlock />
@@ -96,10 +108,47 @@ function HomepageContainers() {
       );
     }
 
+    if (item.type === 'statistics') {
+      return (
+        <YStack
+          marginHorizontal={spacing / 2}
+          marginBottom={spacing / 2}
+          width={(screenWidth - spacing * 3) / 2}
+        >
+          <StatisticsBlock />
+        </YStack>
+      );
+    }
+
+    if (item.type === 'goalTracker') {
+      return (
+        <YStack
+          marginHorizontal={spacing / 2}
+          marginBottom={spacing / 2}
+          width={(screenWidth - spacing * 3) / 2}
+        >
+          <GoalTrackerBlock />
+        </YStack>
+      );
+    }
+
+    if (item.type === 'map') {
+      return (
+        <YStack
+          marginHorizontal={spacing / 2}
+          marginBottom={spacing / 2}
+          width={(screenWidth - spacing * 3) / 2}
+        >
+          <MapBlock />
+        </YStack>
+      );
+    }
+
+    return null;
     return (
-      <Button 
-        onPress={() => handlePress(item.title)} 
-        margin={spacing/2}
+      <Button
+        onPress={() => handlePress(item.title)}
+        margin={spacing / 2}
         width={(screenWidth - spacing * 3) / 2}
       >
         <YStack
@@ -141,25 +190,26 @@ function HomepageContainers() {
   };
 
   return (
-    <YStack flex={1} padding="$2">
+    <YStack flex={1} padding="$2" backgroundColor="$background">
       <XStack justifyContent="space-between" alignItems="center" paddingVertical="$2" paddingHorizontal="$4">
         <Button
           icon={<Feather name="user" size={24} color="$color" />}
           unstyled
+          onPress={() => router.push('/profile')}
         />
         <Button
           icon={<Feather name="search" size={24} color="$color" />}
-          onPress={() => navigation.navigate('Search')}
+          onPress={() => router.push('/search')}
           unstyled
         />
       </XStack>
 
-      <FlashList
+      <MasonryFlashList
         data={data}
         renderItem={renderItem}
         estimatedItemSize={200}
         numColumns={2}
-        contentContainerStyle={{ paddingHorizontal: spacing/2 }}
+        contentContainerStyle={{ paddingHorizontal: spacing / 2 }}
       />
     </YStack>
   );

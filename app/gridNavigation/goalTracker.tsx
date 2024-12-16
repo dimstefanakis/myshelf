@@ -11,10 +11,12 @@ import {
 import { Entypo } from "@expo/vector-icons";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import PagerView from "react-native-pager-view";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
-import { View, Text, Button, TextInput, ScrollView } from "@/components/Themed";
+import ArcSlider from "@/components/ArcSlider";
+import { View, TextInput, ScrollView } from "@/components/Themed";
 import useUser, { User } from "@/hooks/useUser";
 import type { Database } from "@/types_db";
 import { supabase } from "@/utils/supabase";
@@ -24,6 +26,9 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { SafeAreaView } from "react-native";
 import { getLocales, getCalendars } from "expo-localization";
+import { useGoalTrackerStore } from '@/store/goalTrackerStore';
+import { XStack, YStack, Button, Text } from "tamagui";
+import { ChevronLeft, Bell, Pencil } from '@tamagui/lucide-icons';
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type Log = Database["public"]["Tables"]["goal_logs"]["Row"] & {
@@ -87,6 +92,7 @@ function formatReminderTime(reminderTime: string) {
 }
 
 function GoalTrackerScreen() {
+  const router = useRouter();
   const navigation = useNavigation<NavigationProp<any>>();
   const { user, getUser } = useUser();
   const { timeZone } = getCalendars()[0];
@@ -94,16 +100,10 @@ function GoalTrackerScreen() {
   // const [date, setDate] = useState(new Date(1598051730000));
   const dateTimeString = `${formatReminderTime(user?.profile?.reminder_time ?? "")}`;
   const dateObj = new Date(dateTimeString);
-  dateObj.toLocaleString("en-US", { timeZone: timeZone ?? undefined });
+  dateObj.toLocaleString("en-US", { timeZone: timeZone || '' });
   const [date, setDate] = useState(dateObj);
   const [show, setShow] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [goalLogs, setGoalLogs] = useState<GoalLog[]>([]);
-  const [selectedTab, setSelectedTab] = useState(tabs[0]);
-  const [loading, setLoading] = useState(true);
-  const [loadingLogs, setLoadingLogs] = useState(true);
   const [expoPushToken, setExpoPushToken] = useState("");
   const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
     [],
@@ -113,6 +113,21 @@ function GoalTrackerScreen() {
   >(undefined);
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
+
+  const {
+    goals,
+    goalLogs,
+    loading,
+    loadingLogs,
+    currentIndex,
+    selectedTab,
+    setCurrentIndex,
+    setSelectedTab,
+    fetchGoals,
+    getGoalProgress,
+    listenToLogUpdates,
+    listenToGoalUpdates
+  } = useGoalTrackerStore();
 
   async function registerForPushNotificationsAsync() {
     // registerForPushNotificationsAsync()
@@ -178,202 +193,12 @@ function GoalTrackerScreen() {
     });
   }, [navigation]);
 
-  async function fetchGoals() {
-    setLoading(true);
-    const { data: goals, error } = await supabase
-      .from("goals")
-      .select("*")
-      .eq("user", user?.id || "")
-      .order("created_at", { ascending: false });
-
-    setGoals((goals as Goal[]) || []);
-    setLoading(false);
-  }
-
-  async function getGoalProgress() {
-    // starts from the beginning of the day
-    const dailyStart = new Date();
-    dailyStart.setUTCHours(0, 0, 0, 0);
-
-    // ends at the end of the day
-    const dailyEnd = new Date();
-    dailyEnd.setDate(dailyStart.getDate() + 1);
-
-    const weeklyStart = new Date();
-    // should start at the beginning of the week
-    weeklyStart.setUTCHours(0, 0, 0, 0);
-    if (weeklyStart.getDay() !== 0) {
-      weeklyStart.setDate(weeklyStart.getDate() - weeklyStart.getDay());
-    } else {
-      weeklyStart.setDate(weeklyStart.getDate() - 7);
-    }
-    const weeklyEnd = new Date();
-    weeklyEnd.setDate(weeklyStart.getDate() + 7);
-
-    const monthlyStart = new Date();
-    // should start at the beginning of the month
-    monthlyStart.setUTCHours(0, 0, 0, 0);
-    monthlyStart.setDate(1);
-    const monthlyEnd = new Date();
-    monthlyEnd.setMonth(monthlyStart.getMonth() + 1);
-
-    const yearlyStart = new Date();
-    // should start at the beginning of the year
-    yearlyStart.setUTCHours(0, 0, 0, 0);
-    yearlyStart.setMonth(0);
-    yearlyStart.setDate(1);
-    const yearlyEnd = new Date();
-    yearlyEnd.setFullYear(yearlyStart.getFullYear() + 1);
-
-    setLoadingLogs(true);
-    const { data: allLogs, error: allLogsError } = await supabase
-      .from("goal_logs")
-      .select("*")
-      .order("created_at", { ascending: true })
-      .eq("user", user?.id || "");
-
-    const { data: dayGoals, error: dayGoalsError } = await supabase
-      .from("goal_logs")
-      .select("*, goal(*)")
-      .order("created_at", { ascending: true })
-      .eq("user", user?.id || "")
-      .or("type.eq.pages,type.eq.minutes")
-      .gte("created_at", dailyStart.toISOString())
-      .lt("created_at", dailyEnd.toISOString());
-
-    const { data: weekGoals, error: weekGoalsError } = await supabase
-      .from("goal_logs")
-      .select("*, goal(*)")
-      .order("created_at", { ascending: true })
-      .eq("user", user?.id || "")
-      .eq("type", "pages")
-      .gte("created_at", weeklyStart.toISOString())
-      .lt("created_at", weeklyEnd.toISOString());
-
-    const { data: monthGoals, error: monthGoalsError } = await supabase
-      .from("goal_logs")
-      .select("*, goal(*)")
-      .order("created_at", { ascending: true })
-      .eq("user", user?.id || "")
-      .eq("type", "books")
-      .gte("created_at", monthlyStart.toISOString())
-      .lt("created_at", monthlyEnd.toISOString());
-
-    const { data: yearGoals, error: yearGoalsError } = await supabase
-      .from("goal_logs")
-      .select("*, goal(*)")
-      .order("created_at", { ascending: true })
-      .eq("user", user?.id || "")
-      .eq("type", "books")
-      .gte("created_at", yearlyStart.toISOString())
-      .lt("created_at", yearlyEnd.toISOString());
-
-    if (
-      allLogsError ||
-      dayGoalsError ||
-      weekGoalsError ||
-      monthGoalsError ||
-      yearGoalsError
-    ) {
-      return;
-    }
-    const combinedGoals = [
-      {
-        time_type: "daily",
-        logs: dayGoals,
-      },
-      {
-        time_type: "weekly",
-        logs: weekGoals,
-      },
-      {
-        time_type: "monthly",
-        logs: monthGoals,
-      },
-      {
-        time_type: "yearly",
-        logs: yearGoals,
-      },
-      {
-        time_type: "all",
-        logs: allLogs,
-        // count days where there is a log
-        // use the allLogs to get the unique days, starting from the weekly_start to weekly_end
-        // multiple logs in a day should be counted as one
-        week_count: allLogs
-          .filter((log) => {
-            const logDate = new Date(log.created_at);
-            return logDate >= weeklyStart && logDate < weeklyEnd;
-          })
-          .reduce<number[]>((acc, log) => {
-            const logDate = new Date(log.created_at);
-            const logDay = logDate.getDate();
-            if (!acc.includes(logDay)) {
-              acc.push(logDay);
-            }
-            return acc;
-          }, []).length,
-        month_count: allLogs
-          .filter((log) => {
-            const logDate = new Date(log.created_at);
-            return logDate >= monthlyStart && logDate < monthlyEnd;
-          })
-          .reduce<number[]>((acc, log) => {
-            const logDate = new Date(log.created_at);
-            const logDay = logDate.getDate();
-            if (!acc.includes(logDay)) {
-              acc.push(logDay);
-            }
-            return acc;
-          }, []).length,
-      },
-    ];
-    setGoalLogs(combinedGoals as GoalLog[]);
-    setLoadingLogs(false);
-  }
-
-  async function listenToLogUpdates() {
-    const channel = supabase
-      .channel("schema-db-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "goal_logs",
-        },
-        () => {
-          fetchGoals();
-        },
-      )
-      .subscribe();
-
-    return channel;
-  }
-  async function listenToGoalUpdates() {
-    const channel = supabase
-      .channel("schema-db-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "goals",
-        },
-        () => {
-          fetchGoals();
-        },
-      )
-      .subscribe();
-
-    return channel;
-  }
   useEffect(() => {
     if (user?.id) {
-      fetchGoals();
-      getGoalProgress();
-      listenToLogUpdates();
-      listenToGoalUpdates();
+      fetchGoals(user.id);
+      getGoalProgress(user.id, timeZone ?? undefined);
+      listenToLogUpdates(user.id);
+      listenToGoalUpdates(user.id);
     }
   }, [user]);
 
@@ -438,195 +263,162 @@ function GoalTrackerScreen() {
     }
   }, [user?.profile?.reminder_time]);
 
+  function getGoalProgressValue(goal: Goal) {
+    let progress = 0;
+    if (goal.type != "days") {
+      const timelogs = goalLogs.find((log) => {
+        return log.time_type == goal.time_type;
+      });
+      if (timelogs) {
+        const logs = timelogs.logs.filter((log) => {
+          if (goal.time_type == "daily") {
+            return (
+              log.type === goal.type &&
+              log?.goal?.time_type === "daily"
+            );
+          } else if (goal.time_type == "weekly") {
+            return (
+              log.type === goal.type &&
+              (log?.goal?.time_type === "weekly" ||
+                log?.goal?.time_type === "daily")
+            );
+          } else if (goal.time_type == "monthly") {
+            return (
+              log.type === goal.type &&
+              (log?.goal?.time_type === "monthly" ||
+                log?.goal?.time_type === "weekly" ||
+                log?.goal?.time_type === "daily")
+            );
+          } else {
+            return log.type === goal.type;
+          }
+        });
+        progress = logs.reduce(
+          (acc, log) => acc + (log.unit_amount ?? 0),
+          0
+        );
+      }
+    } else {
+      const logs = goalLogs.find((log) => {
+        return log.time_type == "all";
+      });
+      if (logs) {
+        progress = logs.week_count || 0;
+      }
+    }
+    return progress;
+  }
+
+  const activeGoals = goals.filter((goal) => goal.time_type == 'daily');
+  const passiveGoals = goals.filter((goal) => goal.time_type != 'daily');
+
   return (goals.length == 0 || goalLogs.length == 0) &&
     (loadingLogs || loading) ? (
     <View style={styles.loadingContainer}>
       <ActivityIndicator />
     </View>
   ) : (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100%",
-      }}
-    >
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-evenly",
-          marginBottom: 30,
-          paddingTop: 10,
-          width: "100%",
-        }}
-      >
-        {tabs.map((tab) => (
-          <Button
-            key={tab.value}
-            onPress={() => setSelectedTab(tab)}
-            style={{
-              width: width / tabs.length - 3,
-              backgroundColor:
-                tab.value === selectedTab.value ? "black" : "white",
-            }}
-          >
-            <Text
-              style={{
-                color: tab.value === selectedTab.value ? "white" : "black",
-              }}
-            >
-              {tab.title}
-            </Text>
-          </Button>
-        ))}
-      </View>
-      {goalLogs.length > 0 && goals.length > 0 && (
-        <PagerView
-          key={selectedTab.value}
-          initialPage={0}
-          onPageSelected={(e) => setCurrentIndex(e.nativeEvent.position)}
-          style={{
-            width: "100%",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "30%",
+    <ScrollView style={styles.container}>
+      <XStack>
+        <Button
+          borderRadius={100}
+          w={50}
+          h={50}
+          chromeless
+          icon={<ChevronLeft size={24} color="$gray10" />}
+          onPress={() => router.back()}
+        >
+        </Button>
+        <XStack flex={1}></XStack>
+        <Button
+          borderRadius={100}
+          w={50}
+          h={50}
+          chromeless
+          icon={<Bell size={24} color="$gray10" />}
+          onPress={() => {
+            registerForPushNotificationsAsync();
           }}
         >
-          {goals
-            .filter((goal) => goal.time_type === selectedTab.value)
-            .map((goal, i) => {
-              let progress = 0;
-              if (goal.type != "days") {
-                const timelogs = goalLogs.find((log) => {
-                  return log.time_type == selectedTab.value;
-                });
-                if (timelogs) {
-                  const logs = timelogs.logs.filter((log) => {
-                    if (selectedTab.value == "daily") {
-                      return (
-                        log.type === goal.type &&
-                        log?.goal?.time_type === "daily"
-                      );
-                    } else if (selectedTab.value == "weekly") {
-                      return (
-                        log.type === goal.type &&
-                        (log?.goal?.time_type === "weekly" ||
-                          log?.goal?.time_type === "daily")
-                      );
-                    } else if (selectedTab.value == "monthly") {
-                      return (
-                        log.type === goal.type &&
-                        (log?.goal?.time_type === "monthly" ||
-                          log?.goal?.time_type === "weekly" ||
-                          log?.goal?.time_type === "daily")
-                      );
-                    } else {
-                      return log.type === goal.type;
-                    }
-                    // return log.type === goal.type;
-                  });
-                  progress = logs.reduce(
-                    (acc, log) => acc + (log.unit_amount ?? 0),
-                    0,
-                  );
-                }
-              } else {
-                // get count of unique days where a log was created
-                // multiple logs in one day should only count as one
-                const logs = goalLogs.find((log) => {
-                  return log.time_type == "all";
-                });
-                if (logs) {
-                  progress = logs.week_count || 0;
-                }
-              }
+        </Button>
+      </XStack>
 
-              const percentage =
-                ((progress ?? 0) / (goal.unit_amount ?? 1)) * 100;
-              return (
-                <View
-                  key={goal.id}
-                  style={{
-                    width: "100%",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    flex: 1,
-                    height: "100%",
-                  }}
-                >
-                  <AnimatedCircularProgress
-                    size={200}
-                    width={2}
-                    fill={percentage}
-                    tintColor="#5A6978"
-                    backgroundColor="#b4cbcf"
-                    arcSweepAngle={260}
-                    rotation={230}
-                  >
-                    {(fill) => (
-                      <View style={{ alignItems: "center" }}>
-                        <Text style={styles.points}>
-                          {progress || 0}/{goal.unit_amount}
-                        </Text>
-                        <Text>{goal.type}</Text>
-                      </View>
-                    )}
-                  </AnimatedCircularProgress>
-                  <View style={styles.progressBarContainer}>
-                    <View
-                      style={[styles.progressBar, { width: `${percentage}%` }]}
-                    />
-                  </View>
-                </View>
-              );
-            })}
-        </PagerView>
-      )}
-      {selectedTab.value != "yearly" ? (
-        <View style={{ flexDirection: "row" }}>
-          <View
-            style={[
-              styles.dot,
-              {
-                backgroundColor: currentIndex === 0 ? "#507C82" : "#B4CBCF",
-                marginRight: 5,
-              },
-            ]}
-          ></View>
-          <View
-            style={[
-              styles.dot,
-              { backgroundColor: currentIndex === 1 ? "#507C82" : "#B4CBCF" },
-            ]}
-          ></View>
-        </View>
-      ) : (
-        <View style={{ height: 10 }}></View>
-      )}
-
-      {user && (
-        <View style={{ flexDirection: "row" }}>
-          <UpdateGoals
-            tab={selectedTab}
-            user={user}
-            goals={goals}
-            refresh={() => {
-              fetchGoals();
-              getGoalProgress();
-            }}
-          />
-          <EditGoals tab={selectedTab} />
-        </View>
-      )}
-      <View style={{ flexDirection: "row" }}>
-        {/* <Button style={{ marginTop: 30, marginRight: 10 }}>
-          <Text style={{ color: "white" }}>View history</Text>
-        </Button> */}
-      </View>
+      <Text fontSize="$6" fontWeight="bold" marginTop="$4" marginLeft="$4">My Reading Goals</Text>
       <StreakChallenge />
-      <View style={{ flex: 1 }}></View>
+      <YStack marginTop="$4" paddingHorizontal="$4">
+        <Text fontSize="$5" fontWeight="bold">Active goals</Text>
+        {activeGoals.map((goal) => {
+          const progress = getGoalProgressValue(goal);
+
+          return (
+            <XStack key={goal.id} style={styles.goalCard} onPress={() => {
+              router.push(`/updateGoal/${goal.id}`)
+            }}>
+              <View style={styles.goalInfo}>
+                <Text style={styles.goalTitle}>
+                  {goal.type} read {goal.time_type}
+                </Text>
+                <Text style={styles.goalProgress}>
+                  {progress || 0}/{goal.unit_amount}
+                </Text>
+              </View>
+              <XStack space="$2" alignItems="center" backgroundColor="#E8E0D9">
+                <View style={styles.progressCircle}>
+                  <ArcSlider
+                    size={80}
+                    min={0}
+                    max={goal.unit_amount || 1}
+                    strokeWidth={10}
+                    startAngle={0}
+                    endAngle={360}
+                    value={progress || 0}
+                    disabled
+                  />
+                </View>
+              </XStack>
+            </XStack>
+          );
+        })}
+      </YStack>
+
+      <YStack marginTop="$4" paddingHorizontal="$4">
+        <Text fontSize="$5" fontWeight="bold">Passive goals</Text>
+        {passiveGoals.map((goal) => {
+          const progress = getGoalProgressValue(goal);
+
+          return (
+            <XStack 
+              key={goal.id} 
+              style={styles.goalCard}
+              pressStyle={{ opacity: 0.7 }}
+              onPress={() => {
+                router.push(`/editGoal?id=${goal.id}`);
+              }}
+            >
+              <View style={styles.goalInfo}>
+                <Text style={styles.goalTitle}>
+                  {goal.type} read {goal.time_type}
+                </Text>
+                <Text style={styles.goalProgress}>
+                  {progress || 0}/{goal.unit_amount}
+                </Text>
+              </View>
+              <View style={styles.progressCircle}>
+                <ArcSlider
+                  size={80}
+                  min={0}
+                  max={goal.unit_amount || 1}
+                  strokeWidth={10}
+                  startAngle={0}
+                  endAngle={360}
+                  value={progress || 0}
+                  disabled
+                />
+              </View>
+            </XStack>
+          );
+        })}
+      </YStack>
       <Modal
         animationType="fade"
         transparent={true}
@@ -875,9 +667,9 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
         animationType="fade"
         transparent={true}
         visible={isModalVisible}
-        // onRequestClose={() => {
-        //   setIsModalVisible(!isModalVisible);
-        // }}
+      // onRequestClose={() => {
+      //   setIsModalVisible(!isModalVisible);
+      // }}
       >
         <Pressable
           onPress={() => setIsModalVisible(!isModalVisible)}
@@ -945,7 +737,7 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                           selectedTab.value == goal.value ? "#507C82" : "white",
                       }}
                       onPress={() => setSelectedTab(goal)}
-                      // onPress={() => setIsModalVisible(!isModalVisible)}
+                    // onPress={() => setIsModalVisible(!isModalVisible)}
                     >
                       <Text
                         style={{
@@ -1093,9 +885,9 @@ function UpdateGoals({
         animationType="fade"
         transparent={true}
         visible={isModalVisible}
-        // onRequestClose={() => {
-        //   setIsModalVisible(!isModalVisible);
-        // }}
+      // onRequestClose={() => {
+      //   setIsModalVisible(!isModalVisible);
+      // }}
       >
         <Pressable
           onPress={() => setIsModalVisible(!isModalVisible)}
@@ -1162,7 +954,7 @@ function UpdateGoals({
                           selectedTab.value == goal.value ? "#507C82" : "white",
                       }}
                       onPress={() => setSelectedTab(goal)}
-                      // onPress={() => setIsModalVisible(!isModalVisible)}
+                    // onPress={() => setIsModalVisible(!isModalVisible)}
                     >
                       <Text
                         style={{
@@ -1208,16 +1000,9 @@ function UpdateGoals({
 }
 const StreakChallenge = () => {
   const [streak, setStreak] = useState(0);
-  const [checkmarks, setCheckmarks] = useState([
-    { day: "Su", hasGoal: false },
-    { day: "Mo", hasGoal: false },
-    { day: "Tu", hasGoal: false },
-    { day: "We", hasGoal: false },
-    { day: "Th", hasGoal: false },
-    { day: "Fr", hasGoal: false },
-    { day: "Sa", hasGoal: false },
-  ]);
-  const { user, getUser } = useUser();
+  const { user } = useUser();
+  const [weeklyProgress, setWeeklyProgress] = useState(Array(7).fill(false));
+  const currentDay = new Date().getDay(); // Get current day of week (0-6)
 
   async function fetchStreakFromDatabase() {
     const { data: goalLogs } = await supabase
@@ -1228,8 +1013,6 @@ const StreakChallenge = () => {
     let streak = 0;
     let prevDate;
 
-    // check whether there is a log today
-    // means no streak
     if (goalLogs && goalLogs.length > 0) {
       const today = new Date().toISOString().slice(0, 10);
       const lastLog = new Date(goalLogs[0].created_at)
@@ -1255,6 +1038,28 @@ const StreakChallenge = () => {
     return streak;
   }
 
+  async function fetchWeeklyProgress() {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay()); // Start from Sunday
+
+    const { data: weekLogs } = await supabase
+      .from("goal_logs")
+      .select("created_at")
+      .gte('created_at', startOfWeek.toISOString())
+      .lte('created_at', today.toISOString());
+
+    const progress = Array(7).fill(false);
+
+    weekLogs?.forEach(log => {
+      const logDate = new Date(log.created_at);
+      const dayOfWeek = logDate.getDay();
+      progress[dayOfWeek] = true;
+    });
+
+    setWeeklyProgress(progress);
+  }
+
   function isConsecutive(prevDate: any, currentDate: any) {
     const prev = new Date(prevDate);
     const current = new Date(currentDate);
@@ -1262,113 +1067,47 @@ const StreakChallenge = () => {
     return Math.abs((current.getTime() - prev.getTime()) / oneDay) === 1;
   }
 
-  async function fetchCheckmarks() {
-    const today = new Date();
-    const days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-    const checkmarksArray = [];
-
-    for (let i = 0; i < days.length; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - today.getDay() + ((i + 1) % 7)); // Offset by 1 to start from Monday
-      const dateString = date.toISOString().slice(0, 10);
-      const hasGoal = await hasGoalLog(dateString);
-      checkmarksArray.push({ day: days[date.getDay()], hasGoal });
-    }
-
-    setCheckmarks(checkmarksArray);
-  }
-
-  async function hasGoalLog(date: string) {
-    const { data } = await supabase
-      .from("goal_logs")
-      .select("created_at")
-      .gte("created_at", `${date}T00:00:00.000Z`)
-      .lte("created_at", `${date}T23:59:59.999Z`);
-
-    return data!.length > 0;
-  }
-
   useEffect(() => {
     fetchStreakFromDatabase();
-    fetchCheckmarks();
+    fetchWeeklyProgress();
   }, [user]);
 
   return (
-    <View style={{ alignItems: "center", marginTop: 40, width: "100%" }}>
-      <View style={styles.streakText}>
-        <Text style={{ fontSize: 40, color: "#5A6978", fontWeight: "bold" }}>
-          {streak}
-        </Text>
-        <Text style={{ fontSize: 20 }}>day streak!</Text>
-      </View>
-      <View
-        style={{
-          marginTop: 6,
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <View
-          style={{
-            width: "85%",
-            borderWidth: 2,
-            borderColor: "#5A6978",
-            borderRadius: 6,
-          }}
-        >
-          <View style={styles.daysContainer}>
-            {checkmarks.map(({ day, hasGoal }) => {
-              return (
-                <View key={day} style={styles.dayContainer}>
-                  <Text style={styles.day}>{day}</Text>
-                  {hasGoal && streak > 0 ? (
-                    <FontAwesome name="check-circle" size={24} color="green" />
-                  ) : (
-                    <FontAwesome name="circle-o" size={24} color="black" />
-                  )}
-                </View>
-              );
-            })}
-          </View>
-          <View style={styles.separator}></View>
-          <Text style={{ textAlign: "center", marginVertical: 10 }}>
-            A <Text style={styles.green}>streak</Text> is when you complete your
-            goal for consecutive days.
-          </Text>
+    <YStack
+      backgroundColor="#E8E0D9"
+      padding="$4"
+      marginHorizontal="$4"
+      borderRadius={12}
+      marginTop="$4"
+      space="$4"
+    >
+      <XStack alignItems="center" space="$4">
+        <View style={styles.fireIconContainer}>
+          <FontAwesome name="fire" size={24} color="#FF7A00" />
         </View>
-      </View>
-    </View>
+        <YStack>
+          <Text color="#333" fontSize={16}>Current Streak</Text>
+          <Text color="#333" fontSize={24} fontWeight="bold">{streak} days</Text>
+        </YStack>
+      </XStack>
+
+      <XStack justifyContent="space-between" paddingHorizontal="$2">
+        {weeklyProgress.map((completed, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              completed ? styles.dotCompleted : styles.dotIncomplete,
+              index === currentDay && styles.dotCurrent
+            ]}
+          />
+        ))}
+      </XStack>
+    </YStack>
   );
 };
 
 const styles = StyleSheet.create({
-  daysContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-    alignItems: "center",
-    width: "100%",
-    borderColor: "#5A6978",
-    borderRadius: 10,
-    padding: 10,
-  },
-  dayContainer: {
-    alignItems: "center",
-  },
-  separator: {
-    height: 1,
-    width: "100%",
-    backgroundColor: "#5A6978",
-  },
-  day: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#5A6978",
-  },
-  green: {
-    color: "green",
-  },
   container: {
     flex: 1,
     // justifyContent: "center",
@@ -1380,10 +1119,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   dot: {
-    height: 10,
-    width: 10,
-    borderRadius: 100,
-    backgroundColor: "#507C82",
+    width: 25,
+    height: 25,
+    borderRadius: 20,
+  },
+  dotCompleted: {
+    backgroundColor: '#FF7A00',
+  },
+  dotIncomplete: {
+    backgroundColor: '#FFE8D7',
+  },
+  dotCurrent: {
+    borderWidth: 2,
+    borderColor: '#FF7A00',
+    width: 25,
+    height: 25,
+    borderRadius: 20,
   },
   points: {
     textAlign: "center",
@@ -1448,10 +1199,6 @@ const styles = StyleSheet.create({
   markerText: {
     fontSize: 12,
   },
-  streakText: {
-    alignItems: "center",
-    color: "#5A6978",
-  },
   doneButton: {
     backgroundColor: "black",
     padding: 10,
@@ -1467,6 +1214,52 @@ const styles = StyleSheet.create({
     width: "50%",
     borderRadius: 10,
     marginVertical: 10,
+  },
+  goalCard: {
+    flexDirection: 'row',
+    backgroundColor: '#E8E0D9',
+    borderLeftWidth: 4,
+    borderLeftColor: '#9AB7B3',
+    padding: 20,
+    // marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    elevation: 5,
+  },
+  goalInfo: {
+    flex: 1,
+    backgroundColor: '#E8E0D9',
+    justifyContent: 'center',
+  },
+  goalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    textTransform: 'capitalize',
+  },
+  goalProgress: {
+    fontSize: 16,
+    color: '#666',
+  },
+  progressCircle: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#E8E0D9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 20,
+  },
+  fireIconContainer: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#FFE8D7',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

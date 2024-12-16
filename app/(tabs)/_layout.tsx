@@ -11,12 +11,12 @@ import {
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import useUser from "@/hooks/useUser";
-import Search from "./search";
+import Search from "../search";
 import HomeStack from "../navigators/gridNavigator";
 import ChronologyScreen from "../gridNavigation/chronology";
 import StatisticsScreen from "../gridNavigation/statistics";
-import ProfileScreen from "./profile";
-import MyShelfScreen from "./myshelf";
+import ProfileScreen from "../profile";
+import MyShelfScreen from "../shelves";
 
 const Tab = createBottomTabNavigator();
 

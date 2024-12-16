@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { AppState, StatusBar, Platform } from "react-native";
 import { createTamagui, View, Theme, useTheme, TamaguiProvider } from "tamagui";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import defaultConfig from "@tamagui/config/v3";
 import Colors from "@/constants/Colors";
 import { Stack, Slot } from "expo-router";
@@ -12,6 +13,7 @@ import useUser, { MyUserContextProvider } from "@/hooks/useUser";
 import { useUserBooksStore, UserBook } from "@/store/userBooksStore";
 import { supabase } from "@/utils/supabase";
 import { useColorScheme } from "@/components/useColorScheme";
+import { Quote, Journal, Note, useJournalStore } from "@/store/journalStore";
 
 const tamaguiConfig = createTamagui({
   ...defaultConfig,
@@ -66,6 +68,7 @@ export default function Root() {
 export function RootLayout() {
   const { user, loading, initialLoaded } = useUser();
   const { setBooks } = useUserBooksStore();
+  const { setNotes, setJournal, setQuotes } = useJournalStore();
 
   const getUsersBooks = async (user_id: any) => {
     const data = await supabase
@@ -78,9 +81,43 @@ export function RootLayout() {
     return data;
   };
 
+  const getUsersJournalData = async (user_id: string) => {
+    // Fetch notes
+    const notesData = await supabase
+      .from("notes")
+      .select(`
+        id,
+        title,
+        description,
+        created_at,
+        user,
+        image_url,
+        users_book (*, book (*))
+      `)
+      .eq("users_book.user", user_id);
+
+    // Fetch journal entries
+    const journalData = await supabase
+      .from("journals")
+      .select("*, users_book(book(*), *)")
+      .eq("users_book.user", user_id);
+
+    // Fetch quotes
+    const quotesData = await supabase
+      .from("quotes")
+      .select("*, users_book(*, book(*))")
+      .eq("users_book.user", user_id)
+      .order("created_at", { ascending: false });
+
+    if (notesData?.data) setNotes(notesData.data as unknown as Note[]);
+    if (journalData?.data) setJournal(journalData.data as unknown as Journal[]);
+    if (quotesData?.data) setQuotes(quotesData.data as unknown as Quote[]);
+  };
+
   useEffect(() => {
     if (user) {
       getUsersBooks(user.id);
+      getUsersJournalData(user.id);
     }
   }, [user]);
 
@@ -99,11 +136,13 @@ export function RootLayout() {
   }
 
   return (
-    <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
-      <ThemeProvider value={DefaultTheme}>
+    <GestureHandlerRootView>
+      <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
+        <ThemeProvider value={DefaultTheme}>
         <RootLayoutNav />
-      </ThemeProvider>
-    </TamaguiProvider>
+        </ThemeProvider>
+      </TamaguiProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -124,6 +163,7 @@ function RootLayoutNav() {
         />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
+        <Stack.Screen name="shelves" options={{ headerShown: false }} />
         <Stack.Screen
           name="book/[id]"
           options={{ presentation: "modal", headerShown: false }}
@@ -131,6 +171,14 @@ function RootLayoutNav() {
         <Stack.Screen
           name="removeFromShelf/[id]"
           options={{ presentation: "modal", headerShown: false }}
+        />
+        <Stack.Screen
+          name="updateGoal/[id]"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="editGoal"
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="bookList/[type]"

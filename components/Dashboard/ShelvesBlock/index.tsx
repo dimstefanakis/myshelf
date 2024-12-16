@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import useUser from "@/hooks/useUser";
 import { useUserBooksStore, UserBook } from "@/store/userBooksStore";
-import { YStack, XStack, Text, Separator, Image, Button } from "tamagui";
+import { YStack, XStack, Text, Separator, Image, Button, ScrollView } from "tamagui";
 
 interface Book {
   id: string;
@@ -15,20 +15,17 @@ interface Book {
 
 const ShelvesBlock = () => {
   const { session } = useUser();
-  const navigation = useNavigation();
+  const router = useRouter();
   const { books } = useUserBooksStore();
   const [organizedBooks, setOrganizedBooks] = useState<{
-    future_reading: Book[];
-    currently_reading: Book[];
-    completed: Book[];
+    future_reading: UserBook[];
+    currently_reading: UserBook[];
+    completed: UserBook[];
   }>({
     future_reading: [],
     currently_reading: [],
     completed: [],
   });
-  books.map((book) => {
-    console.log()
-  })
   useEffect(() => {
     if (session?.user?.id) {
       organizeBooks();
@@ -52,40 +49,41 @@ const ShelvesBlock = () => {
     setOrganizedBooks(sorted);
   };
 
-  const renderBookShelf = (title: string, value: string, books: Book[]) => (
+  const renderBookShelf = (title: string, value: string, books: UserBook[]) => (
     <YStack space="$2" marginTop="0">
       <Text fontSize="$3" fontWeight="bold">{title}</Text>
-      <XStack space="$2">
-        {books.slice(0, 3).map((book) => (
-          <Image
-            key={book.id}
-            source={{ uri: book.book.cover_url }}
-            width={40}
-            height={60}
-            borderRadius="$2"
-          />
-        ))}
-      </XStack>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <XStack space="$2" paddingRight="$3">
+          {books.slice(0, 3).map((book) => (
+            <Image
+              key={book.id}
+              source={{ uri: book.book.cover_url?.replace('http://', 'https://') || "" }}
+              width={40}
+              height={60}
+              borderRadius="$2"
+            />
+          ))}
+        </XStack>
+      </ScrollView>
     </YStack>
   );
 
   return (
     <YStack
       width="100%"
-      height={350}
       backgroundColor="$background"
       borderRadius="$2"
       borderColor="$borderColor"
       borderWidth={1}
-      onPress={() => navigation.navigate('Shelves')}
+      onPress={() => router.push('/shelves')}
     >
       <XStack justifyContent="space-between" alignItems="center" paddingHorizontal="$3" marginTop="$3">
         <Text fontSize="$5" fontWeight="bold">Shelves</Text>
       </XStack>
       <YStack space="$2" padding="$3">
-        {renderBookShelf("To read", "future_reading", organizedBooks.future_reading)}
-        {renderBookShelf("Currently reading", "currently_reading", organizedBooks.currently_reading)}
-        {renderBookShelf("Finished", "completed", organizedBooks.completed)}
+        {organizedBooks.future_reading.length > 0 && renderBookShelf("To read", "future_reading", organizedBooks.future_reading)}
+        {organizedBooks.currently_reading.length > 0 && renderBookShelf("Currently reading", "currently_reading", organizedBooks.currently_reading)}
+        {organizedBooks.completed.length > 0 && renderBookShelf("Finished", "completed", organizedBooks.completed)}
       </YStack>
     </YStack>
   );
