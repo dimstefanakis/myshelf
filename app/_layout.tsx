@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { AppState, StatusBar, Platform } from "react-native";
+import { PortalProvider } from "@gorhom/portal";
 import { createTamagui, View, Theme, useTheme, TamaguiProvider } from "tamagui";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import defaultConfig from "@tamagui/config/v3";
@@ -137,11 +138,13 @@ export function RootLayout() {
 
   return (
     <GestureHandlerRootView>
-      <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
-        <ThemeProvider value={DefaultTheme}>
-        <RootLayoutNav />
-        </ThemeProvider>
-      </TamaguiProvider>
+      <PortalProvider>
+        <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
+          <ThemeProvider value={DefaultTheme}>
+            <RootLayoutNav />
+          </ThemeProvider>
+        </TamaguiProvider>
+      </PortalProvider>
     </GestureHandlerRootView>
   );
 }

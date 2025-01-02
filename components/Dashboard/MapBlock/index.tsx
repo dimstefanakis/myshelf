@@ -64,8 +64,8 @@ const MapBlock = () => {
   console.log(markers)
 
   const mapRegion = {
-    latitude: markers[0]?.latitude || 37.7749,
-    longitude: markers[0]?.longitude || -122.4194,
+    latitude: markers[markers.length - 1]?.latitude || 37.7749,
+    longitude: markers[markers.length - 1]?.longitude || -122.4194,
     latitudeDelta: 10,
     longitudeDelta: 10,
   };
@@ -81,47 +81,61 @@ const MapBlock = () => {
       overflow="hidden"
       onPress={() => navigation.navigate('Map')}
     >
-      {Platform.OS === "android" ? (
-        <MapView
-          provider={PROVIDER_GOOGLE}
-          style={styles.map}
-          scrollEnabled={false}
-          zoomEnabled={false}
-          rotateEnabled={false}
-          pitchEnabled={false}
-          region={mapRegion}
-        >
-          {markers.map((marker) => (
-            <Marker
-              key={marker.key}
-              coordinate={{
-                latitude: parseFloat(marker.latitude.toString()),
-                longitude: parseFloat(marker.longitude.toString()),
-              }}
-              title={marker.title}
-            />
-          ))}
-        </MapView>
+      {markers.length > 0 ? (
+        Platform.OS === "android" ? (
+          <MapView
+            provider={PROVIDER_GOOGLE}
+            style={styles.map}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            rotateEnabled={false}
+            pitchEnabled={false}
+            region={mapRegion}
+          >
+            {markers.map((marker) => (
+              <Marker
+                key={marker.key}
+                coordinate={{
+                  latitude: parseFloat(marker.latitude.toString()),
+                  longitude: parseFloat(marker.longitude.toString()),
+                }}
+                title={marker.title}
+              />
+            ))}
+          </MapView>
+        ) : (
+          <MapView
+            style={styles.map}
+            scrollEnabled={false}
+            zoomEnabled={false}
+            rotateEnabled={false}
+            pitchEnabled={false}
+            region={mapRegion}
+            showsUserLocation={false}
+            showsPointsOfInterest={true}
+            showsCompass={false}
+            showsScale={false}
+            showsBuildings={true}
+            showsTraffic={false}
+          >
+            {markers.map((marker) => (
+              <Marker
+                key={marker.key}
+                coordinate={{
+                  latitude: marker.latitude,
+                  longitude: marker.longitude,
+                }}
+                title={marker.title}
+              />
+            ))}
+          </MapView>
+        )
       ) : (
-        <MapView
-          style={styles.map}
-          scrollEnabled={false}
-          zoomEnabled={false}
-          rotateEnabled={false}
-          pitchEnabled={false}
-          region={mapRegion}
-        >
-          {markers.map((marker) => (
-            <Marker
-              key={marker.key}
-              coordinate={{
-                latitude: marker.latitude,
-                longitude: marker.longitude,
-              }}
-              title={marker.title}
-            />
-          ))}
-        </MapView>
+        <YStack flex={1} justifyContent="center" alignItems="center" padding="$4">
+          <Text textAlign="center" color="$orange11">
+            Add books to your library to see where your reading takes you!
+          </Text>
+        </YStack>
       )}
     </YStack>
   );

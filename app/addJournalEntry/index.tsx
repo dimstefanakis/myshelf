@@ -30,10 +30,10 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
   const { id } = route.params || {};
 
   const uploadData = async () => {
-    if (!journalData.title || !journalData.description) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
+    // if (!journalData.title || !journalData.description) {
+    //   Alert.alert("Error", "Please fill in all fields");
+    //   return;
+    // }
     setLoading(true);
 
     const { data, error } = await supabase

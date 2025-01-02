@@ -14,6 +14,8 @@ import RenderHtml from 'react-native-render-html';
 import type { Book } from "@/constants/BookTypes";
 import { UserBook, useUserBooksStore } from "@/store/userBooksStore";
 
+const API_KEY = 'AIzaSyDAxF1uGveMkZz0ySXJnziEF9oO3z2rTXY';
+
 const actionTypes = {
   currently_reading: "currently reading",
   completed: "completed pile",
@@ -49,9 +51,13 @@ export default function BookModalScreen() {
   };
 
   async function getBookById() {
-    const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes/${bookId}`,
-    );
+    const baseUrl = 'https://www.googleapis.com/books/v1/volumes';
+    const params = new URLSearchParams({
+      key: API_KEY,
+    });
+
+    const response = await fetch(`${baseUrl}/${bookId}?${params.toString()}`);
+
     const data = await response.json();
     return data;
   }
@@ -177,12 +183,14 @@ export default function BookModalScreen() {
   useEffect(() => {
     setLoading(true);
     getBookById().then((data) => {
-      setCoverUrl(`${data?.volumeInfo.imageLinks?.thumbnail}&fife=w800`);
+      console.log(data);
+      setCoverUrl(`${data?.volumeInfo?.imageLinks?.thumbnail}&fife=w800`);
       setBook(data);
       setLoading(false);
     });
   }, [bookId]);
 
+  console.log(book, bookId, action);
   const { width } = useWindowDimensions();
 
   if (loading) {
@@ -206,14 +214,14 @@ export default function BookModalScreen() {
           />
           
           <YStack flex={1} space="$2">
-            <H2>{book?.volumeInfo.title}</H2>
-            <Text color="$gray11">{book?.volumeInfo.authors?.join(', ')}</Text>
+            <H2>{book?.volumeInfo?.title}</H2>
+            <Text color="$gray11">{book?.volumeInfo?.authors?.join(', ')}</Text>
             <Text color="$gray10" fontSize="$3">
-              Published: {getReleaseYear(book?.volumeInfo.publishedDate || "")}
+              Published: {getReleaseYear(book?.volumeInfo?.publishedDate || "")}
             </Text>
-            {book?.volumeInfo.pageCount && (
+            {book?.volumeInfo?.pageCount && (
               <Text color="$gray10" fontSize="$3">
-                {book.volumeInfo.pageCount} pages
+                {book?.volumeInfo?.pageCount} pages
               </Text>
             )}
           </YStack>
@@ -228,7 +236,7 @@ export default function BookModalScreen() {
             <RenderHtml
               contentWidth={width - 48}
               source={{ 
-                html: book?.volumeInfo.description || 'No description available'
+                html: book?.volumeInfo?.description || 'No description available'
               }}
               baseStyle={{
                 color: '$gray11',
@@ -237,7 +245,7 @@ export default function BookModalScreen() {
               }}
             />
           </YStack>
-          {book?.volumeInfo.description && (
+          {book?.volumeInfo?.description && (
             <Text
               color="$blue10"
               marginTop="$2"
@@ -248,7 +256,7 @@ export default function BookModalScreen() {
           )}
         </Card>
 
-        {book?.volumeInfo.categories && (
+        {book?.volumeInfo?.categories && (
           <Card bordered padding="$4" backgroundColor="$orange2">
             <H4 marginBottom="$2" color="$orange11">Categories</H4>
             <XStack flexWrap="wrap" gap="$2">

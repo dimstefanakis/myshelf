@@ -37,26 +37,26 @@ const JournalBlock = () => {
     switch (item.type) {
       case 'note':
         return (
-          <YStack space="$2">
-            <Text fontSize="$3" fontWeight="bold">{item.title}</Text>
+          <YStack>
+            {item.title && <Text fontSize="$3" fontWeight="bold">{item.title}</Text>}
             {item.image_url && (
               <Image source={{ uri: item.image_url }} aspectRatio={16 / 9} />
             )}
-            <Paragraph numberOfLines={2}>{item.description}</Paragraph>
+            {item.description && <Text fontSize={11} numberOfLines={4}>{item.description}</Text>}
           </YStack>
         );
       case 'journal':
         return (
-          <YStack space="$2">
-            <Text fontSize="$3" fontWeight="bold">{item.title}</Text>
-            <Paragraph numberOfLines={2}>{item.description}</Paragraph>
+          <YStack>
+            {item.title && <Text fontSize="$2" fontWeight="bold">{item.title}</Text>}
+            {item.description && <Text fontSize={11} numberOfLines={4}>{item.description}</Text>}
           </YStack>
         );
       case 'quote':
         return (
-          <YStack space="$2">
-            <Paragraph fontSize="$3" fontStyle="italic">"{item.title}"</Paragraph>
-            <Text fontSize="$2">{item.author}</Text>
+          <YStack>
+            {item.title && <Paragraph fontSize="$3" fontStyle="italic">"{item.title}"</Paragraph>}
+            {item.author && <Text fontSize="$2">{item.author}</Text>}
           </YStack>
         );
       default:
@@ -78,11 +78,11 @@ const JournalBlock = () => {
       <XStack justifyContent="space-between" alignItems="center" padding="$3">
         <Text fontSize="$5" fontWeight="bold">Journal</Text>
       </XStack>
-      <YStack space="$2" padding="$3">
+      <YStack space="$2" paddingHorizontal="$3">
         {recentItems.map((item, index) => (
           <React.Fragment key={`${item.type}-${item.id}`}>
             {renderItem(item)}
-            {index < recentItems.length - 1 && <Separator borderWidth={1} my="$2" mb="$1"/>}
+            {index < recentItems.length - 1 && <Separator borderWidth={1} mb="$2"/>}
           </React.Fragment>
         ))}
       </YStack>

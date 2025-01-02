@@ -48,14 +48,19 @@ const data = [
     image: require("./../../assets/images/goals.jpg"),
   },
   {
-    type: 'statistics',
-    title: "Statistics",
-    image: require("./../../assets/images/stats-min.jpeg"),
-  },
-  {
     type: 'map',
     title: "Map",
     image: require("./../../assets/images/map.jpg"),
+  },
+  {
+    type: '',
+    title: "",
+    image: '',
+  },
+  {
+    type: 'statistics',
+    title: "Statistics",
+    image: require("./../../assets/images/stats-min.jpeg"),
   },
 ].map((item, index) => ({ ...item, id: index }));
 
@@ -145,25 +150,6 @@ function HomepageContainers() {
     }
 
     return null;
-    return (
-      <Button
-        onPress={() => handlePress(item.title)}
-        margin={spacing / 2}
-        width={(screenWidth - spacing * 3) / 2}
-      >
-        <YStack
-          backgroundColor="#e0bf90"
-          padding="$2"
-        >
-          <Text fontSize={17} color="black" textAlign="center">
-            {item.title}
-          </Text>
-        </YStack>
-        <YStack padding="$2">
-          <Text>Dynamic content for {item.title}</Text>
-        </YStack>
-      </Button>
-    );
   };
 
   const handlePress = (name: string) => {
