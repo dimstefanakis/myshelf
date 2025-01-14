@@ -16,20 +16,20 @@ const MapScreen = ({ navigation }: any) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [sortCategory, setSortCategory] = useState("");
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity onPress={() => setDropdownVisible(!dropdownVisible)}>
-          <FontAwesome
-            name="sort"
-            size={24}
-            color="black"
-            style={{ marginRight: 10 }}
-          />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, dropdownVisible]);
+  // useLayoutEffect(() => {
+  //   navigation.setOptions({
+  //     headerRight: () => (
+  //       <TouchableOpacity onPress={() => setDropdownVisible(!dropdownVisible)}>
+  //         <FontAwesome
+  //           name="sort"
+  //           size={24}
+  //           color="black"
+  //           style={{ marginRight: 10 }}
+  //         />
+  //       </TouchableOpacity>
+  //     ),
+  //   });
+  // }, [navigation, dropdownVisible]);
 
   return (
     <View style={{ height: "100%" }}>

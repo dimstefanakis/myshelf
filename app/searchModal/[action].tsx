@@ -8,7 +8,7 @@ export default function SearchModal() {
 
   return (
     <View style={{ paddingTop: 20, flex: 1 }}>
-      <SearchView addAction={action} />
+      <SearchView showCategories={false} addAction={action} />
     </View>
   );
 }

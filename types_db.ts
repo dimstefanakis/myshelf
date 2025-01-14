@@ -1,3 +1,10 @@
+export interface GoogleBookData {
+  volumeInfo: {
+    description?: string;
+    authors?: string[];
+  }
+}
+
 export type Json =
   | string
   | number
@@ -5,6 +12,7 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[]
+  | GoogleBookData
 
 export interface Database {
   graphql_public: {

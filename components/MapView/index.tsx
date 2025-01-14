@@ -1,6 +1,7 @@
+import 'react-native-get-random-values';
 import React, { useEffect, useState, useRef } from "react";
-import { Modal, StyleSheet, TouchableOpacity } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { Modal, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import MapEvent from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { View, Button, TextInput, Text } from "../Themed";
@@ -120,10 +121,10 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
               marker.setting_origin_lat && marker.setting_origin_long
                 ? "Setting Origin"
                 : marker.author_nationality_lat &&
-                    marker.author_nationality_long
+                  marker.author_nationality_long
                   ? "Author National"
                   : marker.country_published_lat &&
-                      marker.country_published_long
+                    marker.country_published_long
                     ? "Country Published"
                     : null;
             latitude =
@@ -138,16 +139,18 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
 
           return type
             ? {
-                type,
-                latitude,
-                longitude,
-                key: marker.id.toString(),
-                title: marker.user_book?.book?.title,
-              }
+              type,
+              latitude,
+              longitude,
+              key: marker.id.toString(),
+              title: marker.user_book?.book?.title,
+            }
             : null;
         })
         .filter((marker) => marker !== null);
 
+      // @ts-ignore
+      // TODO: fix this
       setMarkers(markersData);
     }
   };
@@ -174,8 +177,8 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
             // 'details' is provided when fetchDetails = true
             if (details?.geometry) {
               mapRef?.current?.animateToRegion({
-                latitude: details.geometry.location.lat,
-                longitude: details.geometry.location.lng,
+                latitude: details.geometry.location.lat || 0,
+                longitude: details.geometry.location.lng || 0,
                 latitudeDelta: 0.1,
                 longitudeDelta: 0.1,
               });
@@ -190,23 +193,47 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
           }}
         />
       </View>
-      <MapView
-        onRegionChangeComplete={(region, { isGesture }) => {}}
-        ref={mapRef}
-        style={styles.map}
-        onPress={(e: any) => handleMapPress(e)}
-      >
-        {markers.map((marker) => (
-          <Marker
-            key={marker.key}
-            coordinate={{
-              latitude: marker.latitude,
-              longitude: marker.longitude,
-            }}
-            title={marker.title}
-          />
-        ))}
-      </MapView>
+      {Platform.OS === "android" ? (
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          onRegionChangeComplete={(region, { isGesture }) => { }}
+          ref={mapRef}
+          style={styles.map}
+          onPress={(e: any) => handleMapPress(e)}
+        >
+          {markers.map((marker) => {
+            console.log(marker);
+            return (
+              <Marker
+                key={marker.key}
+                coordinate={{
+                  latitude: marker.latitude || 0,
+                  longitude: marker.longitude || 0,
+                }}
+                title={marker.title}
+              />
+            );
+          })}
+        </MapView>
+      ) : (
+        <MapView
+          onRegionChangeComplete={(region, { isGesture }) => { }}
+          ref={mapRef}
+          style={styles.map}
+          onPress={(e: any) => handleMapPress(e)}
+        >
+          {markers.map((marker) => (
+            <Marker
+              key={marker.key}
+              coordinate={{
+                latitude: marker.latitude,
+                longitude: marker.longitude,
+              }}
+              title={marker.title}
+            />
+          ))}
+        </MapView>
+      )}
     </View>
   );
 }

@@ -5,8 +5,11 @@ import { Button, Text, TextInput } from "@/components/Themed";
 import { supabase } from "@/utils/supabase";
 import useUser from "@/hooks/useUser";
 import { useUserBooksStore } from "@/store/userBooksStore";
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
-const AddJournalEntryScreen = ({ route, navigation }: any) => {
+const AddJournalEntryScreen = () => {
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [journalData, setJournalData] = useState<{
     title: string;
@@ -27,13 +30,11 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
   const user = useUser();
   const { books } = useUserBooksStore();
 
-  const { id } = route.params || {};
-
   const uploadData = async () => {
-    if (!journalData.title || !journalData.description) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
+    // if (!journalData.title || !journalData.description) {
+    //   Alert.alert("Error", "Please fill in all fields");
+    //   return;
+    // }
     setLoading(true);
 
     const { data, error } = await supabase
@@ -45,7 +46,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
       Alert.alert("Error", "Failed to insert journal data.");
     } else {
       setLoading(false);
-      navigation.goBack();
+      router.back();
     }
   };
 
@@ -84,7 +85,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
       return;
     }
     setLoading(false);
-    navigation.goBack();
+    router.back();
   };
 
   const deleteJournalEntry = async () => {
@@ -99,7 +100,7 @@ const AddJournalEntryScreen = ({ route, navigation }: any) => {
       return;
     }
     setLoading(false);
-    navigation.goBack();
+    router.back();
   };
 
   useEffect(() => {

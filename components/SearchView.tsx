@@ -16,26 +16,36 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import { Text, TextInput, View, ScrollView } from "@/components/Themed";
+import { Text, Input, View, ScrollView, Button } from "tamagui";
 import type { Book } from "@/constants/BookTypes";
 import { isLoaded } from "expo-font";
 import { Pressable } from "react-native";
+
+const API_KEY = 'AIzaSyDAxF1uGveMkZz0ySXJnziEF9oO3z2rTXY';
 
 type SearchProps = {
   addAction?: string;
   filter?: string;
   category?: string;
+  showCategories?: boolean;
 };
 
-export default function Search({ addAction, ...rest }: SearchProps) {
+export default function Search({
+  addAction,
+  showCategories = true,
+  ...rest
+}: SearchProps) {
   const localSearchParams = useLocalSearchParams();
   const filter = localSearchParams.filter || (rest.filter as string);
   const category = localSearchParams.category || (rest.category as string);
 
+  console.log("addact", addAction)
   const [search, setSearch] = useDebounceValue("", 500);
   const [results, setResults] = useState<Book[] | []>([]);
   const [bookIndex, setBookIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [featuredBooks, setFeaturedBooks] = useState<Book[]>([]);
+
   function handleChange(event: NativeSyntheticEvent<TextInputChangeEventData>) {
     setSearch(event.nativeEvent.text);
     if (event.nativeEvent.text == "") {
@@ -45,17 +55,28 @@ export default function Search({ addAction, ...rest }: SearchProps) {
 
   function chooseUlr(): string {
     const isbnCode: number = Number(search);
+    const baseUrl = 'https://www.googleapis.com/books/v1/volumes';
+    const params = new URLSearchParams({
+      key: API_KEY,
+      startIndex: bookIndex.toString(),
+      maxResults: '10',
+    });
+
     if (filter) {
       if (search.length > 0) {
-        return `https://www.googleapis.com/books/v1/volumes?q=${search}&${filter}&startIndex=${bookIndex}&maxResults=10`;
+        params.append('q', `${search}&${filter}`);
       } else {
-        return `https://www.googleapis.com/books/v1/volumes?q=${filter}&startIndex=${bookIndex}&maxResults=10`;
+        params.append('q', filter as string);
       }
     } else {
-      return !isNaN(isbnCode) && (search.length === 10 || search.length === 13)
-        ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${search}&startIndex=${bookIndex}&maxResults=10`
-        : `https://www.googleapis.com/books/v1/volumes?q=${search}&startIndex=${bookIndex}&maxResults=10`;
+      if (!isNaN(isbnCode) && (search.length === 10 || search.length === 13)) {
+        params.append('q', `isbn:${search}`);
+      } else {
+        params.append('q', search);
+      }
     }
+
+    return `${baseUrl}?${params.toString()}`;
   }
 
   async function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -98,6 +119,14 @@ export default function Search({ addAction, ...rest }: SearchProps) {
     setResults(data.items || []);
   }
 
+  async function getFeaturedBooks() {
+    const response = await fetch(
+      `https://www.googleapis.com/books/v1/volumes?q=orderBy=relevance&maxResults=15&key=${API_KEY}`
+    );
+    const data = await response.json();
+    setFeaturedBooks(data.items || []);
+  }
+
   useEffect(() => {
     if (search || filter) {
       setBookIndex(0);
@@ -105,211 +134,231 @@ export default function Search({ addAction, ...rest }: SearchProps) {
     }
   }, [search, filter]);
 
+  useEffect(() => {
+    if (!search && !filter) {
+      getFeaturedBooks();
+    }
+  }, []);
+
   return (
-    <ScrollView
-      onMomentumScrollEnd={handleScroll}
-      scrollEventThrottle={1}
-      style={{
-        flex: 1,
-      }}
-      contentContainerStyle={{
-        alignItems: "center",
-      }}
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
+      {/* Search Header */}
+      <View style={{ padding: 16, backgroundColor: 'white' }}>
+        <Input
+          backgroundColor="$orange2"
+          borderRadius={8}
+          paddingHorizontal={16}
+          fontSize={16}
+          placeholder="Search by title, author, or ISBN..."
+          onChange={handleChange}
+        />
+      </View>
+
+      {/* Main Content */}
+      <ScrollView
+        onMomentumScrollEnd={handleScroll}
+        scrollEventThrottle={16}
+      >
+        {/* Initial Screen - Featured Content */}
+        {!search && !filter && (
+          <>
+            {/* Categories Section */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={{
+                fontSize: 20,
+                fontWeight: "600",
+                marginHorizontal: 16,
+                marginBottom: 12,
+                color: '$orange11'
+              }}>
+                Browse Categories
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
+              >
+                <CategoryPill title="Fiction" value="subject:fiction" />
+                <CategoryPill title="Non-Fiction" value='subject:"non-fiction"' />
+                <CategoryPill title="Fantasy" value="subject:fantasy" />
+                <CategoryPill title="Mystery" value="subject:mystery" />
+                <CategoryPill title="Romance" value="subject:romance" />
+                <CategoryPill title="Science" value="subject:science" />
+              </ScrollView>
+            </View>
+
+            {/* Featured Books Section */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={{
+                fontSize: 20,
+                fontWeight: "600",
+                marginHorizontal: 16,
+                marginBottom: 12,
+                color: '$orange11'
+              }}>
+                Featured Books
+              </Text>
+              <View style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                paddingHorizontal: 16,
+                gap: 12,
+              }}>
+                {featuredBooks.map((book) => (
+                  <FeaturedBook key={book.id} book={book} action={addAction || ""} />
+                ))}
+              </View>
+            </View>
+          </>
+        )}
+
+        {/* Search Results */}
+        {(search || filter) && (
+          <View style={{ padding: 16 }}>
+            {results.map((book: Book) => (
+              <SearchResult key={book.id} book={book} action={addAction || ""} />
+            ))}
+          </View>
+        )}
+
+        {isLoading && (
+          <View style={{ padding: 20 }}>
+            <ActivityIndicator size="large" color="$orange10" />
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+}
+
+function FeaturedBook({ book, action }: { book: Book; action: string }) {
+  const router = useRouter();
+  const blurhash = "...";
+
+  return (
+    <Pressable
+      onPress={() => router.push({
+        pathname: `/book/${book.id}`,
+        params: { addAction: action },
+      })}
+      style={({ pressed }) => ({
+        width: '31%',
+        opacity: pressed ? 0.7 : 1,
+      })}
     >
-      {category ? (
+      <Image
+        source={{ uri: book.volumeInfo.imageLinks?.thumbnail }}
+        style={{
+          width: '100%',
+          aspectRatio: 2 / 3,
+          borderRadius: 8
+        }}
+        placeholder={blurhash}
+        transition={1000}
+      />
+      <View style={{ marginTop: 8 }}>
         <Text
+          numberOfLines={1}
           style={{
-            width: "100%",
-            paddingHorizontal: 20,
-            fontSize: 26,
-            fontWeight: "bold",
+            fontSize: 13,
+            fontWeight: "500",
+            marginBottom: 4,
           }}
         >
-          {category}
+          {book.volumeInfo.title}
         </Text>
-      ) : null}
-      <TextInput
-        style={{
-          height: 40,
-          borderWidth: 1,
-          width: "80%",
-          padding: 10,
-          borderRadius: 10,
-          marginTop: 10,
-        }}
-        placeholder="Search: Title, Author, ISBN..."
-        // value={search}
-        onChange={handleChange}
-      />
-
-      <View
-        style={{
-          flex: 1,
-          width: "100%",
-          padding: 10,
-        }}
-      >
-        {results.length == 0 && !category ? (
-          <View style={{ width: "100%", flex: 1 }}>
-            <Category title="Fiction" value="subject:fiction" />
-            <Category title="Non-Fiction" value='subject:"non-fiction"' />
-            <Category title="Fantasy" value="subject:fantasy" />
-            <Category title="Mystery" value="subject:mystery" />
-            <Category title="Horror" value="subject:horror" />
-            <Category title="Romance" value="subject:romance" />
-            <Category title="Biography" value="subject:biography" />
-            <Category title="History" value="subject:history" />
-            <Category title="Science" value="subject:science" />
-            <Category title="Self-Help" value="subject:self-help" />
-          </View>
-        ) : null}
-        {results.map((book: Book) => (
-          <SearchResult key={book.id} book={book} action={addAction || ""} />
-        ))}
+        <Text
+          numberOfLines={1}
+          style={{
+            fontSize: 11,
+            color: 'gray',
+          }}
+        >
+          {book.volumeInfo.authors?.[0]}
+        </Text>
       </View>
-      {isLoading && <ActivityIndicator size="large" color={"black"} />}
-    </ScrollView>
+    </Pressable>
   );
 }
 
 function SearchResult({ book, action }: { book: Book; action: string }) {
   const router = useRouter();
-  const blurhash =
-    "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
-
-  function handlePress() {
-    router.push({
-      pathname: `/book/${book.id}`,
-      params: {
-        addAction: action,
-      },
-    });
-  }
+  const blurhash = "...";
 
   return (
-    <TouchableNativeFeedback onPress={handlePress}>
-      <View
-        style={{
-          flex: 1,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: 10,
-        }}
-      >
+    <Pressable
+      onPress={() => router.push({
+        pathname: `/book/${book.id}`,
+        params: { addAction: action },
+      })}
+      style={({ pressed }) => ({
+        backgroundColor: pressed ? '$orange2' : 'white',
+        padding: 12,
+        marginBottom: 12,
+        borderRadius: 8,
+      })}
+    >
+      <View style={{
+        flexDirection: "row",
+        alignItems: "center",
+      }}>
         <Image
           source={{ uri: book.volumeInfo.imageLinks?.thumbnail }}
-          style={{ width: 50, height: 50, borderRadius: 10 }}
+          style={{ width: 60, height: 90, borderRadius: 8 }}
           placeholder={blurhash}
           transition={1000}
         />
-        <View
-          style={{
-            flex: 1,
-            flexDirection: "column",
-            justifyContent: "space-between",
-            marginLeft: 10,
-          }}
-        >
-          <Text style={{ fontSize: 16, fontWeight: "bold" }} numberOfLines={2}>
+        <View style={{
+          flex: 1,
+          marginLeft: 12,
+        }}>
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: "600",
+              marginBottom: 4,
+            }}
+            numberOfLines={2}
+          >
             {book.volumeInfo.title}
           </Text>
-          <Text style={{ fontSize: 12, color: "gray" }}>
+          <Text style={{
+            fontSize: 14,
+            color: 'gray',
+          }}>
             {book.volumeInfo.authors?.join(", ")}
           </Text>
         </View>
       </View>
-    </TouchableNativeFeedback>
+    </Pressable>
   );
 }
 
-function Category({
-  title,
-  value,
-  description,
-}: {
-  title: string;
-  value: string;
-  description?: string;
-}) {
+function CategoryPill({ title, value }: { title: string; value: string }) {
   const router = useRouter();
-  const [results, setResults] = useState<any[]>([]);
-  const blurhash =
-    "|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[";
-
-  async function getBooks() {
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${value}&maxResults=10`;
-    const response = await fetch(url);
-    const data = await response.json();
-    setResults(data.items || []);
-  }
-
-  useEffect(() => {
-    getBooks();
-  }, []);
-
-  function handlePress() {
-    // navigation.push("searchCategory", {
-    //   category: value,
-    //   filter: `subject:${value}`,
-    //   action: "currently_reading",
-    // });
-    router.push({
-      pathname: "/searchCategory",
-      params: {
-        category: title,
-        filter: `${value}`,
-        action: "currently_reading",
-      },
-    });
-  }
 
   return (
-    <Pressable
-      onPress={handlePress}
-      style={{
-        flex: 1,
-        width: "100%",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        // padding: 10,
-      }}
+    <Button
+      onPress={() => router.push({
+        pathname: "/searchCategory",
+        params: {
+          category: title,
+          filter: value,
+          action: "currently_reading",
+        },
+      })}
+      backgroundColor="$orange4"
+      pressStyle={{ backgroundColor: "$orange8" }}
+      borderRadius={20}
+      paddingHorizontal={16}
+      paddingVertical={8}
     >
-      <View
-        style={{
-          padding: 10,
-        }}
-      >
-        <Text style={{ fontSize: 16, fontWeight: "bold" }}>{title}</Text>
-        <Text style={{ fontSize: 12, color: "gray" }}>{description}</Text>
-        <ScrollView
-          horizontal
-          style={{
-            flexDirection: "row",
-            marginTop: 10,
-          }}
-        >
-          {results.length == 0 ? (
-            <ActivityIndicator size="small" color={"black"} />
-          ) : (
-            results.map((book: any) => (
-              <Image
-                key={book.id}
-                source={{ uri: book.volumeInfo.imageLinks?.thumbnail }}
-                style={{
-                  width: 60,
-                  height: 90,
-                  borderRadius: 0,
-                  marginRight: 10,
-                }}
-                placeholder={blurhash}
-                transition={1000}
-              />
-            ))
-          )}
-        </ScrollView>
-      </View>
-    </Pressable>
+      <Text style={{
+        color: '$orange11',
+        fontWeight: "500",
+      }}>
+        {title}
+      </Text>
+    </Button>
   );
 }

@@ -58,7 +58,7 @@ function StatisticsView() {
       .from("books")
       .select("users_books(*),google_api_data")
       .eq("users_books.user", user?.id || "")
-      .eq("users_books.status", "completed");
+      // .eq("users_books.status", "completed");
 
     if (error) {
       console.error("Error fetching data:", error);
@@ -136,7 +136,6 @@ function StatisticsView() {
     `,
       )
       .eq("user", user?.id ? user.id : "")
-      .eq("status", "completed");
 
     if (filter === "thisYear") {
       query = query.gte("created_at", lastYearDate.toISOString());
@@ -161,33 +160,30 @@ function StatisticsView() {
 
       const totalGenreAssignments = Object.values(genreCounts).reduce(
         (total, count) => total + count,
-        0,
+        0
       );
+
       let dataForGenre: GenreData[] = Object.keys(genreCounts)
         .map((genre) => ({
           x: genre,
           y: (genreCounts[genre] / totalGenreAssignments) * 100,
-          label: `${(
-            (genreCounts[genre] / totalGenreAssignments) *
-            100
-          ).toFixed(0)}%`,
+          label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(0)}%`,
         }))
-        .sort((a, b) => b.y - a.y); // Sort by percentage, descending
+        .sort((a, b) => b.y - a.y);
 
-      if (dataForGenre.length > 10) {
-        const topTen = dataForGenre.slice(0, 10);
-        const othersPercentage = dataForGenre
-          .slice(10)
-          .reduce((sum, current) => sum + current.y, 0);
-        topTen.push({
-          x: "Others",
-          y: othersPercentage,
-          label: `${othersPercentage.toFixed(0)}%`,
+      const mainSegments = dataForGenre.filter((item) => item.y >= 5);
+      const smallSegments = dataForGenre.filter((item) => item.y < 5);
+      
+      if (smallSegments.length > 0) {
+        const otherPercentage = smallSegments.reduce((sum, item) => sum + item.y, 0);
+        mainSegments.push({
+          x: "Other",
+          y: otherPercentage,
+          label: `${otherPercentage.toFixed(0)}%`,
         });
-        dataForGenre = topTen;
       }
 
-      setBooksGenre(dataForGenre);
+      setBooksGenre(mainSegments);
     } else {
       setBooksGenre([]);
     }
@@ -198,7 +194,7 @@ function StatisticsView() {
       .from("books")
       .select(`users_books(*),google_api_data`)
       .eq("users_books.user", user?.id || "")
-      .eq("users_books.status", "completed");
+      // .eq("users_books.status", "completed");
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -214,13 +210,27 @@ function StatisticsView() {
       );
 
       const totalBooks = fetchedBooks.length;
-      const dataForLanguage = Object.keys(languageCounts).map((language) => ({
-        x: language,
-        y: (languageCounts[language] / totalBooks) * 100,
-        label: `${((languageCounts[language] / totalBooks) * 100).toFixed(0)}%`,
-      }));
+      let dataForLanguage = Object.keys(languageCounts)
+        .map((language) => ({
+          x: language,
+          y: (languageCounts[language] / totalBooks) * 100,
+          label: `${((languageCounts[language] / totalBooks) * 100).toFixed(0)}%`,
+        }))
+        .sort((a, b) => b.y - a.y);
 
-      setBooksLanguage(dataForLanguage);
+      const mainLanguages = dataForLanguage.filter((item) => item.y >= 5);
+      const smallLanguages = dataForLanguage.filter((item) => item.y < 5);
+      
+      if (smallLanguages.length > 0) {
+        const otherPercentage = smallLanguages.reduce((sum, item) => sum + item.y, 0);
+        mainLanguages.push({
+          x: "other",
+          y: otherPercentage,
+          label: `${otherPercentage.toFixed(0)}%`,
+        });
+      }
+
+      setBooksLanguage(mainLanguages);
     } else {
       setBooksLanguage([]);
     }
@@ -254,6 +264,8 @@ function StatisticsView() {
       <Text style={styles.legendText}>{name}</Text>
     </View>
   );
+
+  console.log(booksGenre);
 
   return books.length == 0 ? (
     <View
