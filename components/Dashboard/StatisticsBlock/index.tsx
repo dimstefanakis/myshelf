@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 import useUser from "@/hooks/useUser";
 import { useUserBooksStore } from "@/store/userBooksStore";
 import { YStack, XStack, Text, Circle, View } from "tamagui";
@@ -14,7 +14,7 @@ interface GenreData {
 
 const StatisticsBlock = () => {
   const { user } = useUser();
-  const navigation = useNavigation();
+  const router = useRouter();
   const { books } = useUserBooksStore();
   const [topGenres, setTopGenres] = useState<GenreData[]>([]);
 
@@ -62,7 +62,7 @@ const StatisticsBlock = () => {
         .map((genre) => ({
           x: genre,
           y: (genreCounts[genre] / totalGenreAssignments) * 100,
-          label: `${((genreCounts[genre] / totalGenreAssignments) * 100).toFixed(0)}%`,
+          label: ``,
         }))
         .sort((a, b) => b.y - a.y)
         .slice(0, 3);
@@ -87,7 +87,7 @@ const StatisticsBlock = () => {
       borderColor="$borderColor"
       borderWidth={1}
       // pressStyle={{ opacity: 0.8 }}
-      onPress={() => navigation.navigate('Statistics')}
+      onPress={() => router.push('/statistics')}
     >
       <XStack justifyContent="space-between" alignItems="center" padding="$3">
         <Text fontSize="$5" fontWeight="bold">Statistics</Text>
@@ -112,7 +112,7 @@ const StatisticsBlock = () => {
             />
           )}
         </View>
-        
+
         <YStack space="$2" marginTop="$3" width="100%">
           <Text fontSize="$3" fontWeight="bold" textAlign="left">Top Genres</Text>
           {topGenres.map((genre, index) => (

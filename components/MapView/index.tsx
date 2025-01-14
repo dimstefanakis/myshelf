@@ -121,10 +121,10 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
               marker.setting_origin_lat && marker.setting_origin_long
                 ? "Setting Origin"
                 : marker.author_nationality_lat &&
-                    marker.author_nationality_long
+                  marker.author_nationality_long
                   ? "Author National"
                   : marker.country_published_lat &&
-                      marker.country_published_long
+                    marker.country_published_long
                     ? "Country Published"
                     : null;
             latitude =
@@ -139,16 +139,18 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
 
           return type
             ? {
-                type,
-                latitude,
-                longitude,
-                key: marker.id.toString(),
-                title: marker.user_book?.book?.title,
-              }
+              type,
+              latitude,
+              longitude,
+              key: marker.id.toString(),
+              title: marker.user_book?.book?.title,
+            }
             : null;
         })
         .filter((marker) => marker !== null);
 
+      // @ts-ignore
+      // TODO: fix this
       setMarkers(markersData);
     }
   };
@@ -194,7 +196,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
       {Platform.OS === "android" ? (
         <MapView
           provider={PROVIDER_GOOGLE}
-          onRegionChangeComplete={(region, { isGesture }) => {}}
+          onRegionChangeComplete={(region, { isGesture }) => { }}
           ref={mapRef}
           style={styles.map}
           onPress={(e: any) => handleMapPress(e)}
@@ -205,8 +207,8 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
               <Marker
                 key={marker.key}
                 coordinate={{
-                  latitude: parseFloat(marker.latitude) || 0,
-                  longitude: parseFloat(marker.longitude) || 0,
+                  latitude: marker.latitude || 0,
+                  longitude: marker.longitude || 0,
                 }}
                 title={marker.title}
               />
@@ -215,7 +217,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
         </MapView>
       ) : (
         <MapView
-          onRegionChangeComplete={(region, { isGesture }) => {}}
+          onRegionChangeComplete={(region, { isGesture }) => { }}
           ref={mapRef}
           style={styles.map}
           onPress={(e: any) => handleMapPress(e)}

@@ -271,90 +271,97 @@ const CombinedFeedScreen = () => {
     </FeedCard>
   );
 
-  const ListHeaderComponent = () => (
-    <YStack space="$4">
-      <Animated.View
-        style={{
-          opacity: scrollY.interpolate({
-            inputRange: [0, 50],
-            outputRange: [1, 0],
-            extrapolate: 'clamp',
-          }),
-          transform: [{
-            translateY: scrollY.interpolate({
-              inputRange: [0, 50],
-              outputRange: [0, -50],
-              extrapolate: 'clamp',
-            })
-          }]
-        }}
-      >
-        <Input
-          placeholder="Search your entries..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          backgroundColor="$orange2"
-          borderColor="$orange4"
-          fontSize="$4"
-        />
-      </Animated.View>
+  const ListHeaderComponent = () => {
+    const inputRef = useRef(null);
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <XStack space="$2" paddingVertical="$2">
-          <Button
-            backgroundColor={selectedBookId ? "$orange10" : "$orange2"}
+    return (
+      <YStack space="$4">
+        <Animated.View
+          style={{
+            opacity: scrollY.interpolate({
+              inputRange: [0, 50],
+              outputRange: [1, 0],
+              extrapolate: 'clamp',
+            }),
+            transform: [{
+              translateY: scrollY.interpolate({
+                inputRange: [0, 50],
+                outputRange: [0, -50],
+                extrapolate: 'clamp',
+              })
+            }]
+          }}
+        >
+          <Input
+            ref={inputRef}
+            placeholder="Search your entries..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            backgroundColor="$orange2"
             borderColor="$orange4"
-            borderWidth={1}
-            borderRadius="$4"
-            onPress={() => setIsBookFilterOpen(true)}
-          >
-            <XStack space="$2" alignItems="center">
-              <Feather
-                name="book-open"
-                size={16}
-                color={selectedBookId ? "white" : "$orange11"}
-              />
-              <Text
-                color={selectedBookId ? "white" : "$orange11"}
-                numberOfLines={1}
-              >
-                {selectedBookId
-                  ? combinedFeed.find(item => item.users_book.book.id === selectedBookId)?.users_book.book.title
-                  : "Select Book"}
-              </Text>
-            </XStack>
-          </Button>
-          <FilterPill
-            active={activeFilter === 'note'}
-            onPress={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
-          >
-            <XStack space="$2" alignItems="center">
-              <Feather name="book" size={16} color={activeFilter === 'note' ? "white" : "$orange11"} />
-              <Text color={activeFilter === 'note' ? "white" : "$orange11"}>Notes</Text>
-            </XStack>
-          </FilterPill>
-          <FilterPill
-            active={activeFilter === 'photo'}
-            onPress={() => setActiveFilter(activeFilter === 'photo' ? null : 'photo')}
-          >
-            <XStack space="$2" alignItems="center">
-              <Feather name="camera" size={16} color={activeFilter === 'photo' ? "white" : "$orange11"} />
-              <Text color={activeFilter === 'photo' ? "white" : "$orange11"}>Photos</Text>
-            </XStack>
-          </FilterPill>
-          <FilterPill
-            active={activeFilter === 'quote'}
-            onPress={() => setActiveFilter(activeFilter === 'quote' ? null : 'quote')}
-          >
-            <XStack space="$2" alignItems="center">
-              <Entypo name="quote" size={16} color={activeFilter === 'quote' ? "white" : "$orange11"} />
-              <Text color={activeFilter === 'quote' ? "white" : "$orange11"}>Quotes</Text>
-            </XStack>
-          </FilterPill>
-        </XStack>
-      </ScrollView>
-    </YStack>
-  );
+            fontSize="$4"
+            autoCorrect
+            focusStyle={{ borderColor: "$orange10" }}
+          />
+        </Animated.View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <XStack space="$2" paddingVertical="$2">
+            <Button
+              backgroundColor={selectedBookId ? "$orange10" : "$orange2"}
+              borderColor="$orange4"
+              borderWidth={1}
+              borderRadius="$4"
+              onPress={() => setIsBookFilterOpen(true)}
+            >
+              <XStack space="$2" alignItems="center">
+                <Feather
+                  name="book-open"
+                  size={16}
+                  color={selectedBookId ? "white" : "$orange11"}
+                />
+                <Text
+                  color={selectedBookId ? "white" : "$orange11"}
+                  numberOfLines={1}
+                >
+                  {selectedBookId
+                    ? combinedFeed.find(item => item.users_book.book.id === selectedBookId)?.users_book.book.title
+                    : "Select Book"}
+                </Text>
+              </XStack>
+            </Button>
+            <FilterPill
+              active={activeFilter === 'note'}
+              onPress={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
+            >
+              <XStack space="$2" alignItems="center">
+                <Feather name="book" size={16} color={activeFilter === 'note' ? "white" : "$orange11"} />
+                <Text color={activeFilter === 'note' ? "white" : "$orange11"}>Notes</Text>
+              </XStack>
+            </FilterPill>
+            <FilterPill
+              active={activeFilter === 'photo'}
+              onPress={() => setActiveFilter(activeFilter === 'photo' ? null : 'photo')}
+            >
+              <XStack space="$2" alignItems="center">
+                <Feather name="camera" size={16} color={activeFilter === 'photo' ? "white" : "$orange11"} />
+                <Text color={activeFilter === 'photo' ? "white" : "$orange11"}>Photos</Text>
+              </XStack>
+            </FilterPill>
+            <FilterPill
+              active={activeFilter === 'quote'}
+              onPress={() => setActiveFilter(activeFilter === 'quote' ? null : 'quote')}
+            >
+              <XStack space="$2" alignItems="center">
+                <Entypo name="quote" size={16} color={activeFilter === 'quote' ? "white" : "$orange11"} />
+                <Text color={activeFilter === 'quote' ? "white" : "$orange11"}>Quotes</Text>
+              </XStack>
+            </FilterPill>
+          </XStack>
+        </ScrollView>
+      </YStack>
+    );
+  };
 
   const FloatingActionButton = () => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -423,7 +430,7 @@ const CombinedFeedScreen = () => {
     };
 
     return (
-      <Portal>
+      <>
         <YStack
           position="absolute"
           bottom={16}
@@ -495,7 +502,7 @@ const CombinedFeedScreen = () => {
             animation="quick"
           />
         </YStack>
-      </Portal>
+      </>
     );
   };
 
@@ -581,11 +588,91 @@ const CombinedFeedScreen = () => {
 
   return (
     <YStack flex={1} backgroundColor="$background">
+      {/* Fixed position search input */}
+      <YStack 
+        position="absolute" 
+        top={0} 
+        left={0} 
+        right={0} 
+        zIndex={1}
+        padding="$4"
+        backgroundColor="$background"
+      >
+        <Input
+          placeholder="Search journal..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          backgroundColor="$orange2"
+          borderColor="$orange4"
+          fontSize="$4"
+          autoCorrect={false}
+          selectTextOnFocus
+          focusStyle={{ borderColor: "$orange10" }}
+        />
+      </YStack>
+
       <AnimatedFlatList
         data={filteredFeed}
         renderItem={renderItem}
         keyExtractor={(item: any) => `${item.type}-${item.id}`}
-        ListHeaderComponent={ListHeaderComponent}
+        ListHeaderComponent={() => (
+          <YStack space="$4" marginTop={60}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <XStack space="$2" paddingVertical="$2">
+                <Button
+                  backgroundColor={selectedBookId ? "$orange10" : "$orange2"}
+                  borderColor="$orange4"
+                  borderWidth={1}
+                  borderRadius="$4"
+                  onPress={() => setIsBookFilterOpen(true)}
+                >
+                  <XStack space="$2" alignItems="center">
+                    <Feather
+                      name="book-open"
+                      size={16}
+                      color={selectedBookId ? "white" : "$orange11"}
+                    />
+                    <Text
+                      color={selectedBookId ? "white" : "$orange11"}
+                      numberOfLines={1}
+                    >
+                      {selectedBookId
+                        ? combinedFeed.find(item => item.users_book.book.id === selectedBookId)?.users_book.book.title
+                        : "Select Book"}
+                    </Text>
+                  </XStack>
+                </Button>
+                <FilterPill
+                  active={activeFilter === 'note'}
+                  onPress={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
+                >
+                  <XStack space="$2" alignItems="center">
+                    <Feather name="book" size={16} color={activeFilter === 'note' ? "white" : "$orange11"} />
+                    <Text color={activeFilter === 'note' ? "white" : "$orange11"}>Notes</Text>
+                  </XStack>
+                </FilterPill>
+                <FilterPill
+                  active={activeFilter === 'photo'}
+                  onPress={() => setActiveFilter(activeFilter === 'photo' ? null : 'photo')}
+                >
+                  <XStack space="$2" alignItems="center">
+                    <Feather name="camera" size={16} color={activeFilter === 'photo' ? "white" : "$orange11"} />
+                    <Text color={activeFilter === 'photo' ? "white" : "$orange11"}>Photos</Text>
+                  </XStack>
+                </FilterPill>
+                <FilterPill
+                  active={activeFilter === 'quote'}
+                  onPress={() => setActiveFilter(activeFilter === 'quote' ? null : 'quote')}
+                >
+                  <XStack space="$2" alignItems="center">
+                    <Entypo name="quote" size={16} color={activeFilter === 'quote' ? "white" : "$orange11"} />
+                    <Text color={activeFilter === 'quote' ? "white" : "$orange11"}>Quotes</Text>
+                  </XStack>
+                </FilterPill>
+              </XStack>
+            </ScrollView>
+          </YStack>
+        )}
         ListEmptyComponent={ListEmptyComponent}
         contentContainerStyle={{ padding: 16, gap: 16 }}
         onScroll={Animated.event(
@@ -595,29 +682,6 @@ const CombinedFeedScreen = () => {
         scrollEventThrottle={16}
       />
 
-      {/* <XStack
-        position="absolute"
-        bottom={16}
-        left={0}
-        right={0}
-        justifyContent="center"
-        paddingHorizontal="$4"
-      >
-        <ActionBar>
-          <ActionButton
-            onPress={openCamera}
-            icon={<Feather name="camera" color="white" size={24} />}
-          />
-          <ActionButton
-            onPress={() => navigation.navigate("AddQuoteEntryScreen")}
-            icon={<Entypo name="quote" color="white" size={24} />}
-          />
-          <ActionButton
-            onPress={() => navigation.navigate("AddJournalEntryScreen")}
-            icon={<Feather name="book" color="white" size={24} />}
-          />
-        </ActionBar>
-      </XStack> */}
       <FloatingActionButton />
       <BookFilterSheet />
     </YStack>

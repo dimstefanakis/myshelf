@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigation } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import { YStack, XStack, Text } from "tamagui";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { StyleSheet, Platform } from "react-native";
@@ -53,6 +53,8 @@ const MapBlock = () => {
         })
         .filter((marker) => marker !== null);
 
+      // @ts-ignore
+      // TODO: fix this
       setMarkers(markersData);
     }
   };
@@ -79,7 +81,7 @@ const MapBlock = () => {
       borderColor="$borderColor"
       borderWidth={1}
       overflow="hidden"
-      onPress={() => navigation.navigate('Map')}
+      onPress={() => router.push('/map')}
     >
       {markers.length > 0 ? (
         Platform.OS === "android" ? (

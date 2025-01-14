@@ -39,6 +39,7 @@ export default function Search({
   const filter = localSearchParams.filter || (rest.filter as string);
   const category = localSearchParams.category || (rest.category as string);
 
+  console.log("addact", addAction)
   const [search, setSearch] = useDebounceValue("", 500);
   const [results, setResults] = useState<Book[] | []>([]);
   const [bookIndex, setBookIndex] = useState<number>(0);
@@ -163,8 +164,8 @@ export default function Search({
           <>
             {/* Categories Section */}
             <View style={{ marginBottom: 24 }}>
-              <Text style={{ 
-                fontSize: 20, 
+              <Text style={{
+                fontSize: 20,
                 fontWeight: "600",
                 marginHorizontal: 16,
                 marginBottom: 12,
@@ -172,8 +173,8 @@ export default function Search({
               }}>
                 Browse Categories
               </Text>
-              <ScrollView 
-                horizontal 
+              <ScrollView
+                horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
               >
@@ -188,8 +189,8 @@ export default function Search({
 
             {/* Featured Books Section */}
             <View style={{ marginBottom: 24 }}>
-              <Text style={{ 
-                fontSize: 20, 
+              <Text style={{
+                fontSize: 20,
                 fontWeight: "600",
                 marginHorizontal: 16,
                 marginBottom: 12,
@@ -197,8 +198,8 @@ export default function Search({
               }}>
                 Featured Books
               </Text>
-              <View style={{ 
-                flexDirection: 'row', 
+              <View style={{
+                flexDirection: 'row',
                 flexWrap: 'wrap',
                 paddingHorizontal: 16,
                 gap: 12,
@@ -219,7 +220,7 @@ export default function Search({
             ))}
           </View>
         )}
-        
+
         {isLoading && (
           <View style={{ padding: 20 }}>
             <ActivityIndicator size="large" color="$orange10" />
@@ -235,7 +236,7 @@ function FeaturedBook({ book, action }: { book: Book; action: string }) {
   const blurhash = "...";
 
   return (
-    <Pressable 
+    <Pressable
       onPress={() => router.push({
         pathname: `/book/${book.id}`,
         params: { addAction: action },
@@ -247,18 +248,18 @@ function FeaturedBook({ book, action }: { book: Book; action: string }) {
     >
       <Image
         source={{ uri: book.volumeInfo.imageLinks?.thumbnail }}
-        style={{ 
+        style={{
           width: '100%',
-          aspectRatio: 2/3,
-          borderRadius: 8 
+          aspectRatio: 2 / 3,
+          borderRadius: 8
         }}
         placeholder={blurhash}
         transition={1000}
       />
       <View style={{ marginTop: 8 }}>
-        <Text 
+        <Text
           numberOfLines={1}
-          style={{ 
+          style={{
             fontSize: 13,
             fontWeight: "500",
             marginBottom: 4,
@@ -266,9 +267,9 @@ function FeaturedBook({ book, action }: { book: Book; action: string }) {
         >
           {book.volumeInfo.title}
         </Text>
-        <Text 
+        <Text
           numberOfLines={1}
-          style={{ 
+          style={{
             fontSize: 11,
             color: 'gray',
           }}
@@ -285,7 +286,7 @@ function SearchResult({ book, action }: { book: Book; action: string }) {
   const blurhash = "...";
 
   return (
-    <Pressable 
+    <Pressable
       onPress={() => router.push({
         pathname: `/book/${book.id}`,
         params: { addAction: action },
@@ -311,18 +312,18 @@ function SearchResult({ book, action }: { book: Book; action: string }) {
           flex: 1,
           marginLeft: 12,
         }}>
-          <Text 
-            style={{ 
-              fontSize: 16, 
+          <Text
+            style={{
+              fontSize: 16,
               fontWeight: "600",
               marginBottom: 4,
-            }} 
+            }}
             numberOfLines={2}
           >
             {book.volumeInfo.title}
           </Text>
-          <Text style={{ 
-            fontSize: 14, 
+          <Text style={{
+            fontSize: 14,
             color: 'gray',
           }}>
             {book.volumeInfo.authors?.join(", ")}
@@ -352,7 +353,7 @@ function CategoryPill({ title, value }: { title: string; value: string }) {
       paddingHorizontal={16}
       paddingVertical={8}
     >
-      <Text style={{ 
+      <Text style={{
         color: '$orange11',
         fontWeight: "500",
       }}>

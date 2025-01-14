@@ -11,7 +11,7 @@ import AddQuoteEntryScreen from "../addQuoteEntry";
 import MapScreen from "../gridNavigation/map";
 import AddMarker from "../addMarker";
 import EditMarkers from "@/components/EditMarker";
-import StatisticsScreen from "../gridNavigation/statistics";
+import StatisticsScreen from "../statistics";
 import Search from "@/components/SearchView";
 import { Platform, View, StatusBar } from "react-native";
 import Colors from "@/constants/Colors";
@@ -58,17 +58,17 @@ export default function HomeStack() {
           headerShadowVisible: false,
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="Map"
         component={MapScreen}
         options={{ headerShown: true, headerTitle: "Map" }}
-      />
+      /> */}
       <Stack.Screen
         name="HabitLogBook"
         component={HabitLogBook}
         options={{ headerShown: true, headerTitle: "Habit LogBook" }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="AddJournalEntryScreen"
         component={AddJournalEntryScreen}
         options={{
@@ -93,7 +93,7 @@ export default function HomeStack() {
           headerShown: Platform.OS === "android",
           headerTitle: "Quote",
         }}
-      />
+      /> */}
       <Stack.Screen
         name="AddMarker"
         component={AddMarker}
@@ -109,14 +109,14 @@ export default function HomeStack() {
         component={EditMarkers}
         options={{ presentation: "modal", headerShown: false }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="Statistics"
         component={StatisticsScreen}
         options={{
           title: "Statistics",
           headerShown: true,
         }}
-      />
+      /> */}
     </Stack.Navigator>
   );
 }

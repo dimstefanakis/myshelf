@@ -17,10 +17,12 @@ const data = [
   {
     type: 'journal',
     title: "Journal Block",
+    image: '',
   },
   {
     type: 'shelves',
     title: "Shelves Block",
+    image: '',
   },
   {
     type: 'regular',
@@ -152,29 +154,6 @@ function HomepageContainers() {
     return null;
   };
 
-  const handlePress = (name: string) => {
-    switch (name) {
-      case "Journal":
-        navigation.navigate("Journal");
-        break;
-      case "Chronology":
-        navigation.navigate("Chronology");
-        break;
-      case "Map":
-        navigation.navigate("Map");
-        break;
-      case "Habit Logbook":
-        navigation.navigate("HabitLogBook");
-        break;
-      case "Goal Tracker":
-        navigation.navigate("GoalTracker");
-        break;
-      case "Statistics":
-        navigation.navigate("Statistics");
-        break;
-    }
-  };
-
   return (
     <YStack flex={1} padding="$2" backgroundColor="$background">
       <XStack justifyContent="space-between" alignItems="center" paddingVertical="$2" paddingHorizontal="$4">
@@ -191,7 +170,7 @@ function HomepageContainers() {
       </XStack>
 
       <MasonryFlashList
-        data={data}
+        data={data as Item[]}
         renderItem={renderItem}
         estimatedItemSize={200}
         numColumns={2}

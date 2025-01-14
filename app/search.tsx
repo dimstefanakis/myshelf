@@ -1,5 +1,10 @@
 import SearchView from "@/components/SearchView";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 export default function Search() {
-  return <SearchView />;
+  const router = useRouter();
+
+  const { addAction } = useLocalSearchParams();
+
+  return <SearchView addAction={addAction as string | undefined} />;
 }

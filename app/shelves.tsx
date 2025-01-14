@@ -53,7 +53,12 @@ export default function MyShelfScreen() {
         <View style={styles.emptyShelfContainer}>
           <TouchableOpacity 
             style={styles.skeletonBook}
-            onPress={() => router.push('/search')}
+            onPress={() => router.push({
+              pathname: '/search',
+              params: {
+                addAction: shelf.id
+              }
+            })}
           >
             <View style={styles.skeletonBookInner}>
               <Text style={styles.plusIcon}>+</Text>

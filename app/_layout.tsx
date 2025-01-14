@@ -184,6 +184,10 @@ function RootLayoutNav() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="statistics"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="bookList/[type]"
           options={{
             title: "Books",
@@ -192,6 +196,27 @@ function RootLayoutNav() {
             },
             headerShadowVisible: false, // applied here
             headerBackTitleVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="addJournalEntry/index"
+          options={{
+            headerShown: true,
+            headerTitle: 'Journal Entry'
+          }}
+        />
+        <Stack.Screen
+          name="addQuoteEntry/index"
+          options={{
+            headerShown: true,
+            headerTitle: 'Quote Entry'
+          }}
+        />
+        <Stack.Screen
+          name="addBookNoteEntry/index"
+          options={{
+            headerShown: true,
+            headerTitle: 'Note Entry'
           }}
         />
         <Stack.Screen
