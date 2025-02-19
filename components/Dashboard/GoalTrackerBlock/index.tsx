@@ -99,9 +99,9 @@ const GoalTrackerBlock = () => {
   return (
     <YStack
       width="100%"
-      backgroundColor="$background"
+      backgroundColor='$orange2'
       borderRadius="$2"
-      borderColor="$borderColor"
+      borderColor="$orange6"
       borderWidth={1}
       padding="$4"
       space="$4"
@@ -116,7 +116,7 @@ const GoalTrackerBlock = () => {
             width={8}
             fill={(currentGoal.pages / currentGoal.target) * 100}
             tintColor="#CD8B65"
-            backgroundColor="#E5E5E5"
+            backgroundColor="#FFE8D7"
             arcSweepAngle={180}
             rotation={-90}
             lineCap="round"
@@ -129,7 +129,7 @@ const GoalTrackerBlock = () => {
             )}
           </AnimatedCircularProgress>
         </YStack>
-        <Separator marginVertical={15} width="100%" borderWidth={1} borderColor="$gray5"/>
+        <Separator marginVertical={15} width="100%" borderRadius="$2" borderWidth={1} borderColor="$gray5"/>
         <YStack alignItems="center" space="$1">
           <Text fontSize={40} fontWeight="bold">{streak}</Text>
           <Text fontSize={20} color="$gray10">day streak</Text>
@@ -140,7 +140,7 @@ const GoalTrackerBlock = () => {
                   key={i}
                   style={[
                     styles.dot,
-                    { backgroundColor: i < streak ? '#CD8B65' : '#E5E5E5' }
+                    { backgroundColor: i < streak ? '#CD8B65' : '#FFE8D7' }
                   ]}
                 />
               ))}
@@ -151,7 +151,7 @@ const GoalTrackerBlock = () => {
                   key={i + 4}
                   style={[
                     styles.dot,
-                    { backgroundColor: (i + 4) < streak ? '#CD8B65' : '#E5E5E5' }
+                    { backgroundColor: (i + 4) < streak ? '#CD8B65' : '#FFE8D7' }
                   ]}
                 />
               ))}

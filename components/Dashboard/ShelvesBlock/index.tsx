@@ -71,9 +71,9 @@ const ShelvesBlock = () => {
   return (
     <YStack
       width="100%"
-      backgroundColor="$background"
+      backgroundColor='$orange2'
       borderRadius="$2"
-      borderColor="$borderColor"
+      borderColor="$orange6"
       borderWidth={1}
       onPress={() => router.push('/shelves')}
     >

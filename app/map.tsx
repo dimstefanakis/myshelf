@@ -7,8 +7,7 @@ import {
   Dimensions,
 } from "react-native";
 import MapViewScreen from "@/components/MapView";
-import { useLayoutEffect } from "react";
-import { FontAwesome } from "@expo/vector-icons";
+import SafeAreaViewFixed from "@/components/SafeAreaView";
 
 const { width } = Dimensions.get("window"); // Get the window width for full-width dropdown
 

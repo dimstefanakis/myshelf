@@ -1,12 +1,14 @@
 import { View, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import React, { useEffect } from "react";
-import SelectDropdown from "react-native-select-dropdown";
-import { Text, TextInput, Button } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 import { useUserBooksStore } from "@/store/userBooksStore";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase";
+import { Button, XStack, Text as TamaguiText, Input, YStack, Select, Adapt, Sheet, TextArea } from "tamagui";
+import { ChevronDown, ChevronLeft } from "@tamagui/lucide-icons";
+import SafeAreaView from "@/components/SafeAreaView";
+import { KeyboardAvoidingView, Platform } from "react-native";
 
 const AddQuoteEntryScreen = () => {
   const [loading, setLoading] = useState(false);
@@ -54,75 +56,124 @@ const AddQuoteEntryScreen = () => {
   };
 
   return (
-    <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>
-      <TextInput
-        placeholder="Author (optional)"
-        style={styles.input}
-        onChangeText={(text) => handleChange("author", text)}
-      />
-      <TextInput
-        placeholder="Quote"
-        multiline={true}
-        numberOfLines={4}
-        style={styles.multilineInput}
-        onChangeText={(text) => handleChange("title", text)}
+    <SafeAreaView style={styles.container}>
+      <Button
+        borderRadius={100}
+        w={50}
+        h={50}
+        chromeless
+        icon={<ChevronLeft size={24} color="$gray10" />}
+        onPress={() => navigation.goBack()}
       />
 
-      <SelectDropdown
-        data={books.map((book) => book.book.title) || []}
-        onSelect={(selectedItem, index) => {
-          handleChange("users_book", books[index].id);
-        }}
-        buttonTextAfterSelection={(selectedItem) => selectedItem}
-        rowTextForSelection={(item) => item}
-        buttonStyle={styles.dropdown1BtnStyle}
-        defaultButtonText="Select a book"
-      />
-      <Button onPress={handleSubmit} style={styles.Touchable}>
-        {loading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={{ color: "white" }}>Create Quote</Text>
-        )}
-      </Button>
-    </View>
+      <TamaguiText style={styles.headerText} marginVertical={20}>
+        New Quote
+      </TamaguiText>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoid}
+      >
+        <YStack f={1} jc="space-between" px="$4">
+          <YStack space="$4">
+            <Input
+              size="$4"
+              placeholder="Author (optional)"
+              onChangeText={(text) => handleChange("author", text)}
+              backgroundColor="$orange2"
+              borderColor="$orange4"
+            />
+            <Select
+              value={quoteData.users_book}
+              onValueChange={(value) => handleChange("users_book", value)}
+            >
+              <Select.Trigger
+                width="100%"
+                backgroundColor="$orange2"
+                borderColor="$orange4"
+                borderWidth={1}
+                borderRadius={12}
+                height={50}
+                iconAfter={ChevronDown}
+              >
+                <Select.Value placeholder="Select a book" />
+              </Select.Trigger>
+
+              <Adapt when="sm" platform="touch">
+                <Sheet dismissOnSnapToBottom>
+                  <Sheet.Frame>
+                    <Sheet.ScrollView>
+                      <Adapt.Contents />
+                    </Sheet.ScrollView>
+                  </Sheet.Frame>
+                  <Sheet.Overlay />
+                </Sheet>
+              </Adapt>
+
+              <Select.Content>
+                <Select.Viewport>
+                  <Select.Group>
+                    {books.map((book, index) => (
+                      <Select.Item
+                        index={index}
+                        key={book.id}
+                        value={book.id}
+                      >
+                        <Select.ItemText>{book.book.title}</Select.ItemText>
+                      </Select.Item>
+                    ))}
+                  </Select.Group>
+                </Select.Viewport>
+              </Select.Content>
+            </Select>
+            <TextArea
+              placeholder="Quote"
+              onChangeText={(text) => handleChange("title", text)}
+              backgroundColor="$orange2"
+              borderColor="$orange4"
+              size="$4"
+              multiline
+              minHeight={300}
+            />
+          </YStack>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              size="$6"
+              width="100%"
+              onPress={handleSubmit}
+              backgroundColor="$orange10"
+              color="white"
+              pressStyle={{ backgroundColor: "$orange8" }}
+            >
+              {loading ? <ActivityIndicator color="white" /> : "Create Quote"}
+            </Button>
+          </View>
+        </YStack>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
-export default AddQuoteEntryScreen;
-
 const styles = StyleSheet.create({
-  input: {
-    height: 40,
-    borderWidth: 1,
-    width: "80%",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 20,
+  container: {
+    flex: 1,
+    backgroundColor: "white",
   },
-  multilineInput: {
-    height: 120,
-    borderWidth: 1,
-    width: "80%",
-    padding: 10,
-    borderRadius: 10,
-    textAlignVertical: "top",
-    marginTop: 20,
-    marginBottom: 20,
+  headerText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "$orange11",
+    textAlign: "center",
   },
-  dropdown1BtnStyle: {
-    width: "80%",
-    height: 50,
-    backgroundColor: "#e7e7e7",
-    borderRadius: 8,
-    marginBottom: 20,
+  keyboardAvoid: {
+    flex: 1,
+    width: "100%",
   },
-  Touchable: {
-    backgroundColor: "black",
-    padding: 10,
-    margin: 10,
-    borderRadius: 10,
-    width: "40%",
-    alignItems: "center",
+  buttonContainer: {
+    width: "100%",
+    paddingBottom: 20,
   },
 });
+
+export default AddQuoteEntryScreen;

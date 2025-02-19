@@ -76,9 +76,9 @@ const MapBlock = () => {
     <YStack
       width="100%"
       height={200}
-      backgroundColor="$background"
+      backgroundColor="$orange2"
       borderRadius="$2"
-      borderColor="$borderColor"
+      borderColor="$orange6"
       borderWidth={1}
       overflow="hidden"
       onPress={() => router.push('/map')}

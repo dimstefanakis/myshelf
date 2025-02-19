@@ -24,8 +24,8 @@ import { FontAwesome } from "@expo/vector-icons";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
-import { SafeAreaView } from "react-native";
 import { getLocales, getCalendars } from "expo-localization";
+import SafeAreaViewFixed from "@/components/SafeAreaView";
 import { useGoalTrackerStore } from '@/store/goalTrackerStore';
 import { XStack, YStack, Button, Text } from "tamagui";
 import { ChevronLeft, Bell, Pencil } from '@tamagui/lucide-icons';
@@ -104,25 +104,12 @@ function GoalTrackerScreen() {
   const [date, setDate] = useState(dateObj);
   const [show, setShow] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [expoPushToken, setExpoPushToken] = useState("");
-  const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
-    [],
-  );
-  const [notification, setNotification] = useState<
-    Notifications.Notification | undefined
-  >(undefined);
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
 
   const {
     goals,
     goalLogs,
     loading,
     loadingLogs,
-    currentIndex,
-    selectedTab,
-    setCurrentIndex,
-    setSelectedTab,
     fetchGoals,
     getGoalProgress,
     listenToLogUpdates,
@@ -149,7 +136,11 @@ function GoalTrackerScreen() {
       setIsModalVisible(true);
     }
   }
+
   async function scheduleDailyNotification(time: Date) {
+    // Cancel all previously scheduled notifications
+    await Notifications.cancelAllScheduledNotificationsAsync();
+
     // Ensure the time is a Date object
     const now = new Date();
     const notificationTime = new Date(
@@ -318,51 +309,92 @@ function GoalTrackerScreen() {
       <ActivityIndicator />
     </View>
   ) : (
-    <ScrollView style={styles.container}>
-      <XStack>
-        <Button
-          borderRadius={100}
-          w={50}
-          h={50}
-          chromeless
-          icon={<ChevronLeft size={24} color="$gray10" />}
-          onPress={() => router.back()}
-        >
-        </Button>
-        <XStack flex={1}></XStack>
-        <Button
-          borderRadius={100}
-          w={50}
-          h={50}
-          chromeless
-          icon={<Bell size={24} color="$gray10" />}
-          onPress={() => {
-            registerForPushNotificationsAsync();
-          }}
-        >
-        </Button>
-      </XStack>
+    <SafeAreaViewFixed style={styles.container}>
+      <ScrollView style={styles.container}>
+        <XStack>
+          <Button
+            borderRadius={100}
+            w={50}
+            h={50}
+            chromeless
+            icon={<ChevronLeft size={24} color="$gray10" />}
+            onPress={() => router.back()}
+          >
+          </Button>
+          <XStack flex={1}></XStack>
+          <Button
+            borderRadius={100}
+            w={50}
+            h={50}
+            chromeless
+            icon={<Bell size={24} color="$gray10" />}
+            onPress={() => {
+              registerForPushNotificationsAsync();
+            }}
+          >
+          </Button>
+        </XStack>
 
-      <Text fontSize="$6" fontWeight="bold" marginTop="$4" marginLeft="$4">My Reading Goals</Text>
-      <StreakChallenge />
-      <YStack marginTop="$4" paddingHorizontal="$4">
-        <Text fontSize="$5" fontWeight="bold">Active goals</Text>
-        {activeGoals.map((goal) => {
-          const progress = getGoalProgressValue(goal);
+        <Text fontSize="$6" fontWeight="bold" marginTop="$4" marginLeft="$4">My Reading Goals</Text>
+        <StreakChallenge />
+        <YStack marginTop="$4" paddingHorizontal="$4">
+          <Text fontSize="$5" fontWeight="bold">Active goals</Text>
+          {activeGoals.map((goal) => {
+            const progress = getGoalProgressValue(goal);
 
-          return (
-            <XStack key={goal.id} style={styles.goalCard} onPress={() => {
-              router.push(`/updateGoal/${goal.id}`)
-            }}>
-              <View style={styles.goalInfo}>
-                <Text style={styles.goalTitle}>
-                  {goal.type} read {goal.time_type}
-                </Text>
-                <Text style={styles.goalProgress}>
-                  {progress || 0}/{goal.unit_amount}
-                </Text>
-              </View>
-              <XStack space="$2" alignItems="center" backgroundColor="#E8E0D9">
+            return (
+              <XStack key={goal.id} style={styles.activeGoalCard} onPress={() => {
+                router.push(`/updateGoal/${goal.id}`)
+              }}>
+                <View style={styles.goalInfo}>
+                  <Text style={styles.goalTitle}>
+                    {goal.type} read {goal.time_type}
+                  </Text>
+                  <Text style={styles.goalProgress}>
+                    {progress || 0}/{goal.unit_amount}
+                  </Text>
+                </View>
+                <XStack space="$2" alignItems="center" backgroundColor="#E8E0D9">
+                  <View style={styles.progressCircle}>
+                    <ArcSlider
+                      size={80}
+                      min={0}
+                      max={goal.unit_amount || 1}
+                      strokeWidth={10}
+                      startAngle={0}
+                      endAngle={360}
+                      value={progress || 0}
+                      disabled
+                    />
+                  </View>
+                </XStack>
+              </XStack>
+            );
+          })}
+        </YStack>
+
+        <YStack marginTop="$4" paddingHorizontal="$4">
+          <Text fontSize="$5" fontWeight="bold">Passive goals</Text>
+          {passiveGoals.map((goal) => {
+            const progress = getGoalProgressValue(goal);
+
+            return (
+              <XStack
+                key={goal.id}
+                style={styles.passiveGoalCard}
+                pressStyle={{ opacity: 0.7 }}
+                onPress={() => {
+                  router.push(`/editGoal?id=${goal.id}`);
+                }}
+              >
+                <View style={styles.goalInfo}>
+                  <Text style={styles.goalTitle}>
+                    {goal.type} read {goal.time_type}
+                  </Text>
+                  <Text style={styles.goalProgress}>
+                    {progress || 0}/{goal.unit_amount}
+                  </Text>
+                </View>
                 <View style={styles.progressCircle}>
                   <ArcSlider
                     size={80}
@@ -376,200 +408,161 @@ function GoalTrackerScreen() {
                   />
                 </View>
               </XStack>
-            </XStack>
-          );
-        })}
-      </YStack>
-
-      <YStack marginTop="$4" paddingHorizontal="$4">
-        <Text fontSize="$5" fontWeight="bold">Passive goals</Text>
-        {passiveGoals.map((goal) => {
-          const progress = getGoalProgressValue(goal);
-
-          return (
-            <XStack 
-              key={goal.id} 
-              style={styles.goalCard}
-              pressStyle={{ opacity: 0.7 }}
-              onPress={() => {
-                router.push(`/editGoal?id=${goal.id}`);
-              }}
-            >
-              <View style={styles.goalInfo}>
-                <Text style={styles.goalTitle}>
-                  {goal.type} read {goal.time_type}
-                </Text>
-                <Text style={styles.goalProgress}>
-                  {progress || 0}/{goal.unit_amount}
-                </Text>
-              </View>
-              <View style={styles.progressCircle}>
-                <ArcSlider
-                  size={80}
-                  min={0}
-                  max={goal.unit_amount || 1}
-                  strokeWidth={10}
-                  startAngle={0}
-                  endAngle={360}
-                  value={progress || 0}
-                  disabled
-                />
-              </View>
-            </XStack>
-          );
-        })}
-      </YStack>
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => {
-          setIsModalVisible(!isModalVisible);
-        }}
-      >
-        {show && (
-          <View
-            style={{
-              flex: 1,
-              position: "absolute",
-              zIndex: 10,
-              left: 0,
-              right: 0,
-              width: "100%",
-              height: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={date}
-              mode="time"
-              is24Hour={true}
-              onChange={onChange}
-            />
-            <View
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                justifyContent: "center",
-                width: "80%",
-                marginTop: 20,
-              }}
-            >
-              <Button
-                onPress={() => {
-                  handleUpdateReminder();
-                }}
-                style={styles.doneButton}
-              >
-                {loadingReminderUpdate ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text style={{ color: "white" }}>Update Reminder</Text>
-                )}
-              </Button>
-              <Button
-                onPress={() => {
-                  setShow(false);
-                  setIsModalVisible(false);
-                }}
-                style={styles.deleteButton}
-              >
-                <Text style={{ color: "white" }}>Cancel</Text>
-              </Button>
-            </View>
-          </View>
-        )}
-        <Pressable
-          onPress={() => setIsModalVisible(!isModalVisible)}
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(0,0,0,0.5)",
+            );
+          })}
+        </YStack>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => {
+            setIsModalVisible(!isModalVisible);
           }}
         >
-          <Pressable
-            style={{
-              width: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+          {show && (
             <View
               style={{
-                width: "80%",
-                borderRadius: 10,
-                paddingBottom: 20,
-                overflow: "hidden",
+                flex: 1,
+                position: "absolute",
+                zIndex: 10,
+                left: 0,
+                right: 0,
+                width: "100%",
+                height: "100%",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={date}
+                mode="time"
+                is24Hour={true}
+                onChange={onChange}
+              />
+              <View
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  width: "80%",
+                  marginTop: 20,
+                }}
+              >
+                <Button
+                  onPress={() => {
+                    handleUpdateReminder();
+                  }}
+                  style={styles.doneButton}
+                >
+                  {loadingReminderUpdate ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text style={{ color: "white" }}>Update Reminder</Text>
+                  )}
+                </Button>
+                <Button
+                  onPress={() => {
+                    setShow(false);
+                    setIsModalVisible(false);
+                  }}
+                  style={styles.deleteButton}
+                >
+                  <Text style={{ color: "white" }}>Cancel</Text>
+                </Button>
+              </View>
+            </View>
+          )}
+          <Pressable
+            onPress={() => setIsModalVisible(!isModalVisible)}
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0,0,0,0.5)",
+            }}
+          >
+            <Pressable
+              style={{
+                width: "100%",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
               <View
                 style={{
-                  backgroundColor: "#356B75",
-                  paddingVertical: 20,
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
-                >
-                  Set goal notification
-                </Text>
-              </View>
-              <View
-                style={{
+                  width: "80%",
                   borderRadius: 10,
-                  width: "100%",
-                  paddingHorizontal: 10,
-                  alignItems: "center",
+                  paddingBottom: 20,
+                  overflow: "hidden",
                 }}
               >
                 <View
                   style={{
-                    flexDirection: "row",
-                    width: "100%",
+                    backgroundColor: "#356B75",
+                    paddingVertical: 20,
                     alignItems: "center",
-                    justifyContent: "center",
-                    // justifyContent: "space-between",
+                  }}
+                >
+                  <Text
+                    style={{ color: "white", fontSize: 16, fontWeight: "bold" }}
+                  >
+                    Set goal notification
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    borderRadius: 10,
+                    width: "100%",
+                    paddingHorizontal: 10,
+                    alignItems: "center",
                   }}
                 >
                   <View
-                    style={{ justifyContent: "center", alignItems: "center" }}
+                    style={{
+                      flexDirection: "row",
+                      width: "100%",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      // justifyContent: "space-between",
+                    }}
                   >
-                    <Text style={{ marginTop: 10 }}>Reminder every day at</Text>
-                    <Text style={{ fontWeight: "bold", marginBottom: 10 }}>
-                      {convertTimeToHHMM(
-                        user?.profile?.reminder_time || "00:00",
-                      )}
-                    </Text>
-                    <Button
-                      style={{
-                        backgroundColor: "#507C82",
-                        width: "80%",
-                        marginTop: 6,
-                      }}
-                      onPress={() => {
-                        showMode();
-                      }}
+                    <View
+                      style={{ justifyContent: "center", alignItems: "center" }}
                     >
-                      <Text
+                      <Text style={{ marginTop: 10 }}>Reminder every day at</Text>
+                      <Text style={{ fontWeight: "bold", marginBottom: 10 }}>
+                        {convertTimeToHHMM(
+                          user?.profile?.reminder_time || "00:00",
+                        )}
+                      </Text>
+                      <Button
                         style={{
-                          color: "white",
+                          backgroundColor: "#507C82",
+                          width: "80%",
+                          marginTop: 6,
+                        }}
+                        onPress={() => {
+                          showMode();
                         }}
                       >
-                        Change time
-                      </Text>
-                    </Button>
+                        <Text
+                          style={{
+                            color: "white",
+                          }}
+                        >
+                          Change time
+                        </Text>
+                      </Button>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
-    </ScrollView>
+        </Modal>
+      </ScrollView>
+    </SafeAreaViewFixed>
   );
 }
 
@@ -1215,17 +1208,39 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 10,
   },
-  goalCard: {
+  activeGoalCard: {
     flexDirection: 'row',
     backgroundColor: '#E8E0D9',
     borderLeftWidth: 4,
-    borderLeftColor: '#9AB7B3',
+    borderLeftColor: '#FF7A00',
     padding: 20,
     // marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 12,
     elevation: 5,
   },
+  passiveGoalCard: {
+    flexDirection: 'row',
+    backgroundColor: '#E8E0D9',
+    borderLeftWidth: 4,
+    borderLeftColor: '#CD8B65',
+    padding: 20,
+    // marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    elevation: 5,
+  },
+  // goalCard: {
+  //   flexDirection: 'row',
+  //   backgroundColor: '#E8E0D9',
+  //   borderLeftWidth: 4,
+  //   borderLeftColor: '#9AB7B3',
+  //   padding: 20,
+  //   // marginHorizontal: 16,
+  //   marginVertical: 8,
+  //   borderRadius: 12,
+  //   elevation: 5,
+  // },
   goalInfo: {
     flex: 1,
     backgroundColor: '#E8E0D9',

@@ -40,7 +40,7 @@ const JournalBlock = () => {
           <YStack>
             {item.title && <Text fontSize="$3" fontWeight="bold">{item.title}</Text>}
             {item.image_url && (
-              <Image source={{ uri: item.image_url }} aspectRatio={16 / 9} />
+              <Image source={{ uri: item.image_url }} borderRadius="$3" marginVertical="$2" aspectRatio={16 / 9} />
             )}
             {item.description && <Text fontSize={11} numberOfLines={4}>{item.description}</Text>}
           </YStack>
@@ -68,21 +68,20 @@ const JournalBlock = () => {
     <YStack
       width="100%"
       height={300}
-      backgroundColor="$background"
+      backgroundColor="$orange2"
       borderRadius="$2"
-      borderColor="$borderColor"
+      borderColor="$orange6"
       borderWidth={1}
       onPress={() => navigation.navigate('Journal')}
-
     >
       <XStack justifyContent="space-between" alignItems="center" padding="$3">
         <Text fontSize="$5" fontWeight="bold">Journal</Text>
       </XStack>
-      <YStack space="$2" paddingHorizontal="$3">
+      <YStack space="$0" paddingHorizontal="$3">
         {recentItems.map((item, index) => (
           <React.Fragment key={`${item.type}-${item.id}`}>
             {renderItem(item)}
-            {index < recentItems.length - 1 && <Separator borderWidth={1} mb="$2"/>}
+            {index < recentItems.length - 1 && <Separator borderWidth={1} borderColor="$orange4" bg="$orange6" borderRadius="$2" my="$2"/>}
           </React.Fragment>
         ))}
       </YStack>

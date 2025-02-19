@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import {
-  View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
 } from "react-native";
+import { View, Text } from "tamagui";
 import MapViewScreen from "@/components/MapView";
 import { useLayoutEffect } from "react";
 import { FontAwesome } from "@expo/vector-icons";

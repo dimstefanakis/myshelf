@@ -156,9 +156,11 @@ function RootLayoutNav() {
   const theme = useTheme();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background.get() }}>
+    <View style={{ flex: 1, backgroundColor: theme.background.get() }}>
       <StatusBar hidden />
-      <Stack initialRouteName={user ? "(tabs)" : "login"}>
+      <Stack initialRouteName={user ? "(tabs)" : "login"} screenOptions={{
+        fullScreenGestureEnabled: true,
+      }}>
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen
           name="(tabs)"
@@ -201,21 +203,21 @@ function RootLayoutNav() {
         <Stack.Screen
           name="addJournalEntry/index"
           options={{
-            headerShown: true,
+            headerShown: false,
             headerTitle: 'Journal Entry'
           }}
         />
         <Stack.Screen
           name="addQuoteEntry/index"
           options={{
-            headerShown: true,
+            headerShown: false,
             headerTitle: 'Quote Entry'
           }}
         />
         <Stack.Screen
           name="addBookNoteEntry/index"
           options={{
-            headerShown: true,
+            headerShown: false,
             headerTitle: 'Note Entry'
           }}
         />
@@ -227,6 +229,39 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen
+          name="search"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="searchCategory/index"
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="editMarker"
+          options={{
+            presentation: "modal",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="addMarker"
+          options={{
+            presentation: "modal",
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="map"
+          options={{
+            headerShown: false,
+          }}
+        />
+        {/* <Stack.Screen
           name="searchCategory/index"
           options={{
             headerShadowVisible: false, // applied here
@@ -236,11 +271,9 @@ function RootLayoutNav() {
             headerStyle: {
               backgroundColor: Colors.light.background,
             },
-
-            // headerShown: false,
           }}
-        />
+        /> */}
       </Stack>
-    </SafeAreaView>
+    </View>
   );
 }

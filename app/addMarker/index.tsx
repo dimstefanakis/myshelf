@@ -7,9 +7,12 @@ import { useState } from "react";
 import { View } from "react-native";
 import { supabase } from "@/utils/supabase";
 import { useUserBooksStore } from "@/store/userBooksStore";
+import { useLocalSearchParams } from "expo-router";
 
 const AddMarker = ({ navigation, route }: any) => {
-  const { longitude, latitude } = route.params;
+  const localSearchParams = useLocalSearchParams();
+  const longitude = localSearchParams.longitude as string;
+  const latitude = localSearchParams.latitude as string;
   const user = useUser();
   const { books } = useUserBooksStore();
   const [markerData, setMarkerData] = useState({
@@ -27,12 +30,12 @@ const AddMarker = ({ navigation, route }: any) => {
     // Prepare the object to be inserted based on the marker_type
     let insertData = {
       user_book: markerData.user_book,
-      setting_origin_lat: null,
-      setting_origin_long: null,
-      author_nationality_lat: null,
-      author_nationality_long: null,
-      country_published_lat: null,
-      country_published_long: null,
+      setting_origin_lat: '',
+      setting_origin_long: '',
+      author_nationality_lat: '',
+      author_nationality_long: '',
+      country_published_lat: '',
+      country_published_long: '',
     };
 
     // Add latitude and longitude based on marker_type

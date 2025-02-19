@@ -34,8 +34,6 @@ export default function HomeStack() {
     >
       <Stack.Screen name="GridItems" component={HomepageContainers} />
       <Stack.Screen name="Search" component={Search} />
-      {/* <Stack.Screen name="MyShelf" component={MyShelfScreen} />
-      <Stack.Screen name="Profile" component={ProfileScreen} /> */}
       <Stack.Screen
         name="Chronology"
         component={ChronologyScreen}
@@ -48,7 +46,7 @@ export default function HomeStack() {
         name="Journal"
         component={JournalLanding}
         options={{
-          headerShown: true,
+          headerShown: false,
           headerTitle: "Journal",
           headerStyle: {
             backgroundColor: theme?.background?.val,

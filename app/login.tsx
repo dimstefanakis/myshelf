@@ -4,6 +4,7 @@ import { ActivityIndicator } from "react-native";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { useRouter, Redirect } from "expo-router";
 import { View, Text, Button, TextInput } from "@/components/Themed";
+import SafeAreaViewFixed from "@/components/SafeAreaView";
 import Colors from "@/constants/Colors";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
@@ -45,7 +46,7 @@ export default function Login() {
   }, [session, user]);
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <SafeAreaViewFixed style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
       <View
         style={{
           flex: 1,
@@ -127,6 +128,6 @@ export default function Login() {
           <Text>Sign Up</Text>
         </Button>
       </View>
-    </View>
+    </SafeAreaViewFixed>
   );
 }

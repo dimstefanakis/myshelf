@@ -82,11 +82,10 @@ const StatisticsBlock = () => {
   return (
     <YStack
       width="100%"
-      backgroundColor="$background"
+      backgroundColor='$orange2'
       borderRadius="$2"
-      borderColor="$borderColor"
+      borderColor="$orange6"
       borderWidth={1}
-      // pressStyle={{ opacity: 0.8 }}
       onPress={() => router.push('/statistics')}
     >
       <XStack justifyContent="space-between" alignItems="center" padding="$3">

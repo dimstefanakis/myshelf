@@ -9,11 +9,13 @@ import {
 } from "victory-native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useRouter, useNavigation } from "expo-router";
-import { View, Text, Button, ScrollView } from "@/components/Themed";
+import { View, Text, ScrollView } from "@/components/Themed";
 import useUser from "@/hooks/useUser";
 import { supabase } from "@/utils/supabase";
 import languages from "../languages";
 import { useUserBooksStore } from "@/store/userBooksStore";
+import { XStack, Button } from "tamagui";
+import { ChevronLeft } from "@tamagui/lucide-icons";
 
 interface GoogleApiData {
   volumeInfo?: {
@@ -44,6 +46,7 @@ function isGoogleApiData(obj: any): obj is GoogleApiData {
 }
 
 function StatisticsView() {
+  const router = useRouter();
   const { user } = useUser();
   const { books } = useUserBooksStore();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -58,7 +61,7 @@ function StatisticsView() {
       .from("books")
       .select("users_books(*),google_api_data")
       .eq("users_books.user", user?.id || "")
-      // .eq("users_books.status", "completed");
+    // .eq("users_books.status", "completed");
 
     if (error) {
       console.error("Error fetching data:", error);
@@ -173,7 +176,7 @@ function StatisticsView() {
 
       const mainSegments = dataForGenre.filter((item) => item.y >= 5);
       const smallSegments = dataForGenre.filter((item) => item.y < 5);
-      
+
       if (smallSegments.length > 0) {
         const otherPercentage = smallSegments.reduce((sum, item) => sum + item.y, 0);
         mainSegments.push({
@@ -194,7 +197,7 @@ function StatisticsView() {
       .from("books")
       .select(`users_books(*),google_api_data`)
       .eq("users_books.user", user?.id || "")
-      // .eq("users_books.status", "completed");
+    // .eq("users_books.status", "completed");
     if (error) {
       console.error("Error fetching data:", error);
       return;
@@ -220,7 +223,7 @@ function StatisticsView() {
 
       const mainLanguages = dataForLanguage.filter((item) => item.y >= 5);
       const smallLanguages = dataForLanguage.filter((item) => item.y < 5);
-      
+
       if (smallLanguages.length > 0) {
         const otherPercentage = smallLanguages.reduce((sum, item) => sum + item.y, 0);
         mainLanguages.push({
@@ -286,6 +289,18 @@ function StatisticsView() {
     </View>
   ) : (
     <ScrollView>
+      <XStack justifyContent="space-between" alignItems="center" paddingVertical="$2">
+        <Button
+          borderRadius={100}
+          w={50}
+          h={50}
+          chromeless
+          icon={<ChevronLeft size={24} color="$gray10" />}
+          onPress={() => router.back()}
+        >
+        </Button>
+      </XStack>
+
       <View
         style={{
           flexDirection: "row",

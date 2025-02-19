@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Alert, ActivityIndicator } from "react-native";
-import SelectDropdown from "react-native-select-dropdown";
-import { Button, Text, TextInput } from "@/components/Themed";
+import { View, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { Button, XStack, Text, Input, YStack, Select, Adapt, Sheet, TextArea } from "tamagui";
+import SafeAreaView from "@/components/SafeAreaView";
 import { supabase } from "@/utils/supabase";
 import useUser from "@/hooks/useUser";
 import { useUserBooksStore } from "@/store/userBooksStore";
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronLeft, ChevronDown } from "@tamagui/lucide-icons";
 
 const AddJournalEntryScreen = () => {
   const { id } = useLocalSearchParams();
@@ -29,6 +30,8 @@ const AddJournalEntryScreen = () => {
 
   const user = useUser();
   const { books } = useUserBooksStore();
+
+  const [textAreaHeight, setTextAreaHeight] = useState(200);
 
   const uploadData = async () => {
     // if (!journalData.title || !journalData.description) {
@@ -121,121 +124,160 @@ const AddJournalEntryScreen = () => {
   };
 
   return (
-    <View style={{ flex: 1, alignItems: "center", backgroundColor: "white" }}>
-      {/* {image && (
-        <Image source={{ uri: image.uri }} style={{ width: 200, height: 200, margin: 20 }} />
-      )} */}
-      <TextInput
-        style={styles.input}
-        onChangeText={(text) => handleChange("title", text)}
-        // if id exists then we are editing an existing journal entry
-        defaultValue={journalToEdit.title ? journalToEdit.title : ""}
-        placeholder="Title"
-      />
-      <TextInput
-        placeholder="Description"
-        multiline={true}
-        numberOfLines={4}
-        style={styles.multilineInput}
-        placeholderTextColor={"#9E9E9E"}
-        onChangeText={(text) => handleChange("description", text)}
-        defaultValue={
-          journalToEdit.description ? journalToEdit.description : ""
-        }
+    <SafeAreaView style={styles.container}>
+      <Button
+        borderRadius={100}
+        w={50}
+        h={50}
+        chromeless
+        icon={<ChevronLeft size={24} color="$gray10" />}
+        onPress={() => router.back()}
       />
 
-      {id ? (
-        <>
-          <Button style={styles.submitButton} onPress={updateJournalEntry}>
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={{ color: "white" }}>Update</Text>
+      <Text style={styles.headerText} marginVertical={20}>
+        {id ? "Edit Journal Entry" : "New Journal Entry"}
+      </Text>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoid}
+      >
+        <YStack f={1} jc="space-between" px="$4">
+          <YStack space="$4">
+            <Input
+              size="$4"
+              placeholder="Title (optional)"
+              onChangeText={(text) => handleChange("title", text)}
+              defaultValue={journalToEdit.title ? journalToEdit.title : ""}
+              backgroundColor="$orange2"
+              borderColor="$orange4"
+            />
+
+            {!id && (
+              <Select
+                value={journalData.users_book}
+                onValueChange={(value) => handleChange("users_book", value)}
+              >
+                <Select.Trigger
+                  width="100%"
+                  backgroundColor="$orange2"
+                  borderColor="$orange4"
+                  borderWidth={1}
+                  borderRadius={12}
+                  height={50}
+                  iconAfter={ChevronDown}
+                >
+                  <Select.Value placeholder="Select a book" />
+                </Select.Trigger>
+
+                <Adapt when="sm" platform="touch">
+                  <Sheet dismissOnSnapToBottom>
+                    <Sheet.Frame>
+                      <Sheet.ScrollView>
+                        <Adapt.Contents />
+                      </Sheet.ScrollView>
+                    </Sheet.Frame>
+                    <Sheet.Overlay />
+                  </Sheet>
+                </Adapt>
+
+                <Select.Content>
+                  <Select.Viewport>
+                    <Select.Group>
+                      {books.map((book, index) => (
+                        <Select.Item
+                          index={index}
+                          key={book.id}
+                          value={book.id}
+                        >
+                          <Select.ItemText>{book.book.title}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Group>
+                  </Select.Viewport>
+                </Select.Content>
+              </Select>
             )}
-          </Button>
-          <Button style={styles.deleteButton} onPress={deleteJournalEntry}>
-            {loading ? (
-              <ActivityIndicator color="white" />
+
+            <TextArea
+              placeholder="Write your thoughts..."
+              onChangeText={(text) => handleChange("description", text)}
+              defaultValue={journalToEdit.description ? journalToEdit.description : ""}
+              backgroundColor="$orange2"
+              borderColor="$orange4"
+              size="$4"
+              // height={textAreaHeight}
+              multiline
+              minHeight={300}
+              // onContentSizeChange={(e) => {
+              //   setTextAreaHeight(Math.max(200, e.nativeEvent.contentSize.height));
+              // }}
+            />
+          </YStack>
+
+          <View style={styles.buttonContainer}>
+            {id ? (
+              <>
+                <Button
+                  size="$6"
+                  width="100%"
+                  mb="$4"
+                  onPress={updateJournalEntry}
+                  backgroundColor="$orange10"
+                  color="white"
+                  pressStyle={{ backgroundColor: "$orange8" }}
+                >
+                  {loading ? <ActivityIndicator color="white" /> : "Save Changes"}
+                </Button>
+                <Button
+                  size="$6"
+                  width="100%"
+                  onPress={deleteJournalEntry}
+                  backgroundColor="#FF4444"
+                  color="white"
+                  pressStyle={{ opacity: 0.8 }}
+                >
+                  {loading ? <ActivityIndicator color="white" /> : "Delete Entry"}
+                </Button>
+              </>
             ) : (
-              <Text style={{ color: "white" }}>Delete</Text>
+              <Button
+                size="$6"
+                width="100%"
+                onPress={uploadData}
+                backgroundColor="$orange10"
+                color="white"
+                pressStyle={{ backgroundColor: "$orange8" }}
+              >
+                {loading ? <ActivityIndicator color="white" /> : "Create Entry"}
+              </Button>
             )}
-          </Button>
-        </>
-      ) : (
-        <>
-          <SelectDropdown
-            data={books.map((book) => book.book.title) || []}
-            onSelect={(selectedItem, index) => {
-              handleChange("users_book", books[index].id);
-            }}
-            buttonTextAfterSelection={(selectedItem) => selectedItem}
-            rowTextForSelection={(item) => item}
-            buttonStyle={styles.dropdown1BtnStyle}
-            defaultButtonText="Select a book"
-          />
-          <Button style={styles.submitButton} onPress={uploadData}>
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={{ color: "white" }}>Add</Text>
-            )}
-          </Button>
-        </>
-      )}
-    </View>
+          </View>
+        </YStack>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
-export default AddJournalEntryScreen;
-
 const styles = StyleSheet.create({
-  input: {
-    height: 40,
-    borderWidth: 1,
-    width: "80%",
-    padding: 10,
-    borderRadius: 10,
-    margin: 20,
+  container: {
+    flex: 1,
+    backgroundColor: "white",
   },
-  multilineInput: {
-    height: 120,
-    borderColor: "#E0E0E0",
-    borderWidth: 1,
-    width: "80%",
-    padding: 10,
-    borderRadius: 10,
-    textAlignVertical: "top",
-    marginBottom: 20,
+  headerText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "$orange11",
+    textAlign: "center",
   },
-  submitButton: {
-    // backgroundColor: "blue",
-    padding: 10,
-    alignItems: "center",
-    width: 200,
-    borderRadius: 10,
-    marginVertical: 10,
+  keyboardAvoid: {
+    flex: 1,
+    width: "100%",
   },
-  deleteButton: {
-    backgroundColor: "red",
-    padding: 10,
-    alignItems: "center",
-    width: 200,
-    borderRadius: 10,
-    marginVertical: 10,
-    position: "absolute",
-    bottom: 40,
-  },
-
-  submitButtonText: {
-    color: "black",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  dropdown1BtnStyle: {
-    width: "80%",
-    height: 50,
-    backgroundColor: "#e7e7e7",
-    borderRadius: 8,
-    marginBottom: 20,
+  buttonContainer: {
+    width: "100%",
+    paddingBottom: 20,
   },
 });
+
+export default AddJournalEntryScreen;

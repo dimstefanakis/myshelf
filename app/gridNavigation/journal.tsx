@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Portal } from "@gorhom/portal";
-import { NativeSyntheticEvent, NativeScrollEvent, FlatList } from "react-native";
+import { NativeSyntheticEvent, NativeScrollEvent, Pressable, FlatList } from "react-native";
 import { Animated } from "react-native";
 import * as ImagePicker from 'expo-image-picker';
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { router, useNavigation } from "expo-router";
+import SafeAreaViewFixed from "@/components/SafeAreaView";
 import { supabase } from "@/utils/supabase";
 import useUser from "@/hooks/useUser";
 import { useJournalStore } from "@/store/journalStore";
@@ -15,6 +16,7 @@ import {
   styled, View, Paragraph, useTheme, Sheet
 } from "tamagui";
 import type { Note, Journal, Quote } from "@/store/journalStore";
+import { ChevronLeft } from "@tamagui/lucide-icons";
 
 interface CombinedFeedItem extends Note, Journal, Quote {
   type: string;
@@ -187,6 +189,8 @@ const CombinedFeedScreen = () => {
 
   const FeedCard = styled(Card, {
     backgroundColor: "$orange2",
+    borderWidth: 1,
+    borderColor: "$orange6",
     padding: "$4",
     marginBottom: "$3",
     borderRadius: "$4",
@@ -430,79 +434,77 @@ const CombinedFeedScreen = () => {
     };
 
     return (
-      <>
-        <YStack
-          position="absolute"
-          bottom={16}
-          right={16}
-          alignItems="center"
-          justifyContent="center"
+      <YStack
+        position="absolute"
+        bottom={16}
+        right={16}
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Animated.View
+          style={[
+            { position: 'absolute' },
+            getAnimatedStyle('left')
+          ]}
         >
-          <Animated.View 
-            style={[
-              { position: 'absolute' },
-              getAnimatedStyle('left')
-            ]}
-          >
-            <Button
-              circular
-              size="$5"
-              backgroundColor="$orange10"
-              icon={<Feather name="camera" color="white" size={24} />}
-              onPress={() => {
-                toggleExpanded();
-                openCamera();
-              }}
-            />
-          </Animated.View>
-          
-          <Animated.View 
-            style={[
-              { position: 'absolute' },
-              getAnimatedStyle('topRight')
-            ]}
-          >
-            <Button
-              circular
-              size="$5"
-              backgroundColor="$orange10"
-              icon={<Entypo name="quote" color="white" size={24} />}
-              onPress={() => {
-                toggleExpanded();
-                router.push("/addQuoteEntry");
-              }}
-            />
-          </Animated.View>
-
-          <Animated.View 
-            style={[
-              { position: 'absolute' },
-              getAnimatedStyle('corner')
-            ]}
-          >
-            <Button
-              circular
-              size="$5"
-              backgroundColor="$orange10"
-              icon={<Feather name="book" color="white" size={24} />}
-              onPress={() => {
-                toggleExpanded();
-                router.push("/addJournalEntry");
-              }}
-            />
-          </Animated.View>
-
           <Button
             circular
-            size="$6"
+            size="$5"
             backgroundColor="$orange10"
-            icon={<Entypo name={isExpanded ? "cross" : "plus"} color="white" size={24} />}
-            onPress={toggleExpanded}
-            pressStyle={{ backgroundColor: "$orange8" }}
-            animation="quick"
+            icon={<Feather name="camera" color="white" size={24} />}
+            onPress={() => {
+              toggleExpanded();
+              openCamera();
+            }}
           />
-        </YStack>
-      </>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            { position: 'absolute' },
+            getAnimatedStyle('topRight')
+          ]}
+        >
+          <Button
+            circular
+            size="$5"
+            backgroundColor="$orange10"
+            icon={<Entypo name="quote" color="white" size={24} />}
+            onPress={() => {
+              toggleExpanded();
+              router.push("/addQuoteEntry");
+            }}
+          />
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            { position: 'absolute' },
+            getAnimatedStyle('corner')
+          ]}
+        >
+          <Button
+            circular
+            size="$5"
+            backgroundColor="$orange10"
+            icon={<Feather name="book" color="white" size={24} />}
+            onPress={() => {
+              toggleExpanded();
+              router.push("/addJournalEntry");
+            }}
+          />
+        </Animated.View>
+
+        <Button
+          circular
+          size="$6"
+          backgroundColor="$orange10"
+          icon={<Entypo name={isExpanded ? "cross" : "plus"} color="white" size={24} />}
+          onPress={toggleExpanded}
+          pressStyle={{ backgroundColor: "$orange8" }}
+          animation="quick"
+        />
+      </YStack>
     );
   };
 
@@ -587,130 +589,162 @@ const CombinedFeedScreen = () => {
   )
 
   return (
-    <YStack flex={1} backgroundColor="$background">
-      {/* Fixed position search input */}
-      <YStack 
-        position="absolute" 
-        top={0} 
-        left={0} 
-        right={0} 
-        zIndex={1}
-        padding="$4"
-        backgroundColor="$background"
-      >
-        <Input
-          placeholder="Search journal..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          backgroundColor="$orange2"
-          borderColor="$orange4"
-          fontSize="$4"
-          autoCorrect={false}
-          selectTextOnFocus
-          focusStyle={{ borderColor: "$orange10" }}
-        />
-      </YStack>
-
-      <AnimatedFlatList
-        data={filteredFeed}
-        renderItem={renderItem}
-        keyExtractor={(item: any) => `${item.type}-${item.id}`}
-        ListHeaderComponent={() => (
-          <YStack space="$4" marginTop={60}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <XStack space="$2" paddingVertical="$2">
-                <Button
-                  backgroundColor={selectedBookId ? "$orange10" : "$orange2"}
-                  borderColor="$orange4"
-                  borderWidth={1}
-                  borderRadius="$4"
-                  onPress={() => setIsBookFilterOpen(true)}
-                >
-                  <XStack space="$2" alignItems="center">
-                    <Feather
-                      name="book-open"
-                      size={16}
-                      color={selectedBookId ? "white" : "$orange11"}
-                    />
-                    <Text
-                      color={selectedBookId ? "white" : "$orange11"}
-                      numberOfLines={1}
-                    >
-                      {selectedBookId
-                        ? combinedFeed.find(item => item.users_book.book.id === selectedBookId)?.users_book.book.title
-                        : "Select Book"}
-                    </Text>
-                  </XStack>
-                </Button>
-                <FilterPill
-                  active={activeFilter === 'note'}
-                  onPress={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
-                >
-                  <XStack space="$2" alignItems="center">
-                    <Feather name="book" size={16} color={activeFilter === 'note' ? "white" : "$orange11"} />
-                    <Text color={activeFilter === 'note' ? "white" : "$orange11"}>Notes</Text>
-                  </XStack>
-                </FilterPill>
-                <FilterPill
-                  active={activeFilter === 'photo'}
-                  onPress={() => setActiveFilter(activeFilter === 'photo' ? null : 'photo')}
-                >
-                  <XStack space="$2" alignItems="center">
-                    <Feather name="camera" size={16} color={activeFilter === 'photo' ? "white" : "$orange11"} />
-                    <Text color={activeFilter === 'photo' ? "white" : "$orange11"}>Photos</Text>
-                  </XStack>
-                </FilterPill>
-                <FilterPill
-                  active={activeFilter === 'quote'}
-                  onPress={() => setActiveFilter(activeFilter === 'quote' ? null : 'quote')}
-                >
-                  <XStack space="$2" alignItems="center">
-                    <Entypo name="quote" size={16} color={activeFilter === 'quote' ? "white" : "$orange11"} />
-                    <Text color={activeFilter === 'quote' ? "white" : "$orange11"}>Quotes</Text>
-                  </XStack>
-                </FilterPill>
-              </XStack>
-            </ScrollView>
-          </YStack>
-        )}
-        ListEmptyComponent={ListEmptyComponent}
-        contentContainerStyle={{ padding: 16, gap: 16 }}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
+    <SafeAreaViewFixed style={{ flex: 1 }}>
+      <Button
+        borderRadius={100}
+        w={50}
+        h={50}
+        chromeless
+        icon={<ChevronLeft size={24} color="$gray10" />}
+        onPress={() => router.back()}
       />
 
-      <FloatingActionButton />
-      <BookFilterSheet />
-    </YStack>
+      <YStack flex={1} backgroundColor="$background">
+        {/* Fixed position search input */}
+        <YStack
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          zIndex={1}
+          padding="$4"
+          backgroundColor="$background"
+        >
+          <Input
+            placeholder="Search journal..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            backgroundColor="$orange2"
+            borderColor="$orange4"
+            fontSize="$4"
+            autoCorrect={false}
+            selectTextOnFocus
+            focusStyle={{ borderColor: "$orange10" }}
+          />
+        </YStack>
+
+        <AnimatedFlatList
+          data={filteredFeed}
+          renderItem={renderItem}
+          keyExtractor={(item: any) => `${item.type}-${item.id}`}
+          ListHeaderComponent={() => (
+            <YStack space="$4" marginTop={60}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <XStack space="$2" paddingVertical="$2">
+                  <Button
+                    backgroundColor={selectedBookId ? "$orange10" : "$orange2"}
+                    borderColor="$orange4"
+                    borderWidth={1}
+                    borderRadius="$4"
+                    onPress={() => setIsBookFilterOpen(true)}
+                  >
+                    <XStack space="$2" alignItems="center">
+                      <Feather
+                        name="book-open"
+                        size={16}
+                        color={selectedBookId ? "white" : "$orange11"}
+                      />
+                      <Text
+                        color={selectedBookId ? "white" : "$orange11"}
+                        numberOfLines={1}
+                      >
+                        {selectedBookId
+                          ? combinedFeed.find(item => item.users_book.book.id === selectedBookId)?.users_book.book.title
+                          : "Select Book"}
+                      </Text>
+                    </XStack>
+                  </Button>
+                  <FilterPill
+                    active={activeFilter === 'note'}
+                    onPress={() => setActiveFilter(activeFilter === 'note' ? null : 'note')}
+                  >
+                    <XStack space="$2" alignItems="center">
+                      <Feather name="book" size={16} color={activeFilter === 'note' ? "white" : "$orange11"} />
+                      <Text color={activeFilter === 'note' ? "white" : "$orange11"}>Notes</Text>
+                    </XStack>
+                  </FilterPill>
+                  <FilterPill
+                    active={activeFilter === 'photo'}
+                    onPress={() => setActiveFilter(activeFilter === 'photo' ? null : 'photo')}
+                  >
+                    <XStack space="$2" alignItems="center">
+                      <Feather name="camera" size={16} color={activeFilter === 'photo' ? "white" : "$orange11"} />
+                      <Text color={activeFilter === 'photo' ? "white" : "$orange11"}>Photos</Text>
+                    </XStack>
+                  </FilterPill>
+                  <FilterPill
+                    active={activeFilter === 'quote'}
+                    onPress={() => setActiveFilter(activeFilter === 'quote' ? null : 'quote')}
+                  >
+                    <XStack space="$2" alignItems="center">
+                      <Entypo name="quote" size={16} color={activeFilter === 'quote' ? "white" : "$orange11"} />
+                      <Text color={activeFilter === 'quote' ? "white" : "$orange11"}>Quotes</Text>
+                    </XStack>
+                  </FilterPill>
+                </XStack>
+              </ScrollView>
+            </YStack>
+          )}
+          ListEmptyComponent={ListEmptyComponent}
+          contentContainerStyle={{ padding: 16, gap: 16 }}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
+          scrollEventThrottle={16}
+        />
+
+        <FloatingActionButton />
+        <BookFilterSheet />
+      </YStack>
+    </SafeAreaViewFixed>
   );
 };
 
 const NoteItem = ({ item }: { item: Note }) => (
-  <YStack space="$2">
-    <Text color="$orange11" fontSize="$5" fontWeight="bold">{item.title}</Text>
-    <Paragraph>{item.description}</Paragraph>
-    {item.image_url && (
-      <Image
-        source={{ uri: item.image_url }}
-        aspectRatio={16 / 9}
-        borderRadius="$2"
-        objectFit="cover"
-      />
-    )}
-  </YStack>
+  <Pressable
+    onPress={() => {
+      router.push({
+        pathname: "/addBookNoteEntry",
+        params: {
+          id: item.id,
+          cover_image: item.users_book?.book?.cover_url
+        }
+      });
+    }}
+  >
+    <YStack space="$2">
+      <Text color="$orange11" fontSize="$5" fontWeight="bold">{item.title}</Text>
+      <Paragraph>{item.description}</Paragraph>
+      {item.image_url && (
+        <Image
+          source={{ uri: item.image_url }}
+          aspectRatio={16 / 9}
+          borderRadius="$2"
+          objectFit="cover"
+        />
+      )}
+    </YStack>
+  </Pressable>
 );
 
 const JournalItem = ({ item }: { item: Journal }) => (
-  <YStack space="$2">
-    <Text color="$orange11" fontSize="$4" fontWeight="bold">
-      {new Date(item.created_at).toLocaleDateString()}
-    </Text>
-    <Text fontSize="$5" fontWeight="bold">{item.title}</Text>
-    <Paragraph>{item.description}</Paragraph>
-  </YStack>
+  <Pressable
+    onPress={() => {
+      router.push({
+        pathname: "/addJournalEntry",
+        params: { id: item.id }
+      });
+    }}
+  >
+    <YStack space="$2">
+      <Text color="$orange11" fontSize="$4" fontWeight="bold">
+        {new Date(item.created_at).toLocaleDateString()}
+      </Text>
+      <Text fontSize="$5" fontWeight="bold">{item.title}</Text>
+      <Paragraph>{item.description}</Paragraph>
+    </YStack>
+  </Pressable>
 );
 
 const QuoteItem = ({ item }: { item: Quote }) => {
@@ -736,72 +770,78 @@ const QuoteItem = ({ item }: { item: Quote }) => {
   };
 
   return (
-    <YStack space="$4">
-      {/* Book info header */}
-      <XStack space="$3" alignItems="center">
-        <Image
-          source={{ uri: item.users_book.book.cover_url || "" }}
-          width={40}
-          height={60}
-          borderRadius="$2"
-        />
-        <YStack flex={1}>
-          <Text fontSize="$3" fontWeight="bold" color="$orange11" numberOfLines={1}>
-            {item.users_book.book.title}
-          </Text>
-          <Text fontSize="$2" color="$orange11" opacity={0.8}>
-            {item.author}
+    <Pressable
+      onPress={() => {
+        router.push({
+          pathname: "/addQuoteEntry",
+          params: { id: item.id }
+        });
+      }}
+    >
+      <YStack space="$4">
+        <XStack space="$3" alignItems="center">
+          <Image
+            source={{ uri: item.users_book.book.cover_url || "" }}
+            width={40}
+            height={60}
+            borderRadius="$2"
+          />
+          <YStack flex={1}>
+            <Text fontSize="$3" fontWeight="bold" color="$orange11" numberOfLines={1}>
+              {item.users_book.book.title}
+            </Text>
+            <Text fontSize="$2" color="$orange11" opacity={0.8}>
+              {item.author}
+            </Text>
+          </YStack>
+        </XStack>
+
+        <YStack
+          backgroundColor="$orange4"
+          padding="$4"
+          borderRadius="$4"
+          borderLeftWidth={4}
+          borderLeftColor="$orange10"
+        >
+          <Text fontSize="$5" fontStyle="italic" color="$orange11">
+            "{item.title}"
           </Text>
         </YStack>
-      </XStack>
 
-      {/* Quote content */}
-      <YStack
-        backgroundColor="$orange4"
-        padding="$4"
-        borderRadius="$4"
-        borderLeftWidth={4}
-        borderLeftColor="$orange10"
-      >
-        <Text fontSize="$5" fontStyle="italic" color="$orange11">
-          "{item.title}"
-        </Text>
+        <XStack justifyContent="flex-end" space="$2">
+          <Button
+            size="$3"
+            backgroundColor="transparent"
+            pressStyle={{ backgroundColor: "$orange4" }}
+            onPress={onShare}
+            icon={
+              <XStack space="$2" alignItems="center">
+                <FontAwesome6 name="share-square" size={16} color="$orange11" />
+                <Text color="$orange11">Share</Text>
+              </XStack>
+            }
+          />
+          <Button
+            size="$3"
+            backgroundColor="transparent"
+            pressStyle={{ backgroundColor: "$orange4" }}
+            onPress={toggleLike}
+            icon={
+              <XStack space="$2" alignItems="center">
+                <FontAwesome6
+                  name={liked ? "heart" : "heart"}
+                  size={16}
+                  color={liked ? "$red10" : "$orange11"}
+                />
+                <Text color={liked ? "$red10" : "$orange11"}>
+                  {liked ? "Liked" : "Like"}
+                </Text>
+              </XStack>
+            }
+          />
+        </XStack>
       </YStack>
-
-      {/* Action buttons */}
-      <XStack justifyContent="flex-end" space="$2">
-        <Button
-          size="$3"
-          backgroundColor="transparent"
-          pressStyle={{ backgroundColor: "$orange4" }}
-          onPress={onShare}
-          icon={
-            <XStack space="$2" alignItems="center">
-              <FontAwesome6 name="share-square" size={16} color="$orange11" />
-              <Text color="$orange11">Share</Text>
-            </XStack>
-          }
-        />
-        <Button
-          size="$3"
-          backgroundColor="transparent"
-          pressStyle={{ backgroundColor: "$orange4" }}
-          onPress={toggleLike}
-          icon={
-            <XStack space="$2" alignItems="center">
-              <FontAwesome6
-                name={liked ? "heart" : "heart"}
-                size={16}
-                color={liked ? "$red10" : "$orange11"}
-              />
-              <Text color={liked ? "$red10" : "$orange11"}>
-                {liked ? "Liked" : "Like"}
-              </Text>
-            </XStack>
-          }
-        />
-      </XStack>
-    </YStack>
+    </Pressable>
   );
 };
 

@@ -3,10 +3,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import SelectDropdown from "react-native-select-dropdown";
-import { Text, TextInput, Button } from "@/components/Themed";
+import { Text, Button } from "tamagui";
 import useUser from "@/hooks/useUser";
 import { useUserBooksStore } from "@/store/userBooksStore";
 import { useNavigation } from "@react-navigation/native";
@@ -14,7 +15,10 @@ import { supabase } from "@/utils/supabase";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
 import { Image, Modal } from "react-native";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import { Button as TamaguiButton, XStack, Text as TamaguiText, Input, YStack, Select, Adapt, Sheet, TextArea } from "tamagui";
+import { ChevronDown, ChevronLeft } from "@tamagui/lucide-icons";
+import SafeAreaView from "@/components/SafeAreaView";
+import { useRouter } from 'expo-router';
 
 const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   const [loading, setLoading] = useState(false);
@@ -37,7 +41,8 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   const user = useUser();
   const { books } = useUserBooksStore();
   const { image, id, cover_image } = route.params ?? {};
-  // if id exists then we are editing an existing book entry
+  const router = useRouter();
+
   const uploadData = async () => {
     setLoading(true);
 
@@ -273,76 +278,141 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
   };
 
   return (
-    <View style={{ flex: 1, alignItems: "center" }}>
-      {cover_image && (
-        <>
-          <Image
-            source={{ uri: cover_image }}
-            style={{ width: 100, height: 100, borderRadius: 10 }}
-          />
-        </>
-      )}
-      <TextInput
-        placeholder="Title"
-        style={styles.input}
-        onChangeText={(text) => handleChange("title", text)}
-        defaultValue={bookToEdit.title ? bookToEdit.title : ""}
+    <SafeAreaView style={styles.container}>
+      <Button
+        borderRadius={100}
+        w={50}
+        h={50}
+        chromeless
+        icon={<ChevronLeft size={24} color="$gray10" />}
+        onPress={() => navigation.goBack()}
       />
-      <TextInput
-        placeholder="Description"
-        multiline={true}
-        numberOfLines={4}
-        style={styles.multilineInput}
-        onChangeText={(text) => handleChange("description", text)}
-        defaultValue={bookToEdit.description ? bookToEdit.description : ""}
-      />
-      {id ? (
-        <>
-          <View
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "center",
-              width: "80%",
-            }}
-          >
-            <Button onPress={updateBookNoteEntry} style={styles.Touchable}>
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={{ color: "white" }}>Update Note</Text>
-              )}
-            </Button>
-            <Button onPress={deleteBookNoteEntry} style={styles.deleteButton}>
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={{ color: "white" }}>Delete Note</Text>
-              )}
-            </Button>
-          </View>
-        </>
-      ) : (
-        <>
-          <SelectDropdown
-            data={books.map((book) => book.book.title) || []}
-            onSelect={(selectedItem, index) => {
-              handleChange("users_book", books[index].id);
-            }}
-            buttonTextAfterSelection={(selectedItem) => selectedItem}
-            rowTextForSelection={(item) => item}
-            buttonStyle={styles.dropdown1BtnStyle}
-            defaultButtonText="Select a book"
-          />
-          <Button onPress={uploadData} style={styles.Touchable}>
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text style={{ color: "white" }}>Create Note</Text>
+
+      <TamaguiText style={styles.headerText} marginVertical={20}>
+        {id ? "Edit Note" : "New Note"}
+      </TamaguiText>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardAvoid}
+      >
+        <YStack f={1} jc="space-between" px="$4">
+          <YStack space="$4">
+            {cover_image && (
+              <Image
+                source={{ uri: cover_image }}
+                style={{ width: 100, height: 100, borderRadius: 10, alignSelf: 'center' }}
+              />
             )}
-          </Button>
-        </>
-      )}
+            
+            <Input
+              size="$4"
+              placeholder="Title"
+              onChangeText={(text) => handleChange("title", text)}
+              defaultValue={bookToEdit.title ? bookToEdit.title : ""}
+              backgroundColor="$orange2"
+              borderColor="$orange4"
+            />
+
+            <TextArea
+              placeholder="Description"
+              onChangeText={(text) => handleChange("description", text)}
+              defaultValue={bookToEdit.description ? bookToEdit.description : ""}
+              backgroundColor="$orange2"
+              borderColor="$orange4"
+              size="$4"
+              multiline
+              minHeight={300}
+            />
+
+            {!id && (
+              <Select
+                value={bookData.users_book}
+                onValueChange={(value) => handleChange("users_book", value)}
+              >
+                <Select.Trigger 
+                  width="100%" 
+                  backgroundColor="$orange2"
+                  borderColor="$orange4"
+                  borderWidth={1}
+                  borderRadius={12}
+                  height={50}
+                  iconAfter={ChevronDown}
+                >
+                  <Select.Value placeholder="Select a book" />
+                </Select.Trigger>
+
+                <Adapt when="sm" platform="touch">
+                  <Sheet dismissOnSnapToBottom>
+                    <Sheet.Frame>
+                      <Sheet.ScrollView>
+                        <Adapt.Contents />
+                      </Sheet.ScrollView>
+                    </Sheet.Frame>
+                    <Sheet.Overlay />
+                  </Sheet>
+                </Adapt>
+
+                <Select.Content>
+                  <Select.Viewport>
+                    <Select.Group>
+                      {books.map((book, index) => (
+                        <Select.Item 
+                          index={index} 
+                          key={book.id} 
+                          value={book.id}
+                        >
+                          <Select.ItemText>{book.book.title}</Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.Group>
+                  </Select.Viewport>
+                </Select.Content>
+              </Select>
+            )}
+          </YStack>
+
+          <View style={styles.buttonContainer}>
+            {id ? (
+              <>
+                <Button
+                  size="$6"
+                  width="100%"
+                  mb="$4"
+                  onPress={updateBookNoteEntry}
+                  backgroundColor="$orange10"
+                  color="white"
+                  pressStyle={{ backgroundColor: "$orange8" }}
+                >
+                  {loading ? <ActivityIndicator color="white" /> : "Save Changes"}
+                </Button>
+                <Button
+                  size="$6"
+                  width="100%"
+                  onPress={deleteBookNoteEntry}
+                  backgroundColor="#FF4444"
+                  color="white"
+                  pressStyle={{ opacity: 0.8 }}
+                >
+                  {loading ? <ActivityIndicator color="white" /> : "Delete Note"}
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="$6"
+                width="100%"
+                onPress={uploadData}
+                backgroundColor="$orange10"
+                color="white"
+                pressStyle={{ backgroundColor: "$orange8" }}
+              >
+                {loading ? <ActivityIndicator color="white" /> : "Create Note"}
+              </Button>
+            )}
+          </View>
+        </YStack>
+      </KeyboardAvoidingView>
+
       {images.length > 0 && images[0].includes("http") && (
         <>
           <Text style={{ fontSize: 20, margin: 10 }}>
@@ -391,13 +461,31 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
           )}
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 export default AddBookNoteEntryScreen;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "$orange11",
+    textAlign: "center",
+  },
+  keyboardAvoid: {
+    flex: 1,
+    width: "100%",
+  },
+  buttonContainer: {
+    width: "100%",
+    paddingBottom: 20,
+  },
   input: {
     height: 40,
     borderWidth: 1,
@@ -416,17 +504,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 20,
   },
-  dropdown1BtnStyle: {
-    width: "80%",
-    height: 50,
-    backgroundColor: "#e7e7e7",
-    borderRadius: 8,
-    marginBottom: 20,
-  },
   galleryImage: {
     width: 110,
     height: 110,
-    // borderRadius: 10,
     margin: 5,
   },
   centeredView: {
@@ -450,7 +530,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-
   Touchable: {
     backgroundColor: "black",
     padding: 10,

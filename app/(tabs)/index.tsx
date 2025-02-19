@@ -4,14 +4,16 @@ import { Image } from "expo-image";
 import { Dimensions, View, LayoutChangeEvent } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { Feather } from '@expo/vector-icons';
-import { Stack, XStack, YStack, Text, Button } from "tamagui";
+import { Stack, XStack, YStack, Text, Button, useTheme } from "tamagui";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import SafeAreaViewFixed from "@/components/SafeAreaView";
 import JournalBlock from "@/components/Dashboard/JournalBlock";
 import ShelvesBlock from "@/components/Dashboard/ShelvesBlock";
 import StatisticsBlock from "@/components/Dashboard/StatisticsBlock";
 import GoalTrackerBlock from "@/components/Dashboard/GoalTrackerBlock";
 import MapBlock from "@/components/Dashboard/MapBlock";
 import { FlashList, MasonryFlashList } from "@shopify/flash-list";
+import Colors from "@/constants/Colors";
 
 const data = [
   {
@@ -96,7 +98,7 @@ function HomepageContainers() {
         <YStack
           marginHorizontal={spacing / 2}
           marginBottom={spacing / 2}
-          width={(screenWidth - spacing * 3) / 2}
+          width={(screenWidth - spacing * 2) / 2}
         >
           <JournalBlock />
         </YStack>
@@ -108,7 +110,7 @@ function HomepageContainers() {
         <YStack
           marginHorizontal={spacing / 2}
           marginBottom={spacing / 2}
-          width={(screenWidth - spacing * 3) / 2}
+          width={(screenWidth - spacing * 2) / 2}
         >
           <ShelvesBlock />
         </YStack>
@@ -120,7 +122,7 @@ function HomepageContainers() {
         <YStack
           marginHorizontal={spacing / 2}
           marginBottom={spacing / 2}
-          width={(screenWidth - spacing * 3) / 2}
+          width={(screenWidth - spacing * 2) / 2}
         >
           <StatisticsBlock />
         </YStack>
@@ -132,7 +134,7 @@ function HomepageContainers() {
         <YStack
           marginHorizontal={spacing / 2}
           marginBottom={spacing / 2}
-          width={(screenWidth - spacing * 3) / 2}
+          width={(screenWidth - spacing * 2) / 2}
         >
           <GoalTrackerBlock />
         </YStack>
@@ -144,7 +146,7 @@ function HomepageContainers() {
         <YStack
           marginHorizontal={spacing / 2}
           marginBottom={spacing / 2}
-          width={(screenWidth - spacing * 3) / 2}
+          width={(screenWidth - spacing * 2) / 2}
         >
           <MapBlock />
         </YStack>
@@ -155,27 +157,30 @@ function HomepageContainers() {
   };
 
   return (
-    <YStack flex={1} padding="$2" backgroundColor="$background">
-      <XStack justifyContent="space-between" alignItems="center" paddingVertical="$2" paddingHorizontal="$4">
-        <Button
-          icon={<Feather name="user" size={24} color="$color" />}
-          unstyled
-          onPress={() => router.push('/profile')}
-        />
-        <Button
-          icon={<Feather name="search" size={24} color="$color" />}
-          onPress={() => router.push('/search')}
-          unstyled
-        />
-      </XStack>
+    <YStack bg="white" flex={1}>
+      <SafeAreaViewFixed style={{ flex: 1 }}>
+        <XStack justifyContent="space-between" alignItems="center" paddingVertical="$2" paddingHorizontal="$4">
+          <Button
+            icon={<Feather name="user" size={24} color="$color" />}
+            unstyled
+            onPress={() => router.push('/profile')}
+          />
+          <Button
+            icon={<Feather name="search" size={24} color="$color" />}
+            onPress={() => router.push('/search')}
+            unstyled
+          />
+        </XStack>
 
-      <MasonryFlashList
-        data={data as Item[]}
-        renderItem={renderItem}
-        estimatedItemSize={200}
-        numColumns={2}
-        contentContainerStyle={{ paddingHorizontal: spacing / 2 }}
-      />
+        <YStack flex={1} justifyContent="center" paddingTop="$3" paddingLeft="$1" paddingRight="$2">
+          <MasonryFlashList
+            data={data as Item[]}
+            renderItem={renderItem}
+            estimatedItemSize={200}
+            numColumns={2}
+          />
+        </YStack>
+      </SafeAreaViewFixed>
     </YStack>
   );
 }

@@ -3,6 +3,7 @@ import { StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { useUserBooksStore } from "@/store/userBooksStore";
+import SafeAreaViewFixed from "@/components/SafeAreaView";
 import { supabase } from "@/utils/supabase";
 import type { UserBook } from "@/store/userBooksStore";
 
@@ -93,9 +94,10 @@ export default function MyShelfScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <XStack>
-        <Button
+    <SafeAreaViewFixed style={styles.container}>
+      <ScrollView style={styles.container}>
+        <XStack>
+          <Button
           borderRadius={100}
           w={50}
           h={50}
@@ -131,6 +133,7 @@ export default function MyShelfScreen() {
         <Text color="white">+ Add New Shelf</Text>
       </Button>
     </ScrollView>
+    </SafeAreaViewFixed>
   );
 }
 

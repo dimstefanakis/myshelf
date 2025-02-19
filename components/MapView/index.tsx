@@ -1,12 +1,12 @@
-import 'react-native-get-random-values';
+import "react-native-get-random-values";
 import React, { useEffect, useState, useRef } from "react";
-import { Modal, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { router, useRouter } from "expo-router";
+import { StyleSheet, TouchableOpacity, Platform } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import MapEvent from "react-native-maps";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
-import { View, Button, TextInput, Text } from "../Themed";
+import { View, Button, Text, XStack } from "tamagui";
+import { ChevronLeft } from "@tamagui/lucide-icons";
 import { supabase } from "@/utils/supabase";
-import { useNavigation } from "expo-router";
 import useUser from "@/hooks/useUser";
 
 // Define an interface for your markers
@@ -26,40 +26,33 @@ type Geometry = {
 };
 
 export default function MapViewScreen({ navigation, sortCategory }: any) {
-  const nav = useNavigation<any>();
+  const router = useRouter();
   const mapRef = useRef<MapView>(null);
   const user = useUser();
   const [markers, setMarkers] = useState<MarkerType[]>([]);
 
   const handleMapPress = (e: any) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
-    // navigate to addMarker
-    nav.navigate("AddMarker", {
-      latitude,
-      longitude,
+    router.push({
+      pathname: "/AddMarker",
+      params: { latitude, longitude }
     });
   };
 
   const handleAutoComplete = (data: Geometry) => {
     const { lat, lng } = data.location;
-    // navigate to addMarker
-    nav.navigate("AddMarker", {
-      latitude: lat,
-      longitude: lng,
+    router.push({
+      pathname: "/AddMarker",
+      params: { latitude: lat, longitude: lng }
     });
   };
 
   useEffect(() => {
-    const unsubscribe = nav.addListener("focus", () => {
-      fetchMarkers();
-    });
-
-    return unsubscribe;
-  }, [nav]);
+    fetchMarkers();
+  }, []);
 
   const handleEditMarker = () => {
-    // navigate to editMarker
-    nav.navigate("EditMarkers");
+    router.push("/EditMarkers");
   };
 
   const fetchMarkers = async () => {
@@ -78,7 +71,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
         country_published_lat,
         country_published_long,
         user_book: users_books(*, book: books(*) )
-      `,
+      `
       )
       .eq("user_book.user", user?.user?.id || "");
 
@@ -123,8 +116,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
                 : marker.author_nationality_lat &&
                   marker.author_nationality_long
                   ? "Author National"
-                  : marker.country_published_lat &&
-                    marker.country_published_long
+                  : marker.country_published_lat && marker.country_published_long
                     ? "Country Published"
                     : null;
             latitude =
@@ -155,12 +147,66 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
     }
   };
 
-  useEffect(() => {
-    fetchMarkers();
-  }, [user, sortCategory]);
-
   return (
     <View style={styles.container}>
+      <XStack
+        space="$2"
+        style={{
+          position: "absolute",
+          top: 80,
+          width: "100%",
+          height: 50,
+          zIndex: 100,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingHorizontal: 20,
+        }}
+      >
+        <Button
+          borderRadius={100}
+          w={50}
+          h={50}
+          icon={<ChevronLeft size={24} color="$gray10" />}
+          onPress={() => router.back()}
+        />
+        <View style={{ flex: 1, paddingLeft: 10 }}>
+          <GooglePlacesAutocomplete
+            placeholder="Search"
+            fetchDetails
+            textInputProps={{
+              placeholderTextColor: "black",
+            }}
+            styles={{
+              container: {
+                width: "100%",
+                height: "100%",
+              },
+              textInput: {
+                color: "black",
+                height: 50,
+              },
+            }}
+            onPress={(data, details = null) => {
+              // 'details' is provided when fetchDetails = true
+              if (details?.geometry) {
+                mapRef?.current?.animateToRegion({
+                  latitude: details.geometry.location.lat || 0,
+                  longitude: details.geometry.location.lng || 0,
+                  latitudeDelta: 0.1,
+                  longitudeDelta: 0.1,
+                });
+                setTimeout(() => {
+                  handleAutoComplete(details.geometry);
+                }, 1000);
+              }
+            }}
+            query={{
+              key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
+              language: "en",
+            }}
+          />
+        </View>
+      </XStack>
       {markers.length > 0 && (
         <TouchableOpacity
           style={styles.editButton}
@@ -169,30 +215,6 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
           <Text style={styles.editButtonText}>Edit Markers</Text>
         </TouchableOpacity>
       )}
-      <View style={styles.searchContainer}>
-        <GooglePlacesAutocomplete
-          placeholder="Search"
-          fetchDetails
-          onPress={(data, details = null) => {
-            // 'details' is provided when fetchDetails = true
-            if (details?.geometry) {
-              mapRef?.current?.animateToRegion({
-                latitude: details.geometry.location.lat || 0,
-                longitude: details.geometry.location.lng || 0,
-                latitudeDelta: 0.1,
-                longitudeDelta: 0.1,
-              });
-              setTimeout(() => {
-                handleAutoComplete(details.geometry);
-              }, 1000);
-            }
-          }}
-          query={{
-            key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
-            language: "en",
-          }}
-        />
-      </View>
       {Platform.OS === "android" ? (
         <MapView
           provider={PROVIDER_GOOGLE}
@@ -241,10 +263,11 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: "relative",
   },
   searchContainer: {
     position: "absolute",
-    top: 20,
+    top: 100,
     left: 20,
     right: 20,
     zIndex: 10,

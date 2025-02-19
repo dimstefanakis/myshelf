@@ -125,13 +125,30 @@ export default function BookProfileScreen() {
     router.back();
   };
 
-  if (loading) {
-    return (
-      <YStack flex={1} justifyContent="center" alignItems="center">
-        <ActivityIndicator size="large" />
-      </YStack>
-    );
-  }
+  const updateBookStatus = async (newStatus: 'currently_reading' | 'completed' | 'future_reading') => {
+    setLoading(true);
+    const { error } = await supabase
+      .from("users_books")
+      .update({ status: newStatus })
+      .eq("id", bookId);
+
+    if (error) {
+      console.error(error);
+      setLoading(false);
+      return;
+    }
+
+    const { data } = await supabase
+      .from("users_books")
+      .select("*, book(*)")
+      .eq("user", user?.id || "");
+
+    if (data) {
+      setBooks(data as unknown as UserBook[]);
+      setBook(prev => prev ? { ...prev, status: newStatus } : null);
+    }
+    setLoading(false);
+  };
 
   return (
     <ScrollView>
@@ -158,11 +175,68 @@ export default function BookProfileScreen() {
 
         {/* Reading Status Card */}
         <Card backgroundColor="$orange2" padding="$4">
-          <H4 color="$orange11">Reading Status</H4>
-          <Text fontSize="$4" marginTop="$2">
-            {book?.status === 'currently_reading' ? 'Currently Reading' :
-             book?.status === 'completed' ? 'Completed' : 'Want to Read'}
-          </Text>
+          <H4 color="$orange11" marginBottom="$2">Reading Status</H4>
+          <YStack space="$3">
+            <Button
+              backgroundColor={book?.status === 'currently_reading' ? '$orange10' : '$orange2'}
+              borderColor="$orange4"
+              borderWidth={1}
+              onPress={() => updateBookStatus('currently_reading')}
+              disabled={loading}
+              icon={loading && book?.status !== 'currently_reading' ? 
+                <ActivityIndicator size="small" color="black" /> :
+                <MaterialCommunityIcons 
+                  name="book-open-page-variant" 
+                  size={20} 
+                  color={book?.status === 'currently_reading' ? 'white' : '$orange11'} 
+                />
+              }
+            >
+              <Text color={book?.status === 'currently_reading' ? 'white' : '$orange11'}>
+                Currently Reading
+              </Text>
+            </Button>
+
+            <Button
+              backgroundColor={book?.status === 'completed' ? '$orange10' : '$orange2'}
+              borderColor="$orange4"
+              borderWidth={1}
+              onPress={() => updateBookStatus('completed')}
+              disabled={loading}
+              icon={loading && book?.status !== 'completed' ? 
+                <ActivityIndicator size="small" color="black" /> :
+                <MaterialCommunityIcons 
+                  name="bookmark-check" 
+                  size={20} 
+                  color={book?.status === 'completed' ? 'white' : '$orange11'} 
+                />
+              }
+            >
+              <Text color={book?.status === 'completed' ? 'white' : '$orange11'}>
+                Completed
+              </Text>
+            </Button>
+
+            <Button
+              backgroundColor={book?.status === 'future_reading' ? '$orange10' : '$orange2'}
+              borderColor="$orange4"
+              borderWidth={1}
+              onPress={() => updateBookStatus('future_reading')}
+              disabled={loading}
+              icon={loading && book?.status !== 'future_reading' ? 
+                <ActivityIndicator size="small" color="black" /> :
+                <MaterialCommunityIcons 
+                  name="bookmark-plus" 
+                  size={20} 
+                  color={book?.status === 'future_reading' ? 'white' : '$orange11'} 
+                />
+              }
+            >
+              <Text color={book?.status === 'future_reading' ? 'white' : '$orange11'}>
+                Want to Read
+              </Text>
+            </Button>
+          </YStack>
         </Card>
 
         {/* Book Description Card */}
@@ -281,10 +355,17 @@ export default function BookProfileScreen() {
         {/* Remove Button */}
         <Button
           onPress={removeFromShelf}
-          backgroundColor="$red10"
-          icon={<MaterialCommunityIcons name="bookmark-remove" size={20} color="white" />}
+          backgroundColor="$red2"
+          mb="$10"
+          borderColor="$red8"
+          borderWidth={1}
+          disabled={loading}
+          icon={loading ? 
+            <ActivityIndicator size="small" color="$red10" /> :
+            <MaterialCommunityIcons name="bookmark-remove" size={20} color="$red10" />
+          }
         >
-          Remove from Shelf
+          <Text color="$red10">Remove from Library</Text>
         </Button>
       </YStack>
     </ScrollView>

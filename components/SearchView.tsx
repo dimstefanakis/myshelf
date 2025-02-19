@@ -4,9 +4,11 @@ import {
   useNavigation,
   useFocusEffect,
   useLocalSearchParams,
+  router,
 } from "expo-router";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
+import { ChevronLeft } from "@tamagui/lucide-icons";
 import { useDebounceValue } from "usehooks-ts";
 import {
   TouchableNativeFeedback,
@@ -17,6 +19,7 @@ import {
 } from "react-native";
 
 import { Text, Input, View, ScrollView, Button } from "tamagui";
+import SafeAreaViewFixed from "@/components/SafeAreaView";
 import type { Book } from "@/constants/BookTypes";
 import { isLoaded } from "expo-font";
 import { Pressable } from "react-native";
@@ -39,7 +42,6 @@ export default function Search({
   const filter = localSearchParams.filter || (rest.filter as string);
   const category = localSearchParams.category || (rest.category as string);
 
-  console.log("addact", addAction)
   const [search, setSearch] = useDebounceValue("", 500);
   const [results, setResults] = useState<Book[] | []>([]);
   const [bookIndex, setBookIndex] = useState<number>(0);
@@ -141,7 +143,16 @@ export default function Search({
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'white' }}>
+    <SafeAreaViewFixed style={{ flex: 1, backgroundColor: 'white' }}>
+      <Button
+        borderRadius={100}
+        w={50}
+        h={50}
+        chromeless
+        icon={<ChevronLeft size={24} color="$gray10" />}
+        onPress={() => router.back()}
+      />
+
       {/* Search Header */}
       <View style={{ padding: 16, backgroundColor: 'white' }}>
         <Input
@@ -227,7 +238,7 @@ export default function Search({
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaViewFixed>
   );
 }
 
