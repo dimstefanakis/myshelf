@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { YStack, Text, View, Separator } from "tamagui";
 import useUser from "@/hooks/useUser";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import { useGoalTrackerStore } from "@/store/goalTrackerStore";
 
@@ -15,7 +15,7 @@ function isConsecutive(prevDate: string, currentDate: string) {
 
 const GoalTrackerBlock = () => {
   const { user } = useUser();
-  const navigation = useNavigation();
+  const router = useRouter();
   const { 
     goals, 
     goalLogs, 
@@ -105,7 +105,7 @@ const GoalTrackerBlock = () => {
       borderWidth={1}
       padding="$4"
       space="$4"
-      onPress={() => navigation.navigate('GoalTracker')}
+      onPress={() => router.push('/gridNavigation/goalTracker')}
     >
       <Text fontSize="$5" fontWeight="bold">Goals</Text>
 

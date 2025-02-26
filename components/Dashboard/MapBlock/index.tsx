@@ -28,6 +28,10 @@ const MapBlock = () => {
         id,
         setting_origin_lat,
         setting_origin_long,
+        author_nationality_lat,
+        author_nationality_long,
+        country_published_lat,
+        country_published_long,
         user_book: users_books(*, book: books(*))
       `)
       .eq("user_book.user", user.id);
@@ -38,23 +42,44 @@ const MapBlock = () => {
     }
 
     if (data) {
-      const markersData = data
-        .map((marker) => {
-          if (marker.setting_origin_lat && marker.setting_origin_long) {
-            return {
-              type: "Setting Origin",
-              latitude: marker.setting_origin_lat,
-              longitude: marker.setting_origin_long,
-              key: marker.id.toString(),
-              title: marker.user_book?.book?.title,
-            };
-          }
-          return null;
-        })
-        .filter((marker) => marker !== null);
+      const markersData: MarkerType[] = [];
+      
+      data.forEach((item) => {
+        // Setting origin markers
+        if (item.setting_origin_lat && item.setting_origin_long) {
+          markersData.push({
+            type: "Setting Origin",
+            latitude: parseFloat(item.setting_origin_lat),
+            longitude: parseFloat(item.setting_origin_long),
+            key: `setting-${item.id}`,
+            title: `Setting: ${item.user_book?.book?.title}`,
+          });
+        }
+        
+        // Author nationality markers
+        if (item.author_nationality_lat && item.author_nationality_long) {
+          markersData.push({
+            type: "Author Origin",
+            latitude: parseFloat(item.author_nationality_lat),
+            longitude: parseFloat(item.author_nationality_long),
+            key: `author-${item.id}`,
+            title: `Author: ${item.user_book?.book?.title}`,
+          });
+        }
+        
+        // Publication country markers
+        if (item.country_published_lat && item.country_published_long) {
+          markersData.push({
+            type: "Published In",
+            latitude: parseFloat(item.country_published_lat),
+            longitude: parseFloat(item.country_published_long),
+            key: `published-${item.id}`,
+            title: `Published: ${item.user_book?.book?.title}`,
+          });
+        }
+      });
 
       // @ts-ignore
-      // TODO: fix this
       setMarkers(markersData);
     }
   };
@@ -62,8 +87,6 @@ const MapBlock = () => {
   useEffect(() => {
     fetchMarkers();
   }, [user]);
-
-  console.log(markers)
 
   const mapRegion = {
     latitude: markers[markers.length - 1]?.latitude || 37.7749,
@@ -98,8 +121,8 @@ const MapBlock = () => {
               <Marker
                 key={marker.key}
                 coordinate={{
-                  latitude: parseFloat(marker.latitude.toString()),
-                  longitude: parseFloat(marker.longitude.toString()),
+                  latitude: marker.latitude,
+                  longitude: marker.longitude,
                 }}
                 title={marker.title}
               />

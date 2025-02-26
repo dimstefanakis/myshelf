@@ -16,7 +16,7 @@ import PagerView from "react-native-pager-view";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import ArcSlider from "@/components/ArcSlider";
-import { View, TextInput, ScrollView } from "@/components/Themed";
+import { TextInput, ScrollView } from "@/components/Themed";
 import useUser, { User } from "@/hooks/useUser";
 import type { Database } from "@/types_db";
 import { supabase } from "@/utils/supabase";
@@ -26,9 +26,9 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { getLocales, getCalendars } from "expo-localization";
 import SafeAreaViewFixed from "@/components/SafeAreaView";
-import { useGoalTrackerStore } from '@/store/goalTrackerStore';
-import { XStack, YStack, Button, Text } from "tamagui";
-import { ChevronLeft, Bell, Pencil } from '@tamagui/lucide-icons';
+import { useGoalTrackerStore } from "@/store/goalTrackerStore";
+import { XStack, View, YStack, Button, Text } from "tamagui";
+import { ChevronLeft, Bell, Pencil } from "@tamagui/lucide-icons";
 
 type Goal = Database["public"]["Tables"]["goals"]["Row"];
 type Log = Database["public"]["Tables"]["goal_logs"]["Row"] & {
@@ -98,9 +98,11 @@ function GoalTrackerScreen() {
   const { timeZone } = getCalendars()[0];
   const [loadingReminderUpdate, setLoadingReminderUpdate] = useState(false);
   // const [date, setDate] = useState(new Date(1598051730000));
-  const dateTimeString = `${formatReminderTime(user?.profile?.reminder_time ?? "")}`;
+  const dateTimeString = `${formatReminderTime(
+    user?.profile?.reminder_time ?? ""
+  )}`;
   const dateObj = new Date(dateTimeString);
-  dateObj.toLocaleString("en-US", { timeZone: timeZone || '' });
+  dateObj.toLocaleString("en-US", { timeZone: timeZone || "" });
   const [date, setDate] = useState(dateObj);
   const [show, setShow] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -113,7 +115,7 @@ function GoalTrackerScreen() {
     fetchGoals,
     getGoalProgress,
     listenToLogUpdates,
-    listenToGoalUpdates
+    listenToGoalUpdates,
   } = useGoalTrackerStore();
 
   async function registerForPushNotificationsAsync() {
@@ -148,7 +150,7 @@ function GoalTrackerScreen() {
       now.getMonth(),
       now.getDate(),
       time.getHours(),
-      time.getMinutes(),
+      time.getMinutes()
     );
 
     // If the chosen time has already passed today, schedule for tomorrow
@@ -206,11 +208,11 @@ function GoalTrackerScreen() {
 
     const timezoneOffset = date.getTimezoneOffset();
     const offsetHours = String(
-      Math.abs(Math.floor(timezoneOffset / 60)),
+      Math.abs(Math.floor(timezoneOffset / 60))
     ).padStart(2, "0");
     const offsetMinutes = String(Math.abs(timezoneOffset % 60)).padStart(
       2,
-      "0",
+      "0"
     );
     const offsetSign = timezoneOffset <= 0 ? "+" : "-";
     const formattedOffset = `${offsetSign}${offsetHours}:${offsetMinutes}`;
@@ -263,10 +265,7 @@ function GoalTrackerScreen() {
       if (timelogs) {
         const logs = timelogs.logs.filter((log) => {
           if (goal.time_type == "daily") {
-            return (
-              log.type === goal.type &&
-              log?.goal?.time_type === "daily"
-            );
+            return log.type === goal.type && log?.goal?.time_type === "daily";
           } else if (goal.time_type == "weekly") {
             return (
               log.type === goal.type &&
@@ -284,10 +283,7 @@ function GoalTrackerScreen() {
             return log.type === goal.type;
           }
         });
-        progress = logs.reduce(
-          (acc, log) => acc + (log.unit_amount ?? 0),
-          0
-        );
+        progress = logs.reduce((acc, log) => acc + (log.unit_amount ?? 0), 0);
       }
     } else {
       const logs = goalLogs.find((log) => {
@@ -300,8 +296,10 @@ function GoalTrackerScreen() {
     return progress;
   }
 
-  const activeGoals = goals.filter((goal) => goal.time_type == 'daily');
-  const passiveGoals = goals.filter((goal) => goal.time_type != 'daily');
+  const activeGoals = goals.filter((goal) => goal.time_type == "daily");
+  const passiveGoals = goals.filter(
+    (goal) => goal.time_type != "daily" && goal.type != "pages"
+  );
 
   return (goals.length == 0 || goalLogs.length == 0) &&
     (loadingLogs || loading) ? (
@@ -319,8 +317,7 @@ function GoalTrackerScreen() {
             chromeless
             icon={<ChevronLeft size={24} color="$gray10" />}
             onPress={() => router.back()}
-          >
-          </Button>
+          ></Button>
           <XStack flex={1}></XStack>
           <Button
             borderRadius={100}
@@ -331,21 +328,28 @@ function GoalTrackerScreen() {
             onPress={() => {
               registerForPushNotificationsAsync();
             }}
-          >
-          </Button>
+          ></Button>
         </XStack>
 
-        <Text fontSize="$6" fontWeight="bold" marginTop="$4" marginLeft="$4">My Reading Goals</Text>
+        <Text fontSize="$6" fontWeight="bold" marginTop="$4" marginLeft="$4">
+          My Reading Goals
+        </Text>
         <StreakChallenge />
         <YStack marginTop="$4" paddingHorizontal="$4">
-          <Text fontSize="$5" fontWeight="bold">Active goals</Text>
+          <Text fontSize="$5" fontWeight="bold">
+            Active goals
+          </Text>
           {activeGoals.map((goal) => {
             const progress = getGoalProgressValue(goal);
 
             return (
-              <XStack key={goal.id} style={styles.activeGoalCard} onPress={() => {
-                router.push(`/updateGoal/${goal.id}`)
-              }}>
+              <XStack
+                key={goal.id}
+                style={styles.activeGoalCard}
+                onPress={() => {
+                  router.push(`/updateGoal/${goal.id}`);
+                }}
+              >
                 <View style={styles.goalInfo}>
                   <Text style={styles.goalTitle}>
                     {goal.type} read {goal.time_type}
@@ -354,7 +358,11 @@ function GoalTrackerScreen() {
                     {progress || 0}/{goal.unit_amount}
                   </Text>
                 </View>
-                <XStack space="$2" alignItems="center" backgroundColor="#E8E0D9">
+                <XStack
+                  space="$2"
+                  alignItems="center"
+                  backgroundColor="#E8E0D9"
+                >
                   <View style={styles.progressCircle}>
                     <ArcSlider
                       size={80}
@@ -374,42 +382,56 @@ function GoalTrackerScreen() {
         </YStack>
 
         <YStack marginTop="$4" paddingHorizontal="$4">
-          <Text fontSize="$5" fontWeight="bold">Passive goals</Text>
-          {passiveGoals.map((goal) => {
-            const progress = getGoalProgressValue(goal);
+          <Text fontSize="$5" fontWeight="bold" mb="$2">
+            Passive goals
+          </Text>
+          <XStack flexWrap="wrap" justifyContent="space-between">
+            {passiveGoals.map((goal) => {
+              const progress = getGoalProgressValue(goal);
 
-            return (
-              <XStack
-                key={goal.id}
-                style={styles.passiveGoalCard}
-                pressStyle={{ opacity: 0.7 }}
-                onPress={() => {
-                  router.push(`/editGoal?id=${goal.id}`);
-                }}
-              >
-                <View style={styles.goalInfo}>
-                  <Text style={styles.goalTitle}>
-                    {goal.type} read {goal.time_type}
-                  </Text>
-                  <Text style={styles.goalProgress}>
-                    {progress || 0}/{goal.unit_amount}
-                  </Text>
-                </View>
-                <View style={styles.progressCircle}>
-                  <ArcSlider
-                    size={80}
-                    min={0}
-                    max={goal.unit_amount || 1}
-                    strokeWidth={10}
-                    startAngle={0}
-                    endAngle={360}
-                    value={progress || 0}
-                    disabled
-                  />
-                </View>
-              </XStack>
-            );
-          })}
+              return (
+                <Pressable
+                  key={goal.id}
+                  style={{ width: "48%" }}
+                  onPress={() => {
+                    router.push(`/editGoal?id=${goal.id}`);
+                  }}
+                >
+                  <View
+                    w="100%"
+                    backgroundColor="#E8E0D9"
+                    borderRadius={12}
+                    padding={16}
+                    borderLeftWidth={0}
+                    borderTopWidth={4}
+                    borderTopColor="$orange10"
+                    mb={16}
+                  >
+                    <YStack alignItems="center" space="$2">
+                      <Text style={styles.goalTitle} textAlign="center">
+                        {goal.type} read {goal.time_type}
+                      </Text>
+                      <View style={styles.progressCircle}>
+                        <ArcSlider
+                          size={60}
+                          min={0}
+                          max={goal.unit_amount || 1}
+                          strokeWidth={8}
+                          startAngle={0}
+                          endAngle={360}
+                          value={progress || 0}
+                          disabled
+                        />
+                      </View>
+                      <Text style={styles.goalProgress}>
+                        {progress || 0}/{goal.unit_amount}
+                      </Text>
+                    </YStack>
+                  </View>
+                </Pressable>
+              );
+            })}
+          </XStack>
         </YStack>
         <Modal
           animationType="fade"
@@ -530,10 +552,12 @@ function GoalTrackerScreen() {
                     <View
                       style={{ justifyContent: "center", alignItems: "center" }}
                     >
-                      <Text style={{ marginTop: 10 }}>Reminder every day at</Text>
+                      <Text style={{ marginTop: 10 }}>
+                        Reminder every day at
+                      </Text>
                       <Text style={{ fontWeight: "bold", marginBottom: 10 }}>
                         {convertTimeToHHMM(
-                          user?.profile?.reminder_time || "00:00",
+                          user?.profile?.reminder_time || "00:00"
                         )}
                       </Text>
                       <Button
@@ -660,9 +684,9 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
         animationType="fade"
         transparent={true}
         visible={isModalVisible}
-      // onRequestClose={() => {
-      //   setIsModalVisible(!isModalVisible);
-      // }}
+        // onRequestClose={() => {
+        //   setIsModalVisible(!isModalVisible);
+        // }}
       >
         <Pressable
           onPress={() => setIsModalVisible(!isModalVisible)}
@@ -730,7 +754,7 @@ function EditGoals({ tab }: { tab: (typeof tabs)[0] }) {
                           selectedTab.value == goal.value ? "#507C82" : "white",
                       }}
                       onPress={() => setSelectedTab(goal)}
-                    // onPress={() => setIsModalVisible(!isModalVisible)}
+                      // onPress={() => setIsModalVisible(!isModalVisible)}
                     >
                       <Text
                         style={{
@@ -847,7 +871,7 @@ function UpdateGoals({
 
   async function updateGoal(value: number) {
     const goal = goals.find(
-      (goal) => goal.type === selectedTab.value && goal.time_type === tab.value,
+      (goal) => goal.type === selectedTab.value && goal.time_type === tab.value
     );
     if (goal) {
       const { data, error } = await supabase.from("goal_logs").insert({
@@ -878,9 +902,9 @@ function UpdateGoals({
         animationType="fade"
         transparent={true}
         visible={isModalVisible}
-      // onRequestClose={() => {
-      //   setIsModalVisible(!isModalVisible);
-      // }}
+        // onRequestClose={() => {
+        //   setIsModalVisible(!isModalVisible);
+        // }}
       >
         <Pressable
           onPress={() => setIsModalVisible(!isModalVisible)}
@@ -947,7 +971,7 @@ function UpdateGoals({
                           selectedTab.value == goal.value ? "#507C82" : "white",
                       }}
                       onPress={() => setSelectedTab(goal)}
-                    // onPress={() => setIsModalVisible(!isModalVisible)}
+                      // onPress={() => setIsModalVisible(!isModalVisible)}
                     >
                       <Text
                         style={{
@@ -1039,12 +1063,12 @@ const StreakChallenge = () => {
     const { data: weekLogs } = await supabase
       .from("goal_logs")
       .select("created_at")
-      .gte('created_at', startOfWeek.toISOString())
-      .lte('created_at', today.toISOString());
+      .gte("created_at", startOfWeek.toISOString())
+      .lte("created_at", today.toISOString());
 
     const progress = Array(7).fill(false);
 
-    weekLogs?.forEach(log => {
+    weekLogs?.forEach((log) => {
       const logDate = new Date(log.created_at);
       const dayOfWeek = logDate.getDay();
       progress[dayOfWeek] = true;
@@ -1079,8 +1103,12 @@ const StreakChallenge = () => {
           <FontAwesome name="fire" size={24} color="#FF7A00" />
         </View>
         <YStack>
-          <Text color="#333" fontSize={16}>Current Streak</Text>
-          <Text color="#333" fontSize={24} fontWeight="bold">{streak} days</Text>
+          <Text color="#333" fontSize={16}>
+            Current Streak
+          </Text>
+          <Text color="#333" fontSize={24} fontWeight="bold">
+            {streak} days
+          </Text>
         </YStack>
       </XStack>
 
@@ -1091,7 +1119,7 @@ const StreakChallenge = () => {
             style={[
               styles.dot,
               completed ? styles.dotCompleted : styles.dotIncomplete,
-              index === currentDay && styles.dotCurrent
+              index === currentDay && styles.dotCurrent,
             ]}
           />
         ))}
@@ -1117,14 +1145,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   dotCompleted: {
-    backgroundColor: '#FF7A00',
+    backgroundColor: "#FF7A00",
   },
   dotIncomplete: {
-    backgroundColor: '#FFE8D7',
+    backgroundColor: "#FFE8D7",
   },
   dotCurrent: {
     borderWidth: 2,
-    borderColor: '#FF7A00',
+    borderColor: "#FF7A00",
     width: 25,
     height: 25,
     borderRadius: 20,
@@ -1209,72 +1237,64 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   activeGoalCard: {
-    flexDirection: 'row',
-    backgroundColor: '#E8E0D9',
+    flexDirection: "row",
+    backgroundColor: "#E8E0D9",
     borderLeftWidth: 4,
-    borderLeftColor: '#FF7A00',
+    borderLeftColor: "#FF7A00",
     padding: 20,
     // marginHorizontal: 16,
     marginVertical: 8,
     borderRadius: 12,
     elevation: 5,
   },
-  passiveGoalCard: {
-    flexDirection: 'row',
-    backgroundColor: '#E8E0D9',
-    borderLeftWidth: 4,
-    borderLeftColor: '#CD8B65',
-    padding: 20,
-    // marginHorizontal: 16,
-    marginVertical: 8,
+  passiveGoalSquare: {
+    width: "100%",
+    backgroundColor: "$orange2",
     borderRadius: 12,
-    elevation: 5,
+    padding: 16,
+    marginBottom: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderLeftWidth: 0,
+    borderTopWidth: 4,
+    borderTopColor: "$orange10",
+    elevation: 2,
+    minHeight: 160,
   },
-  // goalCard: {
-  //   flexDirection: 'row',
-  //   backgroundColor: '#E8E0D9',
-  //   borderLeftWidth: 4,
-  //   borderLeftColor: '#9AB7B3',
-  //   padding: 20,
-  //   // marginHorizontal: 16,
-  //   marginVertical: 8,
-  //   borderRadius: 12,
-  //   elevation: 5,
-  // },
   goalInfo: {
     flex: 1,
-    backgroundColor: '#E8E0D9',
-    justifyContent: 'center',
+    backgroundColor: "#E8E0D9",
+    justifyContent: "center",
   },
   goalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
-    textTransform: 'capitalize',
+    textTransform: "capitalize",
   },
   goalProgress: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   progressCircle: {
     width: 80,
     height: 80,
-    backgroundColor: '#E8E0D9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#E8E0D9",
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     paddingVertical: 20,
   },
   fireIconContainer: {
     width: 48,
     height: 48,
-    backgroundColor: '#FFE8D7',
+    backgroundColor: "#FFE8D7",
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

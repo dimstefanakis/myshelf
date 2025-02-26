@@ -72,6 +72,11 @@ export default function ArcSlider({
   }, [center, radius]);
 
   const createArcPath = useCallback((start: number, end: number) => {
+    // Check if we're at max value - if so, draw a complete circle
+    if (end - start >= 359.9) {
+      return `M ${polarToCartesian(start).x} ${polarToCartesian(start).y} A ${radius} ${radius} 0 1 1 ${polarToCartesian(start).x - 0.01} ${polarToCartesian(start).y}`;
+    }
+    
     const startPoint = polarToCartesian(start);
     const endPoint = polarToCartesian(end);
     const largeArcFlag = Math.abs(end - start) <= 180 ? 0 : 1;
@@ -114,8 +119,22 @@ export default function ArcSlider({
         angle += 360;
       }
       
-      if (angle >= startAngle && angle <= endAngle) {
-        const newValue = Math.floor(angleToValue(angle));
+      // Allow reaching the max value by checking if we're near the end angle
+      if ((angle >= startAngle && angle <= endAngle) || 
+          (Math.abs(angle - endAngle) < 10)) {
+        
+        // Special handling for very close to the end
+        let newValue;
+        if (Math.abs(angle - endAngle) < 10) {
+          newValue = max;
+        } else {
+          newValue = Math.floor(angleToValue(angle));
+        }
+        
+        // Snap to max if we're very close
+        // if (max - newValue < 5) {
+        //   newValue = max;
+        // }
         
         if (minLock !== undefined && newValue < minLock) {
           if (currentValue !== minLock) {
@@ -144,7 +163,9 @@ export default function ArcSlider({
   }));
 
   const currentAngle = valueToAngle(currentValue);
-  const arcPath = createArcPath(startAngle, currentAngle);
+  // If at max value, use endAngle to ensure the arc is complete
+  const progressEndAngle = currentValue >= max ? endAngle + 0.1 : currentAngle;
+  const arcPath = createArcPath(startAngle, progressEndAngle);
   const trackPath = createArcPath(startAngle, endAngle);
   const thumbPosition = polarToCartesian(currentAngle);
 

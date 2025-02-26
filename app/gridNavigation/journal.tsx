@@ -599,7 +599,7 @@ const CombinedFeedScreen = () => {
         onPress={() => router.back()}
       />
 
-      <YStack flex={1} backgroundColor="$background">
+      <YStack flex={1}>
         {/* Fixed position search input */}
         <YStack
           position="absolute"
@@ -608,7 +608,6 @@ const CombinedFeedScreen = () => {
           right={0}
           zIndex={1}
           padding="$4"
-          backgroundColor="$background"
         >
           <Input
             placeholder="Search journal..."

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import useUser from "@/hooks/useUser";
 import { useJournalStore } from "@/store/journalStore";
 import { YStack, XStack, Text, Separator, Image, Paragraph, Button } from "tamagui";
@@ -12,6 +12,7 @@ interface CombinedFeedItem extends Note, Journal, Quote {
 
 const JournalBlock = () => {
   const { session } = useUser();
+  const router = useRouter();
   const navigation = useNavigation();
   const { notes, journal, quotes } = useJournalStore();
   const [recentItems, setRecentItems] = useState<CombinedFeedItem[]>([]);
@@ -38,7 +39,7 @@ const JournalBlock = () => {
       case 'note':
         return (
           <YStack>
-            {item.title && <Text fontSize="$3" fontWeight="bold">{item.title}</Text>}
+            {item.title && <Text fontSize="$3" fontWeight="bold" mb={4}>{item.title}</Text>}
             {item.image_url && (
               <Image source={{ uri: item.image_url }} borderRadius="$3" marginVertical="$2" aspectRatio={16 / 9} />
             )}
@@ -48,15 +49,15 @@ const JournalBlock = () => {
       case 'journal':
         return (
           <YStack>
-            {item.title && <Text fontSize="$2" fontWeight="bold">{item.title}</Text>}
+            {item.title && <Text fontSize="$2" numberOfLines={2} fontWeight="bold" mb={4}>{item.title}</Text>}
             {item.description && <Text fontSize={11} numberOfLines={4}>{item.description}</Text>}
           </YStack>
         );
       case 'quote':
         return (
           <YStack>
-            {item.title && <Paragraph fontSize="$3" fontStyle="italic">"{item.title}"</Paragraph>}
-            {item.author && <Text fontSize="$2">{item.author}</Text>}
+            {item.title && <Paragraph fontSize="$3" numberOfLines={2} lineHeight={18} fontStyle="italic">"{item.title}"</Paragraph>}
+            {item.author && <Text fontSize={11} numberOfLines={4} mt={4}>- {item.author}</Text>}
           </YStack>
         );
       default:
@@ -72,7 +73,8 @@ const JournalBlock = () => {
       borderRadius="$2"
       borderColor="$orange6"
       borderWidth={1}
-      onPress={() => navigation.navigate('Journal')}
+      overflow="hidden"
+      onPress={() => router.push('/gridNavigation/journal')}
     >
       <XStack justifyContent="space-between" alignItems="center" padding="$3">
         <Text fontSize="$5" fontWeight="bold">Journal</Text>
