@@ -9,7 +9,6 @@ import AddBookNoteEntryScreen from "../addBookNoteEntry";
 import HabitLogBook from "../gridNavigation/habitLogBook";
 import AddQuoteEntryScreen from "../addQuoteEntry";
 import MapScreen from "../gridNavigation/map";
-import AddMarker from "../addMarker";
 import EditMarkers from "@/components/EditMarker";
 import StatisticsScreen from "../statistics";
 import Search from "@/components/SearchView";
@@ -92,11 +91,6 @@ export default function HomeStack() {
           headerTitle: "Quote",
         }}
       /> */}
-      <Stack.Screen
-        name="AddMarker"
-        component={AddMarker}
-        options={{ presentation: "modal", headerShown: false }}
-      />
       <Stack.Screen
         name="GoalTracker"
         component={GoalTrackerScreen}

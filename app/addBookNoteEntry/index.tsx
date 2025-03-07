@@ -5,6 +5,10 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Image,
+  Modal,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Text, Button } from "tamagui";
@@ -14,7 +18,6 @@ import { useNavigation } from "@react-navigation/native";
 import { supabase } from "@/utils/supabase";
 import * as FileSystem from "expo-file-system";
 import { decode } from "base64-arraybuffer";
-import { Image, Modal } from "react-native";
 import { Button as TamaguiButton, XStack, Text as TamaguiText, Input, YStack, Select, Adapt, Sheet, TextArea } from "tamagui";
 import { ChevronDown, ChevronLeft } from "@tamagui/lucide-icons";
 import SafeAreaView from "@/components/SafeAreaView";
@@ -279,98 +282,126 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Button
-        borderRadius={100}
-        w={50}
-        h={50}
-        chromeless
-        icon={<ChevronLeft size={24} color="$gray10" />}
-        onPress={() => navigation.goBack()}
-      />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.innerContainer}>
+          <Button
+            borderRadius={100}
+            w={50}
+            h={50}
+            chromeless
+            icon={<ChevronLeft size={24} color="$gray10" />}
+            onPress={() => navigation.goBack()}
+          />
 
-      <TamaguiText style={styles.headerText} marginVertical={20}>
-        {id ? "Edit Note" : "New Note"}
-      </TamaguiText>
+          <TamaguiText style={styles.headerText} marginVertical={20}>
+            {id ? "Edit Note" : "New Note"}
+          </TamaguiText>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoid}
-      >
-        <YStack f={1} jc="space-between" px="$4">
-          <YStack space="$4">
-            {cover_image && (
-              <Image
-                source={{ uri: cover_image }}
-                style={{ width: 100, height: 100, borderRadius: 10, alignSelf: 'center' }}
+          <View style={styles.contentContainer}>
+            <YStack space="$4" style={styles.inputContainer}>
+              {cover_image && (
+                <Image
+                  source={{ uri: cover_image }}
+                  style={{ width: 100, height: 100, borderRadius: 10, alignSelf: 'center' }}
+                />
+              )}
+              
+              <Input
+                size="$4"
+                placeholder="Title"
+                onChangeText={(text) => handleChange("title", text)}
+                defaultValue={bookToEdit.title ? bookToEdit.title : ""}
+                backgroundColor="$orange2"
+                borderColor="$orange4"
               />
-            )}
-            
-            <Input
-              size="$4"
-              placeholder="Title"
-              onChangeText={(text) => handleChange("title", text)}
-              defaultValue={bookToEdit.title ? bookToEdit.title : ""}
-              backgroundColor="$orange2"
-              borderColor="$orange4"
-            />
 
-            <TextArea
-              placeholder="Description"
-              onChangeText={(text) => handleChange("description", text)}
-              defaultValue={bookToEdit.description ? bookToEdit.description : ""}
-              backgroundColor="$orange2"
-              borderColor="$orange4"
-              size="$4"
-              multiline
-              minHeight={300}
-            />
+              {!id && (
+                <Select
+                  value={bookData.users_book}
+                  onValueChange={(value) => handleChange("users_book", value)}
+                >
+                  <Select.Trigger 
+                    width="100%" 
+                    backgroundColor="$orange2"
+                    borderColor="$orange4"
+                    borderWidth={1}
+                    borderRadius={12}
+                    height={50}
+                    iconAfter={ChevronDown}
+                  >
+                    <Select.Value placeholder="Select a book" />
+                  </Select.Trigger>
 
-            {!id && (
-              <Select
-                value={bookData.users_book}
-                onValueChange={(value) => handleChange("users_book", value)}
+                  <Adapt when="sm" platform="touch">
+                    <Sheet dismissOnSnapToBottom>
+                      <Sheet.Frame>
+                        <Sheet.ScrollView>
+                          <Adapt.Contents />
+                        </Sheet.ScrollView>
+                      </Sheet.Frame>
+                      <Sheet.Overlay />
+                    </Sheet>
+                  </Adapt>
+
+                  <Select.Content>
+                    <Select.Viewport>
+                      <Select.Group>
+                        {books.map((book, index) => (
+                          <Select.Item 
+                            index={index} 
+                            key={book.id} 
+                            value={book.id}
+                          >
+                            <Select.ItemText>{book.book.title}</Select.ItemText>
+                          </Select.Item>
+                        ))}
+                      </Select.Group>
+                    </Select.Viewport>
+                  </Select.Content>
+                </Select>
+              )}
+
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.keyboardAvoid}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 150 : 0}
               >
-                <Select.Trigger 
-                  width="100%" 
+                <TextArea
+                  placeholder="Description"
+                  onChangeText={(text) => handleChange("description", text)}
+                  defaultValue={bookToEdit.description ? bookToEdit.description : ""}
                   backgroundColor="$orange2"
                   borderColor="$orange4"
-                  borderWidth={1}
-                  borderRadius={12}
-                  height={50}
-                  iconAfter={ChevronDown}
-                >
-                  <Select.Value placeholder="Select a book" />
-                </Select.Trigger>
+                  size="$4"
+                  mb={50}
+                  flex={1}
+                />
+              </KeyboardAvoidingView>
+            </YStack>
+          </View>
 
-                <Adapt when="sm" platform="touch">
-                  <Sheet dismissOnSnapToBottom>
-                    <Sheet.Frame>
-                      <Sheet.ScrollView>
-                        <Adapt.Contents />
-                      </Sheet.ScrollView>
-                    </Sheet.Frame>
-                    <Sheet.Overlay />
-                  </Sheet>
-                </Adapt>
-
-                <Select.Content>
-                  <Select.Viewport>
-                    <Select.Group>
-                      {books.map((book, index) => (
-                        <Select.Item 
-                          index={index} 
-                          key={book.id} 
-                          value={book.id}
-                        >
-                          <Select.ItemText>{book.book.title}</Select.ItemText>
-                        </Select.Item>
-                      ))}
-                    </Select.Group>
-                  </Select.Viewport>
-                </Select.Content>
-              </Select>
-            )}
-          </YStack>
+          {images.length > 0 && images[0].includes("http") && (
+            <View style={styles.galleryContainer}>
+              <Text style={styles.galleryTitle}>
+                {bookName}
+              </Text>
+              <View style={styles.galleryGrid}>
+                {images.map((imgUrl, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.galleryImageContainer}
+                    onPress={() => openImage(imgUrl)}
+                  >
+                    <Image
+                      key={index}
+                      source={{ uri: imgUrl }}
+                      style={styles.galleryImage}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
 
           <View style={styles.buttonContainer}>
             {id ? (
@@ -410,34 +441,9 @@ const AddBookNoteEntryScreen = ({ route, nav }: any) => {
               </Button>
             )}
           </View>
-        </YStack>
-      </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
 
-      {images.length > 0 && images[0].includes("http") && (
-        <>
-          <Text style={{ fontSize: 20, margin: 10 }}>
-            {/* bookname */}
-            {bookName}
-          </Text>
-          <View
-            style={{ flexDirection: "row", flexWrap: "wrap", width: "100%" }}
-          >
-            {images.map((imgUrl, index) => (
-              <TouchableOpacity
-                key={index}
-                style={{ maxWidth: "32%" }}
-                onPress={() => openImage(imgUrl)}
-              >
-                <Image
-                  key={index}
-                  source={{ uri: imgUrl }}
-                  style={styles.galleryImage}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </>
-      )}
       <Modal
         animationType="slide"
         transparent={false}
@@ -472,6 +478,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
   },
+  innerContainer: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+  },
+  contentContainer: {
+    flex: 1,
+  },
   headerText: {
     fontSize: 24,
     fontWeight: "600",
@@ -480,40 +494,47 @@ const styles = StyleSheet.create({
   },
   keyboardAvoid: {
     flex: 1,
-    width: "100%",
   },
   buttonContainer: {
     width: "100%",
+    paddingHorizontal: 16,
     paddingBottom: 20,
   },
-  input: {
-    height: 40,
-    borderWidth: 1,
-    width: "80%",
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 20,
+  inputContainer: {
+    flex: 1,
+    width: "100%",
+    paddingHorizontal: 16,
   },
-  multilineInput: {
-    height: 120,
-    borderWidth: 1,
-    width: "80%",
-    padding: 10,
-    borderRadius: 10,
-    textAlignVertical: "top",
-    marginTop: 20,
-    marginBottom: 20,
+  galleryContainer: {
+    width: "100%",
+    paddingHorizontal: 16,
+  },
+  galleryTitle: {
+    fontSize: 20,
+    margin: 10,
+    color: "$orange11",
+    fontWeight: "600",
+  },
+  galleryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    width: "100%",
+  },
+  galleryImageContainer: {
+    maxWidth: "32%",
+    margin: 2,
   },
   galleryImage: {
     width: 110,
     height: 110,
-    margin: 5,
+    borderRadius: 8,
   },
   centeredView: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 22,
+    backgroundColor: "black",
   },
   fullSizeImage: {
     width: "100%",
@@ -521,29 +542,17 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   modalCloseButton: {
+    position: "absolute",
+    top: 50,
+    right: 20,
     padding: 10,
-    elevation: 2,
-    backgroundColor: "#2196F3",
+    backgroundColor: "$orange10",
+    borderRadius: 8,
+    zIndex: 10,
   },
   textStyle: {
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
-  },
-  Touchable: {
-    backgroundColor: "black",
-    padding: 10,
-    margin: 10,
-    borderRadius: 10,
-    width: "40%",
-    alignItems: "center",
-  },
-  deleteButton: {
-    backgroundColor: "red",
-    padding: 10,
-    alignItems: "center",
-    width: "40%",
-    borderRadius: 10,
-    marginVertical: 10,
   },
 });

@@ -1,10 +1,13 @@
 import { Button, View, Text, ScrollView } from "@/components/Themed";
+import { Button as TamaguiButton } from "@tamagui/button";
 import React, { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
-import { Image, StyleSheet, TouchableOpacity } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, Linking } from "react-native";
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import SafeAreaViewFixed from "@/components/SafeAreaView";
 import { supabase } from "@/utils/supabase";
+import { ChevronLeft } from "@tamagui/lucide-icons";
 
 export default function TabTwoScreen() {
   const router = useRouter();
@@ -12,9 +15,31 @@ export default function TabTwoScreen() {
     supabase.auth.signOut();
   };
 
+  const handleContactUs = () => {
+    Linking.openURL('mailto:support@bnooks.com');
+  };
+
+  const handlePrivacyPolicy = () => {
+    Linking.openURL('https://bnooks.com/privacy-policy');
+  };
+
+  const handleTermsOfService = () => {
+    Linking.openURL('https://bnooks.com/terms-of-use');
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      {/* <View style={styles.header}>
+    <SafeAreaViewFixed style={{ flex: 1 }}>
+      <TamaguiButton
+        borderRadius={100}
+        w={50}
+        h={50}
+        chromeless
+        icon={<ChevronLeft size={24} color="$gray10" />}
+        onPress={() => router.back()}
+      />
+      
+      <ScrollView style={styles.container}>
+        {/* <View style={styles.header}>
         <TouchableOpacity>
           <MaterialIcons name="edit" size={24} color="white" />
         </TouchableOpacity>
@@ -26,7 +51,7 @@ export default function TabTwoScreen() {
           <Feather name="settings" size={24} color="white" />
         </TouchableOpacity>
       </View> */}
-      {/* <View style={styles.rewardsSection}>
+        {/* <View style={styles.rewardsSection}>
         <Text
           style={{
             textAlign: "left",
@@ -66,37 +91,54 @@ export default function TabTwoScreen() {
           </Button>
         </View>
       </View> */}
-      <View>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>Manage Account</Text>
-          <MaterialIcons
-            name="keyboard-arrow-right"
-            size={30}
-            color="#788490"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuItemText}>Contact Us</Text>
-          <MaterialIcons
-            name="keyboard-arrow-right"
-            size={30}
-            color="#788490"
-          />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={handleSignout}>
-          <Text style={styles.menuItemText}>Sign Out</Text>
-          <MaterialIcons
-            name="keyboard-arrow-right"
-            size={30}
-            color="#788490"
-          />
-        </TouchableOpacity>
-        {/* <Image
+        <View>
+          <TouchableOpacity style={styles.menuItem}>
+            <Text style={styles.menuItemText}>Manage Account</Text>
+            <MaterialIcons
+              name="keyboard-arrow-right"
+              size={30}
+              color="#788490"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={handleContactUs}>
+            <Text style={styles.menuItemText}>Contact Us</Text>
+            <MaterialIcons
+              name="keyboard-arrow-right"
+              size={30}
+              color="#788490"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={handlePrivacyPolicy}>
+            <Text style={styles.menuItemText}>Privacy Policy</Text>
+            <MaterialIcons
+              name="keyboard-arrow-right"
+              size={30}
+              color="#788490"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={handleTermsOfService}>
+            <Text style={styles.menuItemText}>Terms of Service</Text>
+            <MaterialIcons
+              name="keyboard-arrow-right"
+              size={30}
+              color="#788490"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={handleSignout}>
+            <Text style={styles.menuItemText}>Sign Out</Text>
+            <MaterialIcons
+              name="keyboard-arrow-right"
+              size={30}
+              color="#788490"
+            />
+          </TouchableOpacity>
+          {/* <Image
           source={require("./../../assets/images/waterstone_plus_banner.png")}
           style={styles.waterstonesPlusImage}
         /> */}
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </SafeAreaViewFixed>
   );
 }
 

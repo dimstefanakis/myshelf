@@ -34,7 +34,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
   const handleMapPress = (e: any) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
     router.push({
-      pathname: "/AddMarker",
+      pathname: "/addMarker",
       params: { latitude, longitude }
     });
   };
@@ -42,7 +42,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
   const handleAutoComplete = (data: Geometry) => {
     const { lat, lng } = data.location;
     router.push({
-      pathname: "/AddMarker",
+      pathname: "/addMarker",
       params: { latitude: lat, longitude: lng }
     });
   };
@@ -52,7 +52,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
   }, []);
 
   const handleEditMarker = () => {
-    router.push("/EditMarkers");
+    router.push("/editMarkers");
   };
 
   const fetchMarkers = async () => {

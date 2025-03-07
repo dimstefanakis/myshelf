@@ -600,15 +600,7 @@ const CombinedFeedScreen = () => {
       />
 
       <YStack flex={1}>
-        {/* Fixed position search input */}
-        <YStack
-          position="absolute"
-          top={0}
-          left={0}
-          right={0}
-          zIndex={1}
-          padding="$4"
-        >
+        <YStack paddingHorizontal="$4">
           <Input
             placeholder="Search journal..."
             value={searchQuery}
@@ -621,13 +613,12 @@ const CombinedFeedScreen = () => {
             focusStyle={{ borderColor: "$orange10" }}
           />
         </YStack>
-
         <AnimatedFlatList
           data={filteredFeed}
           renderItem={renderItem}
           keyExtractor={(item: any) => `${item.type}-${item.id}`}
           ListHeaderComponent={() => (
-            <YStack space="$4" marginTop={60}>
+            <YStack space="$4">
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <XStack space="$2" paddingVertical="$2">
                   <Button

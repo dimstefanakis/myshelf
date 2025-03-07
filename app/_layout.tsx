@@ -169,6 +169,7 @@ function RootLayoutNav() {
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="shelves" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen
           name="gridNavigation/journal"
           options={{ headerShown: false }}
@@ -248,13 +249,13 @@ function RootLayoutNav() {
             headerShown: false,
           }}
         />
-        {/* <Stack.Screen
-          name="editMarker/index"
+        <Stack.Screen
+          name="editMarkers/index"
           options={{
             presentation: "modal",
             headerShown: false,
           }}
-        /> */}
+        />
         <Stack.Screen
           name="addMarker/index"
           options={{
