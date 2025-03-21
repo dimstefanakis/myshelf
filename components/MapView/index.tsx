@@ -169,7 +169,8 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
           icon={<ChevronLeft size={24} color="$gray10" />}
           onPress={() => router.back()}
         />
-        <View style={{ flex: 1, paddingLeft: 10 }}>
+        <View style={{ flex: 1 }}></View>
+        {/* <View style={{ flex: 1, paddingLeft: 10 }}>
           <GooglePlacesAutocomplete
             placeholder="Search"
             fetchDetails
@@ -205,7 +206,7 @@ export default function MapViewScreen({ navigation, sortCategory }: any) {
               language: "en",
             }}
           />
-        </View>
+        </View> */}
       </XStack>
       {markers.length > 0 && (
         <TouchableOpacity

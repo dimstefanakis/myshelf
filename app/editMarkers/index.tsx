@@ -126,8 +126,10 @@ const EditMarkers = () => {
         <View key={marker.id} style={styles.markerContainer}>
           <View style={styles.containerTitle}>
             <Text style={styles.bookTitle}>{marker.book_title}</Text>
-            <Text style={styles.markerType}>{marker.marker_type}</Text>
-            <Text>{marker.country}</Text>
+            <View style={styles.markerTypeContainer}>
+              <Text style={styles.markerType}>{marker.marker_type}</Text>
+            </View>
+            <Text style={styles.countryText}>{marker.country}</Text>
           </View>
           <TouchableOpacity
             onPress={() => removeMarker(marker.id)}
@@ -144,42 +146,76 @@ const EditMarkers = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    padding: 16,
+    backgroundColor: "#FAFAFA",
+  },
+  pageTitle: {
+    fontSize: 24,
+    fontWeight: "600",
+    marginBottom: 16,
+    color: "#DD5511", // orange11 equivalent
   },
   markerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "lightgrey",
-    paddingBottom: 10,
-    marginBottom: 10,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    backgroundColor: "#FFF8F0", // orange2 equivalent
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   containerTitle: {
     display: "flex",
     flexDirection: "column",
     maxWidth: "70%",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    gap: 4,
   },
-  markerContent: {
-    flex: 1,
+  markerTypeContainer: {
+    backgroundColor: "#FFCCA7", // orange4 equivalent
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginVertical: 4,
   },
   markerType: {
-    fontSize: 14,
+    fontSize: 12,
+    color: "#DD5511", // orange11 equivalent
+    fontWeight: "500",
   },
   bookTitle: {
     fontSize: 16,
     fontWeight: "bold",
+    color: "#000",
+  },
+  countryText: {
+    fontSize: 14,
+    color: "#555",
   },
   removeButton: {
-    marginLeft: 10,
-    backgroundColor: "red",
-    padding: 10,
-    borderRadius: 4,
+    backgroundColor: "#F76B15", // orange10 equivalent
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
   },
   removeButtonText: {
     color: "white",
+    fontWeight: "500",
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: "#777",
   },
 });
 

@@ -170,6 +170,7 @@ function RootLayoutNav() {
         <Stack.Screen name="signup" options={{ headerShown: false }} />
         <Stack.Screen name="shelves" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="manage-account" options={{ headerShown: false }} />
         <Stack.Screen
           name="gridNavigation/journal"
           options={{ headerShown: false }}

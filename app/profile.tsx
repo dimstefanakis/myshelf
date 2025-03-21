@@ -27,6 +27,10 @@ export default function TabTwoScreen() {
     Linking.openURL('https://bnooks.com/terms-of-use');
   };
 
+  const handleManageAccount = () => {
+    router.push('/manage-account');
+  };
+
   return (
     <SafeAreaViewFixed style={{ flex: 1 }}>
       <TamaguiButton
@@ -92,7 +96,7 @@ export default function TabTwoScreen() {
         </View>
       </View> */}
         <View>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={handleManageAccount}>
             <Text style={styles.menuItemText}>Manage Account</Text>
             <MaterialIcons
               name="keyboard-arrow-right"

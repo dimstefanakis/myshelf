@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "BNOOK - Your Reading Tracker",
+    "name": "BNOOKS - Your Reading Tracker",
     "slug": "myshelf",
-    "version": "2.0.3",
+    "version": "2.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -58,7 +58,7 @@
         "expo-image-picker",
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends.",
-          "cameraPermission": "The app accesses your camera to let you take photos."
+          "cameraPermission": "The app needs camera access to let you take photos of books and add them to your journal entries or book notes. These photos are stored in your personal library and help you visually document your reading journey."
         }
       ],
       "expo-secure-store",
